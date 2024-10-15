@@ -5,10 +5,12 @@ function Sidebar() {
   const handleDragStart = (event, itemType) => {
     event.dataTransfer.setData('itemType', itemType);
   };
+  
 
   return (
-    <div className="Sidebar">
+    <div className="Sidebar" id="sidebar">
       <h2>Opciones</h2>
+      {/* Los draggable-item son los elementos que pueden ser arrastrados */}
       <div
         className="draggable-item"
         draggable
