@@ -12,12 +12,6 @@ function Lienzo() {
     event.preventDefault();
   };
 
-  const handleDeleteItem = () => {
-    setItems(items.filter(item => item.id !== contextMenu.itemId));
-    closeContextMenu(); // Cierra el menú después de eliminar el elemento
-  };
-
-
   const handleDragStartExisting = (event, index) => {
     setDraggedItemIndex(index); // Usa el índice del elemento
   };
