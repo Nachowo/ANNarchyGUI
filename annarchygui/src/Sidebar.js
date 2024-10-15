@@ -1,7 +1,7 @@
 import React from 'react';
 import './Sidebar.css';
 
-function Sidebar() {
+function Sidebar({ onConnectToggle }) {
   const handleDragStart = (event, itemType) => {
     event.dataTransfer.setData('itemType', itemType);
   };
@@ -9,7 +9,6 @@ function Sidebar() {
   return (
     <div className="Sidebar" id="sidebar">
       <h2>Opciones</h2>
-      {/* Los draggable-item son los elementos que pueden ser arrastrados */}
       <div
         className="draggable-item"
         draggable
@@ -24,6 +23,7 @@ function Sidebar() {
       >
         Elemento 2
       </div>
+      <button onClick={onConnectToggle}>Conectar</button>
     </div>
   );
 }
