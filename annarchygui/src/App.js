@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
+import ContextMenu from './ContextMenu';
 
 function App() {
   return (

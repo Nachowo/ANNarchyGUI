@@ -5,7 +5,6 @@ function Sidebar() {
   const handleDragStart = (event, itemType) => {
     event.dataTransfer.setData('itemType', itemType);
   };
-  
 
   return (
     <div className="Sidebar" id="sidebar">
