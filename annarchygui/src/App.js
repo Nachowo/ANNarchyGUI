@@ -6,22 +6,20 @@ import ContextMenu from './ContextMenu';
 
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); // Estado para modo conexión
-  const [hasConnectionBeenMade, setHasConnectionBeenMade] = useState(false); // Estado para conexión realizada
 
   const handleConnectToggle = () => {
-    // Cambiar estado de conexión
     setIsConnecting(true);
-    setHasConnectionBeenMade(false);
+    document.body.style.cursor = 'crosshair'; // Cambia el cursor al
     console.log(`Modo conexión: true`);
   };
 
   return (
     <div className="App">
       <header className="App-header">
- 
+        <button className='buttonHeader'>Simular</button>
       </header>
       <div className="App-body">
-        <Lienzo isConnecting={[isConnecting,hasConnectionBeenMade]} />
+        <Lienzo isConnecting={[isConnecting, setIsConnecting]} />
         <Sidebar onConnectToggle={handleConnectToggle} />
       </div>
     </div>

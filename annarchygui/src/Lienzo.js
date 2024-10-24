@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import './Lienzo.css';
 import ContextMenu from './ContextMenu'; // Importa el menú contextual
 
-function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const [items, setItems] = useState([]);
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);  // Contador para los IDs
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, itemId: null });
   const [selectedItems, setSelectedItems] = useState([]); // Para almacenar elementos seleccionados
   const [connections, setConnections] = useState([]); // Para almacenar pares de conexiones
-  const num = 0;
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -86,14 +85,14 @@ function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
   };
 
   useEffect(() => {
-    if (selectedItems.length === 2 && !hasConnectionBeenMade) {
-      // Guarda la conexión y resetea la selección
+    if (selectedItems.length === 2) {
       setConnections((prevConnections) => [...prevConnections, selectedItems]);
-      console.log(`Conexión de ${selectedItems[0].id} a ${selectedItems[1].id}`);
-      hasConnectionBeenMade = true;
+      // Desactiva el modo conexión
+      setIsConnecting(false); // Asegúrate de que esto cambie el estado en App.js
       setSelectedItems([]);
+      document.body.style.cursor = 'default'; // Restablece el cursor
     }
-  }, [selectedItems, hasConnectionBeenMade]);
+  }, [selectedItems]);
 
   useEffect(() => {
     // Este efecto se ejecuta cuando cambia el estado connections
@@ -101,13 +100,16 @@ function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
   }, [connections]);
 
   return (
-    <div className="Lienzo" onDragOver={handleDragOver} onDrop={handleDrop}>
+    <div
+      className={`Lienzo`} // Aplica la clase cuando esté en modo conectar
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <div className="items">
-        
         {items.map((item, index) => (
           <div
             key={item.id}  // Usa el ID como clave
-            className={`dropped-item ${isConnecting ? 'connecting' : ''}`} // Cambia el estilo si está en modo conexión
+            className={`dropped-item ${isConnecting ? 'connecting-mode' : ''}`} // Cambia el estilo si está en modo conexión
             draggable
             onDragStart={(event) => handleDragStartExisting(event, index)}  // Permitir arrastrar de nuevo usando el índice
             onContextMenu={(event) => handleContextMenu(event, item.id)}  // Manejar el clic derecho
@@ -119,20 +121,15 @@ function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
         ))}
         {
           connections.map((connection, index) => (
-            console.log("coordenadas del primer punto x1: ", items.find(item => item.id === connection[0].id).x),
-            console.log("coordenadas del primer punto y1: ", items.find(item => item.id === connection[0].id).y),
             <svg key={index} className="connection">
               <line
-
                 x1={items.find(item => item.id === connection[0].id).x + 50}  // X del primer elemento
                 y1={items.find(item => item.id === connection[0].id).y + 25}  // Y del primer elemento
                 x2={items.find(item => item.id === connection[1].id).x + 50}  // X del segundo elemento
                 y2={items.find(item => item.id === connection[1].id).y + 25}  // Y del segundo elemento
                 stroke='black'
                 strokeWidth='2'
-                
               />
-
             </svg>
           ))
         }

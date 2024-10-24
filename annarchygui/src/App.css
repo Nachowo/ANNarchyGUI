@@ -7,10 +7,28 @@
 .App-header {
   background-color: #282c34;
   padding: 20px;
-  color: white;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
 }
 
 .App-body {
   display: flex;
   height: 100vh;
+}
+
+.buttonHeader {
+  margin-left: 20px;
+  background-color: #c18b0e;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+}
+.Lienzo.connecting-mode {
+  cursor: crosshair; /* Cambia el cursor cuando está en modo conectar */
+}
+
+.dropped-item.connecting-mode {
+  cursor: crosshair; /* Cambia el cursor cuando está en modo conectar */
 }

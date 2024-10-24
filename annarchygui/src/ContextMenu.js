@@ -1,12 +1,13 @@
 import React from 'react';
-import './ContextMenu.css';
+import './ContextMenu.css'; // Asegúrate de tener estilos para el menú
 
-function ContextMenu({ x, y, onClose, onDelete }) {
+function ContextMenu({ x, y, onClose }) {
   return (
-    <div className="context-menu" style={{ top: `${y}px`, left: `${x}px` }}>
+    <div className="context-menu" style={{ top: y, left: x }}>
       <ul>
-        <li onClick={onDelete}>Eliminar Elemento</li> {/* Opción para eliminar */}
-        <li onClick={onClose}>Cerrar</li>
+        <li onClick={() => { console.log('Opción 1 seleccionada'); onClose(); }}>Opción 1</li>
+        <li onClick={() => { console.log('Opción 2 seleccionada'); onClose(); }}>Opción 2</li>
+        <li onClick={() => { console.log('Opción 3 seleccionada'); onClose(); }}>Opción 3</li>
       </ul>
     </div>
   );
