@@ -26,9 +26,9 @@
   border-radius: 5px;
 }
 .Lienzo.connecting-mode {
-  cursor: crosshair; /* Cambia el cursor cuando está en modo conectar */
+  cursor: crosshair; 
 }
 
 .dropped-item.connecting-mode {
-  cursor: crosshair; /* Cambia el cursor cuando está en modo conectar */
+  cursor: crosshair;
 }

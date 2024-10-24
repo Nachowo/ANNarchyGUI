@@ -17,9 +17,9 @@
 }
 
 .headerSidebar {
-  display: flex; /* Asegura que las pestañas estén alineadas horizontalmente */
-  justify-content: space-around; /* Ajusta la separación entre las pestañas */
-  list-style: none; /* Elimina los puntos de la lista */
+  display: flex; 
+  justify-content: space-around; 
+  list-style: none; 
   padding: 0;
   margin: 0;
   width: 100%;
@@ -27,23 +27,23 @@
 }
 
 .headerSidebar li {
-  flex: 1; /* Asegura que las pestañas ocupen el mismo espacio */
+  flex: 1; 
   text-align: center;
   margin: 0;
 }
 
 .headerSidebar a {
-  display: block; /* Necesario para que el ancho y el padding funcionen correctamente */
+  display: block; 
   text-decoration: none;
   color: #333;
-  padding: 10px 0; /* Espacio alrededor del texto */
-  border-bottom: 2px solid transparent; /* Línea inferior que se verá en la pestaña activa */
+  padding: 10px 0;
+  border-bottom: 2px solid transparent; 
   cursor: pointer;
   width: 100%;
 }
 
 .headerSidebar li.active a {
   background-color: #f0f0f0;
-  border-bottom: 2px solid #333; /* Resalta la pestaña activa */
+  border-bottom: 2px solid #333; 
 }
 

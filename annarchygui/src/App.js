@@ -5,11 +5,11 @@ import Sidebar from './Sidebar';
 import ContextMenu from './ContextMenu';
 
 function App() {
-  const [isConnecting, setIsConnecting] = useState(false); // Estado para modo conexión
+  const [isConnecting, setIsConnecting] = useState(false); 
 
   const handleConnectToggle = () => {
     setIsConnecting(true);
-    document.body.style.cursor = 'crosshair'; // Cambia el cursor al
+    document.body.style.cursor = 'crosshair'; 
     console.log(`Modo conexión: true`);
   };
 

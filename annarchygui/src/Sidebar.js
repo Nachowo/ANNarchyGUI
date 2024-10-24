@@ -4,8 +4,19 @@ import './Sidebar.css';
 function Sidebar({ onConnectToggle }) {
   const [activeTab, setActiveTab] = useState('Pestaña 1');
 
-  const handleDragStart = (event, itemType) => {
-    event.dataTransfer.setData('itemType', itemType);
+  // Ejemplo de un modelo de neurona
+  const neuronModel = {
+    id: 1,
+    name: 'Población neuronal',
+    attributes: {
+      firingRate: 10,
+      threshold: -55,
+    },
+  };
+
+  const handleDragStart = (event, model) => {
+    // Almacena el modelo como una cadena JSON
+    event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
 
   return (
@@ -26,16 +37,16 @@ function Sidebar({ onConnectToggle }) {
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, 'Elemento 1')}
+            onDragStart={(event) => handleDragStart(event, neuronModel)} 
           >
-            Elemento 1
+            {neuronModel.name}
           </div>
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, 'Elemento 2')}
+            onDragStart={(event) => handleDragStart(event, { id: 2, name: 'Monitor' })}
           >
-            Elemento 2
+            Monitor
           </div>
         </div>
       )}
@@ -45,14 +56,14 @@ function Sidebar({ onConnectToggle }) {
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, 'Elemento 3')}
+            onDragStart={(event) => handleDragStart(event, { id: 3, name: 'Elemento 3' })}
           >
             Elemento 3
           </div>
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, 'Elemento 4')}
+            onDragStart={(event) => handleDragStart(event, { id: 4, name: 'Elemento 4' })}
           >
             Elemento 4
           </div>

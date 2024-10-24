@@ -4,17 +4,17 @@
   background-image: 
     linear-gradient(to right, #cccccc 1px, transparent 1px),
     linear-gradient(to bottom, #cccccc 1px, transparent 1px);
-  background-size: 20px 20px;  /* Ajusta el tamaño de la cuadrícula */
+  background-size: 20px 20px;  
   border: 1px solid #ccc;
   margin: 10px;
   padding: 20px;
-  position: relative;  /* Esto es importante para posicionar los elementos */
+  position: relative;  
 }
 
 .items {
   width: 100%;
   height: 100%;
-  position: relative;  /* Asegura que los elementos estén en posición absoluta relativa al lienzo */
+  position: relative;  
 }
 
 .dropped-item {
@@ -24,7 +24,7 @@
   text-align: center;
   position: absolute;
   cursor: move;  
-  z-index: 10; /* Los elementos del lienzo están al frente */
+  z-index: 10; 
 
 }
 .connection {
@@ -33,11 +33,10 @@
   height: 100%;
   top: 0;
   left: 0;
-  pointer-events: none; /* Esto asegura que las conexiones no interfieran con la interacción del usuario */
-  z-index: 1; /* Asegura que las líneas estén por encima de otros elementos, si es necesario */
-}
+  pointer-events: none;
+  z-index: 1; }
 
 .connection line {
-  stroke: black; /* Color de la línea */
-  stroke-width: 2; /* Ancho de la línea */
+  stroke: black; 
+  stroke-width: 2;
 }
