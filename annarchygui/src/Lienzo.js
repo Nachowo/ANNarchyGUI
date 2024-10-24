@@ -102,8 +102,8 @@ function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
 
   return (
     <div className="Lienzo" onDragOver={handleDragOver} onDrop={handleDrop}>
-      <h2>Área de trabajo (Lienzo)</h2>
       <div className="items">
+        
         {items.map((item, index) => (
           <div
             key={item.id}  // Usa el ID como clave
@@ -117,6 +117,25 @@ function Lienzo({ isConnecting: [isConnecting, hasConnectionBeenMade]}) {
             {item.type} (ID: {item.id})  {/* Mostrar el tipo y el ID */}
           </div>
         ))}
+        {
+          connections.map((connection, index) => (
+            console.log("coordenadas del primer punto x1: ", items.find(item => item.id === connection[0].id).x),
+            console.log("coordenadas del primer punto y1: ", items.find(item => item.id === connection[0].id).y),
+            <svg key={index} className="connection">
+              <line
+
+                x1={items.find(item => item.id === connection[0].id).x + 50}  // X del primer elemento
+                y1={items.find(item => item.id === connection[0].id).y + 25}  // Y del primer elemento
+                x2={items.find(item => item.id === connection[1].id).x + 50}  // X del segundo elemento
+                y2={items.find(item => item.id === connection[1].id).y + 25}  // Y del segundo elemento
+                stroke='black'
+                strokeWidth='2'
+                
+              />
+
+            </svg>
+          ))
+        }
       </div>
       {contextMenu.visible && (
         <ContextMenu 

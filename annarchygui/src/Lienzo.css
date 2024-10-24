@@ -24,4 +24,20 @@
   text-align: center;
   position: absolute;
   cursor: move;  
+  z-index: 10; /* Los elementos del lienzo están al frente */
+
+}
+.connection {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none; /* Esto asegura que las conexiones no interfieran con la interacción del usuario */
+  z-index: 1; /* Asegura que las líneas estén por encima de otros elementos, si es necesario */
+}
+
+.connection line {
+  stroke: black; /* Color de la línea */
+  stroke-width: 2; /* Ancho de la línea */
 }
