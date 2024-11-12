@@ -15,6 +15,35 @@ function Sidebar({ onConnectToggle }) {
     },
   };
 
+  const monitorModel = {
+    id: 2,
+    name: 'Monitor',
+    attributes: {
+      vatiable: 'v',
+      intervalo: 1.0,
+    },
+  };
+
+  const estimuloModel = {
+    id: 3,
+    name: 'Estimulo',
+    attributes: {
+      amplitud: 0.5,
+      inicio: 0.0,
+      duracion: 1.0,
+    },
+  };
+
+  const sinapsisModel = {
+    id: 4,
+    name: 'Sinapsis',
+    attributes: {
+      peso: 0.5,
+      delay: 1.0,
+      direccion: 'Excitatoria',
+    },
+  };
+
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
@@ -44,14 +73,14 @@ function Sidebar({ onConnectToggle }) {
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, { id: 2, name: 'Monitor' })}
+            onDragStart={(event) => handleDragStart(event, monitorModel)}
           >
             Monitor
           </div>
           <div
             className="draggable-item"
             draggable
-            onDragStart={(event) => handleDragStart(event, { id: 2, name: 'Estimulo' })}
+            onDragStart={(event) => handleDragStart(event, estimuloModel)}
           >
             Estimulo
           </div>

@@ -56,7 +56,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
 
   const handleContextMenu = (event, itemId) => {
     event.preventDefault();
-    setContextMenu({ visible: false, x: 0, y: 0, itemId: null });
+    setContextMenu({ visible: false})
     setContextMenu({ visible: true, x: event.clientX, y: event.clientY, itemId });
   };
 
@@ -77,7 +77,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     closeContextMenu();
   };
 
-  const handleItemClick = (item) => {
+  const handleItemClick = (item, event) => {
+    event.stopPropagation(); // Evita que el evento 'onClick' se propague al lienzo
     if (isConnecting) {
       setSelectedItems((prev) => {
         if (prev.length < 2) {
@@ -88,6 +89,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       });
     }
   };
+
+
 
   useEffect(() => {
     if (selectedItems.length === 2) {
@@ -116,11 +119,23 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     console.log('Conexiones actuales:', connections);
   }, [connections]);
 
+  const handleCanvasClick = () => {
+    // Si el modo de conexión está activo y se hace clic en el lienzo, desactivar el modo de conexión
+    
+    if (isConnecting) {
+      setIsConnecting(false);
+      setSelectedItems([]);
+      document.body.style.cursor = 'default';
+    }
+  };
+
   return (
     <div
       className="Lienzo"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onClick={handleCanvasClick}
+      
     >
       <div className="items">
         {items.map((item, index) => (
@@ -130,7 +145,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             draggable
             onDragStart={(event) => handleDragStartExisting(event, index)}
             onContextMenu={(event) => handleContextMenu(event, item.id)}
-            onClick={() => handleItemClick(item)}
+            onClick={(event) => handleItemClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
             {item.type} (ID: {item.id})
