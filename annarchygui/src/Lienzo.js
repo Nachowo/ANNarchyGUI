@@ -56,6 +56,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
 
   const handleContextMenu = (event, itemId) => {
     event.preventDefault();
+    setContextMenu({ visible: false, x: 0, y: 0, itemId: null });
     setContextMenu({ visible: true, x: event.clientX, y: event.clientY, itemId });
   };
 
@@ -69,6 +70,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   };
 
   const handleEditItem = (id, updatedAttributes) => {
+    console.log(id);
     setItems(items.map(item =>
       item.id === id ? { ...item, attributes: updatedAttributes } : item
     ));

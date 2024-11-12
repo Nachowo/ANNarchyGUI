@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ContextMenu.css';
 
 function ContextMenu({ x, y, onClose, onDelete, item, onEdit }) {
-
   const [attributes, setAttributes] = useState(item.attributes || {});
+
+  // Actualiza los atributos cuando cambia el elemento seleccionado
+  useEffect(() => {
+    setAttributes(item.attributes || {});
+  }, [item]);
 
   const handleEditChange = (e, attr) => {
     setAttributes({
@@ -32,21 +36,23 @@ function ContextMenu({ x, y, onClose, onDelete, item, onEdit }) {
         >
           Eliminar
         </li>
-        { item.attributes &&  <li>
-          <h4>Editar Atributos</h4>
-          {Object.keys(attributes).map((attr) => (
-            <div key={attr}>
-              <label>{attr}:</label>
-              <input
-                type="text"
-                value={attributes[attr]}
-                onChange={(e) => handleEditChange(e, attr)}
-                onClick={(e) => e.stopPropagation()} // Evita el cierre al interactuar con el campo de edición
-              />
-            </div>
-          ))}
-          <button onClick={handleSave}>Guardar</button>
-        </li>}
+        { item.attributes && (
+          <li>
+            <h4>Editar Atributos</h4>
+            {Object.keys(attributes).map((attr) => (
+              <div key={attr}>
+                <label>{attr}:</label>
+                <input
+                  type="text"
+                  value={attributes[attr]}
+                  onChange={(e) => handleEditChange(e, attr)}
+                  onClick={(e) => e.stopPropagation()} // Evita el cierre al interactuar con el campo de edición
+                />
+              </div>
+            ))}
+            <button onClick={handleSave}>Guardar</button>
+          </li>
+        )}
         <li onClick={(e) => { e.stopPropagation(); onClose(); }}>Cerrar</li>
       </ul>
     </div>
