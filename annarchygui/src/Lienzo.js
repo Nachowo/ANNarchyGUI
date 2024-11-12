@@ -14,11 +14,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     event.preventDefault();
   };
 
-  const handleDeleteItem = () => {
-    setItems(items.filter(item => item.id !== contextMenu.itemId));
-    closeContextMenu();
-  };
-
   const handleDragStartExisting = (event, index) => {
     setDraggedItemIndex(index);
   };
@@ -26,17 +21,15 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const handleDrop = (event) => {
     event.preventDefault();
     const data = event.dataTransfer.getData('application/json');
-  
+
     const rect = event.target.getBoundingClientRect();
     const x = event.clientX - rect.left;  
     const y = event.clientY - rect.top;   
-  
+
     const elementWidth = 100;  
     const elementHeight = 50;  
-  
-    // Verifica si hay datos transferidos
+
     if (data) {
-      // Se está arrastrando un nuevo elemento
       const newItem = JSON.parse(data);
       const itemToAdd = {
         id: nextId,
@@ -48,7 +41,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       setItems([...items, itemToAdd]);
       setNextId(nextId + 1); 
     } else {
-      // Se está moviendo un elemento existente
       if (draggedItemIndex !== null) {
         const updatedItems = [...items];
         updatedItems[draggedItemIndex] = {
@@ -57,11 +49,10 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
           y: y - elementHeight / 2,
         };
         setItems(updatedItems);
-        setDraggedItemIndex(null); // Resetear el índice arrastrado
+        setDraggedItemIndex(null);
       }
     }
   };
-  
 
   const handleContextMenu = (event, itemId) => {
     event.preventDefault();
@@ -72,19 +63,17 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
-  useEffect(() => {
-    const handleClickOutside = () => {
-      closeContextMenu();
-    };
+  const handleDeleteItem = () => {
+    setItems(items.filter(item => item.id !== contextMenu.itemId));
+    closeContextMenu();
+  };
 
-    if (contextMenu.visible) {
-      window.addEventListener('click', handleClickOutside);
-    }
-
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [contextMenu.visible]);
+  const handleEditItem = (id, updatedAttributes) => {
+    setItems(items.map(item =>
+      item.id === id ? { ...item, attributes: updatedAttributes } : item
+    ));
+    closeContextMenu();
+  };
 
   const handleItemClick = (item) => {
     if (isConnecting) {
@@ -108,12 +97,26 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   }, [selectedItems]);
 
   useEffect(() => {
+    const handleClickOutside = () => {
+      closeContextMenu();
+    };
+
+    if (contextMenu.visible) {
+      window.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      window.removeEventListener('click', handleClickOutside);
+    };
+  }, [contextMenu.visible]);
+
+  useEffect(() => {
     console.log('Conexiones actuales:', connections);
   }, [connections]);
 
   return (
     <div
-      className={`Lienzo`}
+      className="Lienzo"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
@@ -131,27 +134,27 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             {item.type} (ID: {item.id})
           </div>
         ))}
-        {
-          connections.map((connection, index) => (
-            <svg key={index} className="connection">
-              <line
-                x1={items.find(item => item.id === connection[0].id).x + 50}
-                y1={items.find(item => item.id === connection[0].id).y + 25}
-                x2={items.find(item => item.id === connection[1].id).x + 50}
-                y2={items.find(item => item.id === connection[1].id).y + 25}
-                stroke='black'
-                strokeWidth='2'
-              />
-            </svg>
-          ))
-        }
+        {connections.map((connection, index) => (
+          <svg key={index} className="connection">
+            <line
+              x1={items.find(item => item.id === connection[0].id).x + 50}
+              y1={items.find(item => item.id === connection[0].id).y + 25}
+              x2={items.find(item => item.id === connection[1].id).x + 50}
+              y2={items.find(item => item.id === connection[1].id).y + 25}
+              stroke="black"
+              strokeWidth="2"
+            />
+          </svg>
+        ))}
       </div>
       {contextMenu.visible && (
         <ContextMenu 
           x={contextMenu.x} 
-          y={contextMenu.y} 
+          y={contextMenu.y - 50} 
           onClose={closeContextMenu} 
           onDelete={handleDeleteItem}
+          item={items.find(item => item.id === contextMenu.itemId)}
+          onEdit={handleEditItem}
         />
       )}
     </div>

@@ -9,13 +9,13 @@ function Sidebar({ onConnectToggle }) {
     id: 1,
     name: 'Población neuronal',
     attributes: {
+      cantidad: 1,
       firingRate: 10,
       threshold: -55,
     },
   };
 
   const handleDragStart = (event, model) => {
-    // Almacena el modelo como una cadena JSON
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
 
@@ -47,6 +47,13 @@ function Sidebar({ onConnectToggle }) {
             onDragStart={(event) => handleDragStart(event, { id: 2, name: 'Monitor' })}
           >
             Monitor
+          </div>
+          <div
+            className="draggable-item"
+            draggable
+            onDragStart={(event) => handleDragStart(event, { id: 2, name: 'Estimulo' })}
+          >
+            Estimulo
           </div>
         </div>
       )}
