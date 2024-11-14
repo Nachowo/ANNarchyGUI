@@ -4,7 +4,7 @@ import './Sidebar.css';
 function Sidebar({ onConnectToggle }) {
   const [activeTab, setActiveTab] = useState('Pestaña 1');
 
-  // Ejemplo de un modelo de neurona
+  // Neurona predeterminada
   const neuronModel = {
     id: 1,
     name: 'Población neuronal',
@@ -15,6 +15,7 @@ function Sidebar({ onConnectToggle }) {
     },
   };
 
+  //Monitor predeterminado
   const monitorModel = {
     id: 2,
     name: 'Monitor',
@@ -24,6 +25,7 @@ function Sidebar({ onConnectToggle }) {
     },
   };
 
+  //Estimulo predeterminado
   const estimuloModel = {
     id: 3,
     name: 'Estimulo',
@@ -33,7 +35,7 @@ function Sidebar({ onConnectToggle }) {
       duracion: 1.0,
     },
   };
-
+  //Sinapsis predeterminada
   const sinapsisModel = {
     id: 4,
     name: 'Sinapsis',
@@ -44,9 +46,11 @@ function Sidebar({ onConnectToggle }) {
     },
   };
 
+  // Maneja el drag de un elemento
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
+  
 
   return (
     <div className="Sidebar" id="sidebar">

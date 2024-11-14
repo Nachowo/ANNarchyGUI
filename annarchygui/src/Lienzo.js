@@ -6,40 +6,43 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const [items, setItems] = useState([]);
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, itemId: null });
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, item: null, tipo:null});
   const [selectedItems, setSelectedItems] = useState([]);
   const [connections, setConnections] = useState([]);
 
+  //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
     event.preventDefault();
   };
 
+  //Funcion para manejar el drag de un elemento YA existente
   const handleDragStartExisting = (event, index) => {
     setDraggedItemIndex(index);
   };
 
+  //Funcion para manejar el drop de un elemento
   const handleDrop = (event) => {
     event.preventDefault();
     const data = event.dataTransfer.getData('application/json');
 
     const rect = event.target.getBoundingClientRect();
-    const x = event.clientX - rect.left;  
-    const y = event.clientY - rect.top;   
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
-    const elementWidth = 100;  
-    const elementHeight = 50;  
+    const elementWidth = 100;
+    const elementHeight = 50;
 
     if (data) {
       const newItem = JSON.parse(data);
       const itemToAdd = {
         id: nextId,
         type: newItem.name,
-        attributes: newItem.attributes, 
+        attributes: newItem.attributes,
         x: x - elementWidth / 2,
         y: y - elementHeight / 2,
       };
       setItems([...items, itemToAdd]);
-      setNextId(nextId + 1); 
+      setNextId(nextId + 1);
     } else {
       if (draggedItemIndex !== null) {
         const updatedItems = [...items];
@@ -54,31 +57,37 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     }
   };
 
-  const handleContextMenu = (event, itemId) => {
+  //Funcion para mostrar el contextMenu
+  const handleContextMenu = (event, item, tipo) => {
     event.preventDefault();
-    setContextMenu({ visible: false})
-    setContextMenu({ visible: true, x: event.clientX, y: event.clientY, itemId });
+    console.log('Context Menu:', item);
+    setContextMenu({ visible: true, x: event.clientX, y: event.clientY, itemId: item.id, tipo });
   };
 
+  //Funcion para cerrar el contextMenu
   const closeContextMenu = () => {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
+  //Funcion para eliminar un elemento
   const handleDeleteItem = () => {
     setItems(items.filter(item => item.id !== contextMenu.itemId));
     closeContextMenu();
   };
 
+
+  //Funcion para editar los atributos de un elemento
   const handleEditItem = (id, updatedAttributes) => {
-    console.log(id);
+
     setItems(items.map(item =>
       item.id === id ? { ...item, attributes: updatedAttributes } : item
     ));
     closeContextMenu();
   };
 
+  //Funcion para manejar las conexiones entre elementos
   const handleItemClick = (item, event) => {
-    event.stopPropagation(); // Evita que el evento 'onClick' se propague al lienzo
+    event.stopPropagation();
     if (isConnecting) {
       setSelectedItems((prev) => {
         if (prev.length < 2) {
@@ -91,16 +100,20 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   };
 
 
-
+  //Funcion para guardar la conexion entre elementos
   useEffect(() => {
     if (selectedItems.length === 2) {
-      setConnections((prevConnections) => [...prevConnections, selectedItems]);
+      setConnections(prevConnections => [
+        ...prevConnections,
+        { id: prevConnections.length + 1, origen: selectedItems[0].id, destino: selectedItems[1].id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
+      ]);
       setIsConnecting(false);
       setSelectedItems([]);
       document.body.style.cursor = 'default';
     }
   }, [selectedItems]);
 
+  //Cerrar el contextMenu si se hace click fuera de el
   useEffect(() => {
     const handleClickOutside = () => {
       closeContextMenu();
@@ -115,18 +128,20 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     };
   }, [contextMenu.visible]);
 
-  useEffect(() => {
-    console.log('Conexiones actuales:', connections);
-  }, [connections]);
 
+
+  //Funcion para quitar el modo de conexion si se hace click en el lienzo
   const handleCanvasClick = () => {
-    // Si el modo de conexión está activo y se hace clic en el lienzo, desactivar el modo de conexión
-    
     if (isConnecting) {
       setIsConnecting(false);
       setSelectedItems([]);
       document.body.style.cursor = 'default';
     }
+  };
+
+  const debugear = () => {
+    console.log('Conexiones actuales:', connections);
+    console.log('Elementos actuales:', items);
   };
 
   return (
@@ -135,8 +150,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={handleCanvasClick}
-      
     >
+
       <div className="items">
         {items.map((item, index) => (
           <div
@@ -144,7 +159,15 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             className={`dropped-item ${isConnecting ? 'connecting-mode' : ''}`}
             draggable
             onDragStart={(event) => handleDragStartExisting(event, index)}
-            onContextMenu={(event) => handleContextMenu(event, item.id)}
+            onContextMenu={(e) => {
+              if (item.type === 'Población neuronal') {
+                handleContextMenu(e, item, 1);
+              } else if (item.type === 'Monitor') {
+                handleContextMenu(e, item, 2);
+              } else if (item.type === 'Estimulo') {
+                handleContextMenu(e, item, 3);
+              }
+            }}
             onClick={(event) => handleItemClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
@@ -152,29 +175,41 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
           </div>
         ))}
         {connections.map((connection, index) => (
-          <svg key={index} className="connection">
+          <svg key={index} className="connection" >
             <line
-              x1={items.find(item => item.id === connection[0].id).x + 50}
-              y1={items.find(item => item.id === connection[0].id).y + 25}
-              x2={items.find(item => item.id === connection[1].id).x + 50}
-              y2={items.find(item => item.id === connection[1].id).y + 25}
+              x1={items.find(item => item.id === connection.origen).x + 50}
+              y1={items.find(item => item.id === connection.origen).y + 25}
+              x2={items.find(item => item.id === connection.destino).x + 50}
+              y2={items.find(item => item.id === connection.destino).y + 25}
               stroke="black"
               strokeWidth="2"
+              pointerEvents="all"
+              onClick={() => console.log(`Clicked on connection from ${connection.origen} to ${connection.destino}`)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                handleContextMenu(e, connection, 4);
+              }}
+              onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
+              onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
             />
           </svg>
         ))}
       </div>
       {contextMenu.visible && (
-        <ContextMenu 
-          x={contextMenu.x} 
-          y={contextMenu.y - 50} 
-          onClose={closeContextMenu} 
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y - 50}
+          onClose={closeContextMenu}
           onDelete={handleDeleteItem}
           item={items.find(item => item.id === contextMenu.itemId)}
+          tipo={contextMenu.tipo}
           onEdit={handleEditItem}
         />
       )}
+            <button onClick={debugear}>debug</button>
+
     </div>
+    
   );
 }
 

@@ -7,6 +7,7 @@ import ContextMenu from './ContextMenu';
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
 
+  // Maneja el cambio de modo de conexión
   const handleConnectToggle = () => {
     setIsConnecting(true);
     document.body.style.cursor = 'crosshair'; 
