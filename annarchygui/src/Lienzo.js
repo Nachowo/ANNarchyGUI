@@ -15,17 +15,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     event.preventDefault();
   };
 
-  //Funcion para manejar el drag de un elemento YA existente
-  const handleDragStartExisting = (event, index) => {
-    setDraggedItemIndex(index);
-  };
-
   //Funcion para manejar el drop de un elemento
   const handleDrop = (event) => {
     event.preventDefault();
     const data = event.dataTransfer.getData('application/json');
 
-    const rect = event.target.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect(); // Cambiar event.target a event.currentTarget
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
@@ -36,7 +31,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       const newItem = JSON.parse(data);
       const itemToAdd = {
         id: nextId,
-        type: newItem.name,
+        type: newItem.type,
+        name: newItem.name,
         attributes: newItem.attributes,
         x: x - elementWidth / 2,
         y: y - elementHeight / 2,
@@ -78,9 +74,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
 
   //Funcion para editar los atributos de un elemento
   const handleEditItem = (id, updatedAttributes) => {
-
     setItems(items.map(item =>
-      item.id === id ? { ...item, attributes: updatedAttributes } : item
+      item.id === id ? { ...item, attributes: updatedAttributes, name: updatedAttributes.name } : item
     ));
     closeContextMenu();
   };
@@ -144,6 +139,32 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     console.log('Elementos actuales:', items);
   };
 
+  const renderArrowMarker = () => {
+    const refX = 50;
+    return (
+      <marker
+        id="arrowhead"
+        markerWidth="10"
+        markerHeight="7"
+        refX={refX}
+        refY="3.5"
+        orient="auto"
+        markerUnits="strokeWidth"
+      >
+        <polygon points="0 0, 10 3.5, 0 7" fill="black" />
+      </marker>
+    );
+  };
+
+  const getShapeClass = (type) => {
+    switch (type) {
+      case 'Población neuronal':
+        return 'oval-shape';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div
       className="Lienzo"
@@ -151,14 +172,55 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       onDrop={handleDrop}
       onClick={handleCanvasClick}
     >
-
+<svg className="connections-svg">
+<defs>
+  {renderArrowMarker()}
+</defs>
+  {connections.map((connection, index) => {
+    const x1 = items.find(item => item.id === connection.origen).x + 50;
+    const y1 = items.find(item => item.id === connection.origen).y + 25;
+    const x2 = items.find(item => item.id === connection.destino).x + 50;
+    const y2 = items.find(item => item.id === connection.destino).y + 25;
+    return (
+      <React.Fragment key={index}>
+        <line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke="transparent"
+          strokeWidth="10"
+          pointerEvents="all"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            handleContextMenu(e, connection, 4);
+          }}
+          onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
+          onMouseLeave={(e) => e.target.setAttribute('stroke', 'transparent')}
+        />
+        <line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke="black"
+          strokeWidth="2"
+          markerEnd="url(#arrowhead)"
+          pointerEvents="none"
+          onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
+          onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
+        />
+      </React.Fragment>
+    );
+  })}
+</svg>
       <div className="items">
         {items.map((item, index) => (
           <div
             key={item.id}
-            className={`dropped-item ${isConnecting ? 'connecting-mode' : ''}`}
+            className={`dropped-item ${getShapeClass(item.type)} ${isConnecting ? 'connecting-mode' : ''}`}
             draggable
-            onDragStart={(event) => handleDragStartExisting(event, index)}
+            onDragStart={(event) => setDraggedItemIndex(index)}
             onContextMenu={(e) => {
               if (item.type === 'Población neuronal') {
                 handleContextMenu(e, item, 1);
@@ -171,28 +233,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             onClick={(event) => handleItemClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
-            {item.type} (ID: {item.id})
+            <div className="item-name">{item.name}</div>
+            <div>{item.type}</div> 
           </div>
-        ))}
-        {connections.map((connection, index) => (
-          <svg key={index} className="connection" >
-            <line
-              x1={items.find(item => item.id === connection.origen).x + 50}
-              y1={items.find(item => item.id === connection.origen).y + 25}
-              x2={items.find(item => item.id === connection.destino).x + 50}
-              y2={items.find(item => item.id === connection.destino).y + 25}
-              stroke="black"
-              strokeWidth="2"
-              pointerEvents="all"
-              onClick={() => console.log(`Clicked on connection from ${connection.origen} to ${connection.destino}`)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                handleContextMenu(e, connection, 4);
-              }}
-              onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
-              onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
-            />
-          </svg>
         ))}
       </div>
       {contextMenu.visible && (

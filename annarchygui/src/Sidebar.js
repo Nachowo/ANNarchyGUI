@@ -3,11 +3,13 @@ import './Sidebar.css';
 
 function Sidebar({ onConnectToggle }) {
   const [activeTab, setActiveTab] = useState('Pestaña 1');
+  const [simulationTime, setSimulationTime] = useState(0);
 
   // Neurona predeterminada
   const neuronModel = {
     id: 1,
-    name: 'Población neuronal',
+    type: 'Población neuronal',
+    name: 'Población Neuronal',
     attributes: {
       cantidad: 1,
       firingRate: 10,
@@ -18,9 +20,10 @@ function Sidebar({ onConnectToggle }) {
   //Monitor predeterminado
   const monitorModel = {
     id: 2,
+    type: 'Monitor',
     name: 'Monitor',
     attributes: {
-      vatiable: 'v',
+      variable: 'v',
       intervalo: 1.0,
     },
   };
@@ -28,6 +31,7 @@ function Sidebar({ onConnectToggle }) {
   //Estimulo predeterminado
   const estimuloModel = {
     id: 3,
+    type: 'Estimulo',
     name: 'Estimulo',
     attributes: {
       amplitud: 0.5,
@@ -79,20 +83,28 @@ function Sidebar({ onConnectToggle }) {
             draggable
             onDragStart={(event) => handleDragStart(event, monitorModel)}
           >
-            Monitor
+            {monitorModel.name}
           </div>
           <div
             className="draggable-item"
             draggable
             onDragStart={(event) => handleDragStart(event, estimuloModel)}
           >
-            Estimulo
+            {estimuloModel.name}
           </div>
         </div>
       )}
 
       {activeTab === 'Pestaña 2' && (
         <div>
+          <div>
+            <label>Tiempo de Simulación:</label>
+            <input
+              type="number"
+              value={simulationTime}
+              onChange={(e) => setSimulationTime(e.target.value)}
+            />
+          </div>
           <div
             className="draggable-item"
             draggable

@@ -27,6 +27,32 @@
   z-index: 10; 
 
 }
+
+.oval-shape {
+  border-radius: 50%;
+  width: 100px;
+  height: 50px;
+}
+
+.item-name {
+  position: absolute;
+  top: -20px; /* Ajustar según sea necesario */
+  left: 50%;
+  font-weight: bold;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.connections-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .connection {
   position: absolute;
   width: 100%;
@@ -34,9 +60,15 @@
   top: 0;
   left: 0;
   pointer-events: none;
-  z-index: 1; }
+  z-index: 1; 
+  stroke: black;
+  stroke-width: 2;
+}
+
+.connection:hover {
+  stroke: red;
+}
 
 .connection line {
- 
   stroke-width: 2;
 }

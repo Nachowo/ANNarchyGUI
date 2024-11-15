@@ -23,7 +23,7 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
   // Guarda los cambios en los atributos
   const handleSave = (e) => {
     e.stopPropagation(); 
-    onEdit(item.id, attributes); 
+    onEdit(item.id, { ...attributes, name: attributes.name }); 
   };
 
   // Renderiza el contenido del menú basado en el tipo
@@ -33,16 +33,27 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
         return (
           <li>
             <h4>Editar Atributos de Neurona</h4>
+            <div>
+              <label>Nombre:</label>
+              <input
+                type="text"
+                value={attributes.name || ''}
+                onChange={(e) => handleEditChange(e, 'name')}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
             {Object.keys(attributes).map((attr) => (
-              <div key={attr}>
-                <label>{attr}:</label>
-                <input
-                  type="text"
-                  value={attributes[attr]}
-                  onChange={(e) => handleEditChange(e, attr)}
-                  onClick={(e) => e.stopPropagation()} 
-                />
-              </div>
+              attr !== 'name' && (
+                <div key={attr}>
+                  <label>{attr}:</label>
+                  <input
+                    type="text"
+                    value={attributes[attr]}
+                    onChange={(e) => handleEditChange(e, attr)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )
             ))}
             <button onClick={handleSave}>Guardar</button>
           </li>
