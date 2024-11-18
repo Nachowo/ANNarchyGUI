@@ -47,3 +47,17 @@
   border-bottom: 2px solid #333; 
 }
 
+.sidebar-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.default-items, .custom-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-items {
+  margin-left: 20px;
+}
+
