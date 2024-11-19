@@ -9,8 +9,18 @@ function Sidebar({ onConnectToggle }) {
   const [showModal, setShowModal] = useState(false);
   const [newModel, setNewModel] = useState({
     name: '',
+    quantity: '', // Añadir la cantidad de neuronas
+    neuron: {
+      equation: '', // Añadir la ecuación de la neurona
+      parameters: {
+        tau: '',
+        I: '',
+      },
+      variables: {
+        v: '',
+      },
+    },
     attributes: {
-      cantidad: '',
       firingRate: '',
       threshold: '',
     },
@@ -21,8 +31,18 @@ function Sidebar({ onConnectToggle }) {
     id: 1,
     type: 'Población neuronal',
     name: 'Población Neuronal',
+    quantity: 100, // Añadir la cantidad de neuronas
+    neuron: {
+      equation: 'dv/dt = -v + I', // Añadir la ecuación de la neurona
+      parameters: {
+        tau: 10,
+        I: 1,
+      },
+      variables: {
+        v: -65,
+      },
+    },
     attributes: {
-      cantidad: 1,
       firingRate: 10,
       threshold: -55,
     },
@@ -77,14 +97,32 @@ function Sidebar({ onConnectToggle }) {
     });
   };
 
+  // Maneja el cambio en el modelo o cantidad del nuevo modelo personalizado
+  const handleModelChange = (e, field) => {
+    setNewModel({
+      ...newModel,
+      [field]: e.target.value,
+    });
+  };
+
   // Guarda el nuevo modelo personalizado
   const handleSaveModel = () => {
     setCustomModels([...customModels, { ...newModel, id: customModels.length + 1, type: 'Población neuronal' }]);
     setShowModal(false);
     setNewModel({
       name: '',
+      quantity: '', // Añadir la cantidad de neuronas
+      neuron: {
+        equation: '', // Añadir la ecuación de la neurona
+        parameters: {
+          tau: '',
+          I: '',
+        },
+        variables: {
+          v: '',
+        },
+      },
       attributes: {
-        cantidad: '',
         firingRate: '',
         threshold: '',
       },
@@ -175,35 +213,14 @@ function Sidebar({ onConnectToggle }) {
       <button onClick={() => setShowModal(true)}>Crear Neurona</button>
 
       {showModal && (
-        <Modal onClose={() => setShowModal(false)}>
-          <h2>Crear Neurona</h2>
-          <label>Nombre:</label>
-          <input
-            type="text"
-            value={newModel.name}
-            onChange={(e) => setNewModel({ ...newModel, name: e.target.value })}
-          />
-          <label>Cantidad:</label>
-          <input
-            type="number"
-            value={newModel.attributes.cantidad}
-            onChange={(e) => handleInputChange(e, 'cantidad')}
-          />
-          <label>Firing Rate:</label>
-          <input
-            type="number"
-            value={newModel.attributes.firingRate}
-            onChange={(e) => handleInputChange(e, 'firingRate')}
-          />
-          <label>Threshold:</label>
-          <input
-            type="number"
-            value={newModel.attributes.threshold}
-            onChange={(e) => handleInputChange(e, 'threshold')}
-          />
-          <button onClick={handleSaveModel}>Guardar</button>
-          <button onClick={() => setShowModal(false)}>Cancelar</button>
-        </Modal>
+        <Modal
+          onClose={() => setShowModal(false)}
+          newModel={newModel}
+          setNewModel={setNewModel}
+          handleSaveModel={handleSaveModel}
+          handleModelChange={handleModelChange}
+          handleInputChange={handleInputChange}
+        />
       )}
     </div>
   );

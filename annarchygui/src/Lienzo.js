@@ -33,6 +33,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
         id: nextId,
         type: newItem.type,
         name: newItem.name,
+        quantity: newItem.quantity, // Añadir la cantidad de neuronas
+        neuron: newItem.neuron, // Añadir el modelo de neurona
         attributes: newItem.attributes,
         x: x - elementWidth / 2,
         y: y - elementHeight / 2,
@@ -81,7 +83,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   //Funcion para editar los atributos de un elemento
   const handleEditItem = (id, updatedAttributes) => {
     setItems(items.map(item =>
-      item.id === id ? { ...item, attributes: updatedAttributes, name: updatedAttributes.name } : item
+      item.id === id ? { ...item, attributes: updatedAttributes, name: updatedAttributes.name, quantity: updatedAttributes.quantity, neuron: updatedAttributes.neuron } : item
     ));
     closeContextMenu();
   };
