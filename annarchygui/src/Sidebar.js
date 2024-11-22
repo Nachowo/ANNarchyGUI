@@ -7,6 +7,7 @@ function Sidebar({ onConnectToggle }) {
   const [simulationTime, setSimulationTime] = useState(0);
   const [customModels, setCustomModels] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showModelList, setShowModelList] = useState(false); // Estado para mostrar/ocultar la lista de modelos
   const [newModel, setNewModel] = useState({
     name: '',
     quantity: '', // Añadir la cantidad de neuronas
@@ -167,18 +168,6 @@ function Sidebar({ onConnectToggle }) {
               {estimuloModel.name}
             </div>
           </div>
-          <div className="custom-items">
-            {customModels.map((model) => (
-              <div
-                key={model.id}
-                className="draggable-item"
-                draggable
-                onDragStart={(event) => handleDragStart(event, model)}
-              >
-                {model.name}
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
@@ -211,6 +200,24 @@ function Sidebar({ onConnectToggle }) {
 
       <button onClick={onConnectToggle}>Conectar</button>
       <button onClick={() => setShowModal(true)}>Crear Neurona</button>
+      <button onClick={() => setShowModelList(!showModelList)}>Mostrar Modelos</button> {/* Botón para mostrar/ocultar la lista de modelos */}
+
+      {showModelList && (
+        <div className="model-list">
+          <h3>Modelos Personalizados</h3>
+          <ul>
+            {customModels.map((model) => (
+              <li
+                key={model.id}
+                draggable
+                onDragStart={(event) => handleDragStart(event, model)}
+              >
+                {model.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {showModal && (
         <Modal

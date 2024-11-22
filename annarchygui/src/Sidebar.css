@@ -61,3 +61,36 @@
   margin-left: 20px;
 }
 
+.model-list {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.model-list h3 {
+  margin-top: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.model-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.model-list li {
+  padding: 8px;
+  margin-bottom: 5px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.model-list li:hover {
+  background-color: #ddd;
+}
+

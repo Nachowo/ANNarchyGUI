@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Lienzo.css';
 import ContextMenu from './ContextMenu';
 
@@ -9,6 +9,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, item: null, tipo:null});
   const [selectedItems, setSelectedItems] = useState([]);
   const [connections, setConnections] = useState([]);
+  const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -63,13 +64,14 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   };
 
   //Funcion para cerrar el contextMenu
-  const closeContextMenu = () => {
+  const closeContextMenu = useCallback(() => {
     setContextMenu({ ...contextMenu, visible: false });
-  };
+  }, [contextMenu]);
 
   // Función para eliminar todas las conexiones que involucren un elemento
   const removeConnections = (itemId) => {
     setConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
+    setStimulusMonitorConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
   };
 
   //Funcion para eliminar un elemento y sus conexiones
@@ -108,16 +110,35 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     if (selectedItems.length === 2) {
       const [origen, destino] = selectedItems;
       if (origen.id !== destino.id) {
-        setConnections(prevConnections => [
-          ...prevConnections,
-          { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
-        ]);
+        // Reglas de conexión
+        if (
+          (origen.type === 'Monitor' || origen.type === 'Estimulo') &&
+          destino.type === 'Población neuronal'
+        ) {
+          setStimulusMonitorConnections(prevConnections => [
+            ...prevConnections,
+            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
+          ]);
+        } else if (origen.type === 'Población neuronal' && destino.type === 'Población neuronal') {
+          setConnections(prevConnections => [
+            ...prevConnections,
+            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
+          ]);
+        } else {
+          if (origen.type === 'Monitor' || origen.type === 'Estimulo') {
+            alert('Monitores y estímulos solo pueden conectar hacia una población neuronal.');
+          } else if (destino.type !== 'Población neuronal') {
+            alert('Las poblaciones neuronales siempre deben ir como destino.');
+          }
+        }
+      } else {
+        alert('No se puede conectar un elemento consigo mismo.');
       }
       setIsConnecting(false);
       setSelectedItems([]);
       document.body.style.cursor = 'default';
     }
-  }, [selectedItems]);
+  }, [selectedItems, setIsConnecting]);
 
   //Cerrar el contextMenu si se hace click fuera de el
   useEffect(() => {
@@ -132,7 +153,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     return () => {
       window.removeEventListener('click', handleClickOutside);
     };
-  }, [contextMenu.visible]);
+  }, [contextMenu.visible, closeContextMenu]);
 
 
 
@@ -214,6 +235,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     const x2 = destinoItem.x + 50;
     const y2 = destinoItem.y + 25;
 
+    const isNeuronConnection = origenItem.type === 'Población neuronal' && destinoItem.type === 'Población neuronal';
+
     return (
       <React.Fragment key={index}>
         <line
@@ -225,8 +248,10 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
           strokeWidth="10"
           pointerEvents="all"
           onContextMenu={(e) => {
-            e.preventDefault();
-            handleContextMenu(e, connection, 4);
+            if (isNeuronConnection) {
+              e.preventDefault();
+              handleContextMenu(e, connection, 4);
+            }
           }}
           onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
           onMouseLeave={(e) => e.target.setAttribute('stroke', 'transparent')}
@@ -242,6 +267,34 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
           pointerEvents="none"
           onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
           onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
+        />
+      </React.Fragment>
+    );
+  })}
+  {stimulusMonitorConnections.map((connection, index) => {
+    const origenItem = items.find(item => item.id === connection.origen);
+    const destinoItem = items.find(item => item.id === connection.destino);
+
+    if (!origenItem || !destinoItem) {
+    //  return null; // Si no se encuentra el elemento, no renderizar la conexión
+    }
+
+    const x1 = origenItem.x + 50;
+    const y1 = origenItem.y + 25;
+    const x2 = destinoItem.x + 50;
+    const y2 = destinoItem.y + 25;
+
+    return (
+      <React.Fragment key={index}>
+        <line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke="black"
+          strokeWidth="2"
+          markerEnd="url(#arrowhead)"
+          pointerEvents="none"
         />
       </React.Fragment>
     );
@@ -267,8 +320,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             onClick={(event) => handleItemClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
-            <div className="item-name">{item.name}</div>
-            <div>{item.type}</div> 
+            <div className="item-name">{item.type}</div>
+            <div>{item.name}</div> 
           </div>
         ))}
       </div>
