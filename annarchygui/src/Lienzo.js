@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Lienzo.css';
 import ContextMenu from './ContextMenu';
+import Gestionador from './Gestionador'; // Importar el componente Gestionador
 
 function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const [items, setItems] = useState([]);
@@ -10,6 +11,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
   const [selectedItems, setSelectedItems] = useState([]);
   const [connections, setConnections] = useState([]);
   const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
+  const [showGestionador, setShowGestionador] = useState(false); // Estado para mostrar/ocultar el Gestionador
+  const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -104,6 +107,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     }
   };
 
+  //Funcion para mostrar el Gestionador al hacer clic derecho sobre una población neuronal
+  const handleNeuronContextMenu = (event, item) => {
+    event.preventDefault();
+    setSelectedNeuron(item);
+    setShowGestionador(true);
+  };
 
   //Funcion para guardar la conexion entre elementos
   useEffect(() => {
@@ -310,7 +319,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
             onDragEnd={(event) => handleDragEnd(event, index)}
             onContextMenu={(e) => {
               if (item.type === 'Población neuronal') {
-                handleContextMenu(e, item, 1);
+                handleNeuronContextMenu(e, item);
               } else if (item.type === 'Monitor') {
                 handleContextMenu(e, item, 2);
               } else if (item.type === 'Estimulo') {
@@ -336,10 +345,16 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
           onEdit={handleEditItem}
         />
       )}
-            <button onClick={debugear}>debug</button>
+      <button onClick={debugear}>debug</button>
+      <button onClick={() => setShowGestionador(true)}>Abrir Gestionador</button>
 
+      {showGestionador && selectedNeuron && (
+        <div className="gestionador-container">
+          <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
+          <Gestionador neuron={selectedNeuron} />
+        </div>
+      )}
     </div>
-    
   );
 }
 

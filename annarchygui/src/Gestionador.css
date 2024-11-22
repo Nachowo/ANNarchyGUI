@@ -1,0 +1,120 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5;
+}
+
+.container {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.header input {
+  width: 200px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.equation {
+  text-align: left;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.equation label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.equation input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.tables-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.table-wrapper {
+  width: 45%;
+  max-height: 300px; /* Altura máxima del contenedor de la tabla */
+  overflow-y: auto; /* Habilitar scroll vertical */
+}
+
+.table {
+  border: 1px solid #ddd;
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.table th {
+  background-color: #f7f7f7;
+  font-weight: bold;
+}
+
+.table input {
+  width: calc(100% - 12px); /* Ajustar el ancho para que se adapte a la celda */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Incluir el padding y el borde en el ancho total */
+}
+
+.table button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table button:hover {
+  background-color: #0056b3;
+}
+
+.footer {
+  height: 100px;
+  border: 2px solid black;
+  margin-top: 20px;
+  background-color: #eaeaea;
+}
