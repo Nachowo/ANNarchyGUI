@@ -5,7 +5,7 @@ body {
   background-color: #f0f2f5;
 }
 
-.container {
+.gestionador-container .container {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
@@ -20,7 +20,7 @@ body {
   flex-direction: column;
 }
 
-.header {
+.gestionador-container .header {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
@@ -38,7 +38,7 @@ body {
   border-radius: 4px;
 }
 
-.equation {
+.gestionador-container .equation {
   text-align: left;
   margin-bottom: 20px;
   font-size: 16px;
@@ -58,20 +58,20 @@ body {
   border-radius: 4px;
 }
 
-.tables-container {
+.gestionador-container .tables-container {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
   flex-grow: 1;
 }
 
-.table-wrapper {
+.gestionador-container .table-wrapper {
   width: 45%;
   max-height: 300px; /* Altura máxima del contenedor de la tabla */
   overflow-y: auto; /* Habilitar scroll vertical */
 }
 
-.table {
+.gestionador-container .table {
   border: 1px solid #ddd;
   width: 100%;
   text-align: left;

@@ -1,178 +1,140 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
-import Modal from './Modal'; // Importa el componente Modal
+import Gestionador from './Gestionador'; // Importa el componente Gestionador
 
 function Sidebar({ onConnectToggle }) {
-  const [activeTab, setActiveTab] = useState('Pestaña 1');
+  const [activeTab, setActiveTab] = useState('Opciones');
   const [simulationTime, setSimulationTime] = useState(0);
   const [customModels, setCustomModels] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [showModelList, setShowModelList] = useState(false); // Estado para mostrar/ocultar la lista de modelos
+  const [showGestionador, setShowGestionador] = useState(false);
+  const [showNeuronModels, setShowNeuronModels] = useState(false);
   const [newModel, setNewModel] = useState({
     name: '',
-    quantity: '', // Añadir la cantidad de neuronas
+    quantity: '',
     neuron: {
-      equation: '', // Añadir la ecuación de la neurona
-      parameters: {
-        tau: '',
-        I: '',
-      },
-      variables: {
-        v: '',
-      },
+      equation: '',
+      parameters: { tau: '', I: '' },
+      variables: { v: '' },
     },
-    attributes: {
-      firingRate: '',
-      threshold: '',
-    },
+    attributes: { firingRate: '', threshold: '' },
   });
 
-  // Neurona predeterminada
-  const neuronModel = {
-    id: 1,
-    type: 'Población neuronal',
-    name: 'Población Neuronal',
-    quantity: 100, // Añadir la cantidad de neuronas
-    neuron: {
-      equation: 'dv/dt = -v + I', // Añadir la ecuación de la neurona
-      parameters: {
-        tau: 10,
-        I: 1,
+  const predefinedModels = [
+    {
+      id: 1,
+      type: 'Población neuronal',
+      name: 'LIF Neuron',
+      quantity: 100,
+      neuron: {
+        equation: 'dv/dt = (-v + I) / tau : 1',
+        parameters: { tau: 10, I: 1 },
+        variables: { v: -65 },
       },
-      variables: {
-        v: -65,
+      attributes: { firingRate: 10, threshold: -55 },
+    },
+    {
+      id: 2,
+      type: 'Población neuronal',
+      name: 'Izhikevich Neuron',
+      quantity: 100,
+      neuron: {
+        equation: 'dv/dt = 0.04*v^2 + 5*v + 140 - u + I; du/dt = a*(b*v - u)',
+        parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
+        variables: { v: -65, u: -14 },
       },
+      attributes: { firingRate: 10, threshold: -55 },
     },
-    attributes: {
-      firingRate: 10,
-      threshold: -55,
+    {
+      id: 3,
+      type: 'Población neuronal',
+      name: 'Hodgkin-Huxley Neuron',
+      quantity: 100,
+      neuron: {
+        equation: 'dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1',
+        parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
+        variables: { v: -65, m: 0.0529, h: 0.5961, n: 0.3177 },
+      },
+      attributes: { firingRate: 10, threshold: -55 },
     },
-  };
+    {
+      id: 4,
+      type: 'Población neuronal',
+      name: 'Poisson Neuron',
+      quantity: 100,
+      neuron: {
+        equation: 'spike = 1.0 * (rand() < rate * dt) : boolean',
+        parameters: { rate: 10.0 },
+        variables: {},
+      },
+    }
+  ];
 
-  //Monitor predeterminado
-  const monitorModel = {
-    id: 2,
-    type: 'Monitor',
-    name: 'Monitor',
-    attributes: {
-      variable: 'v',
-      intervalo: 1.0,
-    },
-  };
-
-  //Estimulo predeterminado
-  const estimuloModel = {
-    id: 3,
-    type: 'Estimulo',
-    name: 'Estimulo',
-    attributes: {
-      amplitud: 0.5,
-      inicio: 0.0,
-      duracion: 1.0,
-    },
-  };
-  //Sinapsis predeterminada
-  const sinapsisModel = {
-    id: 4,
-    name: 'Sinapsis',
-    attributes: {
-      peso: 0.5,
-      delay: 1.0,
-      direccion: 'Excitatoria',
-    },
-  };
-
-  // Maneja el drag de un elemento
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
 
-  // Maneja el cambio en el formulario del modal
-  const handleInputChange = (e, attr) => {
-    setNewModel({
-      ...newModel,
-      attributes: {
-        ...newModel.attributes,
-        [attr]: e.target.value,
-      },
-    });
-  };
-
-  // Maneja el cambio en el modelo o cantidad del nuevo modelo personalizado
-  const handleModelChange = (e, field) => {
-    setNewModel({
-      ...newModel,
-      [field]: e.target.value,
-    });
-  };
-
-  // Guarda el nuevo modelo personalizado
-  const handleSaveModel = () => {
-    setCustomModels([...customModels, { ...newModel, id: customModels.length + 1, type: 'Población neuronal' }]);
-    setShowModal(false);
-    setNewModel({
-      name: '',
-      quantity: '', // Añadir la cantidad de neuronas
-      neuron: {
-        equation: '', // Añadir la ecuación de la neurona
-        parameters: {
-          tau: '',
-          I: '',
-        },
-        variables: {
-          v: '',
-        },
-      },
-      attributes: {
-        firingRate: '',
-        threshold: '',
-      },
-    });
+  const handleSaveModel = (updatedModel) => {
+    setCustomModels([...customModels, { ...updatedModel, id: customModels.length + 1, type: 'Población neuronal' }]);
+    setShowGestionador(false);
   };
 
   return (
-    <div className="Sidebar" id="sidebar">
-      <ul className="headerSidebar">
-        <li className={activeTab === 'Pestaña 1' ? 'active' : ''}>
-          <a onClick={() => setActiveTab('Pestaña 1')}>Pestaña 1</a>
+    <div className="Sidebar" id='sidebar'>
+      {/* Tabs */}
+      <ul className="Sidebar-Tabs">
+        <li
+          className={activeTab === 'Opciones' ? 'active' : ''}
+          onClick={() => setActiveTab('Opciones')}
+        >
+          Opciones
         </li>
-        <li className={activeTab === 'Pestaña 2' ? 'active' : ''}>
-          <a onClick={() => setActiveTab('Pestaña 2')}>Pestaña 2</a>
+        <li
+          className={activeTab === 'Simulación' ? 'active' : ''}
+          onClick={() => setActiveTab('Simulación')}
+        >
+          Simulación
         </li>
       </ul>
 
-      <h2>Opciones</h2>
-
-      {activeTab === 'Pestaña 1' && (
-        <div className="sidebar-content">
-          <div className="default-items">
-            <div
-              className="draggable-item"
-              draggable
-              onDragStart={(event) => handleDragStart(event, neuronModel)} 
-            >
-              {neuronModel.name}
-            </div>
-            <div
-              className="draggable-item"
-              draggable
-              onDragStart={(event) => handleDragStart(event, monitorModel)}
-            >
-              {monitorModel.name}
-            </div>
-            <div
-              className="draggable-item"
-              draggable
-              onDragStart={(event) => handleDragStart(event, estimuloModel)}
-            >
-              {estimuloModel.name}
-            </div>
+      {/* Opciones */}
+      {activeTab === 'Opciones' && (
+        <div className="Sidebar-Content">
+          <div className="Sidebar-Section">
+            <h3 onClick={() => setShowNeuronModels(!showNeuronModels)}>
+              Neuronas {showNeuronModels ? '▲' : '▼'}
+            </h3>
+            {showNeuronModels && (
+              <div className="Sidebar-Submenu">
+                {predefinedModels.map((model) => (
+                  <div
+                    key={model.id}
+                    className="Sidebar-Item"
+                    draggable
+                    onDragStart={(event) => handleDragStart(event, model)}
+                  >
+                    {model.name}
+                  </div>
+                ))}
+                {customModels.map((model) => (
+                  <div
+                    key={model.id}
+                    className="Sidebar-Item"
+                    draggable
+                    onDragStart={(event) => handleDragStart(event, model)}
+                  >
+                    {model.name} (Personalizado)
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+          <button onClick={() => setShowGestionador(true)}>Crear Neurona</button>
         </div>
       )}
 
-      {activeTab === 'Pestaña 2' && (
-        <div>
+      {/* Simulación */}
+      {activeTab === 'Simulación' && (
+        <div className="Sidebar-Content">
           <div>
             <label>Tiempo de Simulación:</label>
             <input
@@ -181,53 +143,18 @@ function Sidebar({ onConnectToggle }) {
               onChange={(e) => setSimulationTime(e.target.value)}
             />
           </div>
-          <div
-            className="draggable-item"
-            draggable
-            onDragStart={(event) => handleDragStart(event, { id: 3, name: 'Elemento 3' })}
-          >
-            Elemento 3
-          </div>
-          <div
-            className="draggable-item"
-            draggable
-            onDragStart={(event) => handleDragStart(event, { id: 4, name: 'Elemento 4' })}
-          >
-            Elemento 4
-          </div>
         </div>
       )}
 
+      {/* Botón de conexión */}
       <button onClick={onConnectToggle}>Conectar</button>
-      <button onClick={() => setShowModal(true)}>Crear Neurona</button>
-      <button onClick={() => setShowModelList(!showModelList)}>Mostrar Modelos</button> {/* Botón para mostrar/ocultar la lista de modelos */}
 
-      {showModelList && (
-        <div className="model-list">
-          <h3>Modelos Personalizados</h3>
-          <ul>
-            {customModels.map((model) => (
-              <li
-                key={model.id}
-                draggable
-                onDragStart={(event) => handleDragStart(event, model)}
-              >
-                {model.name}
-              </li>
-            ))}
-          </ul>
+      {/* Gestionador para crear neuronas personalizadas */}
+      {showGestionador && (
+        <div className="gestionador-container">
+          <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
+          <Gestionador neuron={newModel} onSave={handleSaveModel} />
         </div>
-      )}
-
-      {showModal && (
-        <Modal
-          onClose={() => setShowModal(false)}
-          newModel={newModel}
-          setNewModel={setNewModel}
-          handleSaveModel={handleSaveModel}
-          handleModelChange={handleModelChange}
-          handleInputChange={handleInputChange}
-        />
       )}
     </div>
   );

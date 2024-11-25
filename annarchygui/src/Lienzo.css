@@ -111,18 +111,14 @@
 }
 
 .gestionador-container {
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translate(-50%, 0);
-  width: 100%;
-  max-width: 1000px;
-  background-color: #fefefe;
-  border: 1px solid #888;
-  padding: 20px;
+  position: fixed;  /* Asegura que el gestionador esté en una posición fija */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);  /* Un fondo semi-transparente para resaltar el contenido */
+  overflow: hidden; /* Desactiva el desplazamiento en el contenedor */
   z-index: 1000;
-  overflow-y: auto;
-  max-height: 80vh;
 }
 
 .gestionador-container .close {

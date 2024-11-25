@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
-function Gestionador({ neuron }) {
+function Gestionador({ neuron, onSave }) {
   const [equation, setEquation] = useState(neuron.neuron.equation);
-  const [parameters, setParameters] = useState(Object.entries(neuron.neuron.parameters).map(([name, value]) => ({ name, value })));
-  const [variables, setVariables] = useState(Object.entries(neuron.neuron.variables).map(([name, value]) => ({ name, value })));
-  const [attributes, setAttributes] = useState(Object.entries(neuron.attributes).map(([name, value]) => ({ name, value })));
+  const [parameters, setParameters] = useState(Object.entries(neuron.neuron.parameters || {}).map(([name, value]) => ({ name, value })));
+  const [variables, setVariables] = useState(Object.entries(neuron.neuron.variables || {}).map(([name, value]) => ({ name, value })));
+  const [attributes, setAttributes] = useState(Object.entries(neuron.attributes || {}).map(([name, value]) => ({ name, value })));
+  const [quantity, setquantity] = useState(neuron.quantity || '');
 
   useEffect(() => {
+    console.log(neuron);
     setEquation(neuron.neuron.equation);
-    setParameters(Object.entries(neuron.neuron.parameters).map(([name, value]) => ({ name, value })));
-    setVariables(Object.entries(neuron.neuron.variables).map(([name, value]) => ({ name, value })));
-    setAttributes(Object.entries(neuron.attributes).map(([name, value]) => ({ name, value })));
+    setParameters(Object.entries(neuron.neuron.parameters || {}).map(([name, value]) => ({ name, value })));
+    setVariables(Object.entries(neuron.neuron.variables || {}).map(([name, value]) => ({ name, value })));
+    setAttributes(Object.entries(neuron.attributes || {}).map(([name, value]) => ({ name, value })));
+    setquantity(neuron.quantity || '');
   }, [neuron]);
 
   const handleEquationChange = (e) => {
@@ -36,6 +39,10 @@ function Gestionador({ neuron }) {
     setAttributes(newAttributes);
   };
 
+  const handlequantityChange = (e) => {
+    setquantity(e.target.value);
+  };
+
   const addParameter = () => {
     setParameters([...parameters, { name: '', value: '' }]);
   };
@@ -52,12 +59,47 @@ function Gestionador({ neuron }) {
     setVariables(variables.filter((_, i) => i !== index));
   };
 
+  const handleSave = () => {
+    const updatedNeuron = {
+      ...neuron,
+      neuron: {
+        ...neuron.neuron,
+        equation,
+        parameters: parameters.reduce((acc, param) => {
+          acc[param.name] = param.value;
+          return acc;
+        }, {}),
+        variables: variables.reduce((acc, variable) => {
+          acc[variable.name] = variable.value;
+          return acc;
+        }, {}),
+      },
+      attributes: attributes.reduce((acc, attribute) => {
+        acc[attribute.name] = attribute.value;
+        return acc;
+      }, {}),
+      quantity,
+    };
+    onSave(updatedNeuron);
+  };
+
   return (
     <div className="container">
       {/* Encabezado */}
       <div className="header">
         <label htmlFor="nombre">Nombre:</label>
         <input type="text" id="nombre" defaultValue={neuron.name} />
+      </div>
+
+      {/* Tamaño de la Población */}
+      <div className="population-size">
+        <label htmlFor="quantity">Tamaño de la Población:</label>
+        <input
+          type="text"
+          id="quantity"
+          value={quantity}
+          onChange={handlequantityChange}
+        />
       </div>
 
       {/* Ecuación */}
@@ -170,6 +212,9 @@ function Gestionador({ neuron }) {
           </div>
         ))}
       </div>
+
+      {/* Botón para guardar */}
+      <button onClick={handleSave}>Guardar</button>
     </div>
   );
 }

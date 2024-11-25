@@ -114,6 +114,37 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
     setShowGestionador(true);
   };
 
+  const handleSaveNeuron = (updatedNeuron) => {
+    setItems(items.map(item => item.id === updatedNeuron.id ? updatedNeuron : item));
+    setShowGestionador(false);
+  };
+
+  const handleCloseGestionador = () => {
+    setShowGestionador(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleCloseGestionador();
+      }
+    };
+
+    const handleClickOutsideGestionador = (event) => {
+      if (showGestionador && !event.target.closest('.gestionador-container')) {
+        handleCloseGestionador();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutsideGestionador);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutsideGestionador);
+    };
+  }, [showGestionador]);
+
   //Funcion para guardar la conexion entre elementos
   useEffect(() => {
     if (selectedItems.length === 2) {
@@ -351,7 +382,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       {showGestionador && selectedNeuron && (
         <div className="gestionador-container">
           <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-          <Gestionador neuron={selectedNeuron} />
+          <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} />
         </div>
       )}
     </div>
