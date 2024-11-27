@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
+import CodeGenerator from './CodeGenerator'; // Importa el componente CodeGenerator
 
-function Sidebar({ onConnectToggle }) {
+function Sidebar({ onConnectToggle, items }) {
   const [activeTab, setActiveTab] = useState('Opciones');
   const [simulationTime, setSimulationTime] = useState(0);
   const [customModels, setCustomModels] = useState([]);
@@ -13,8 +14,8 @@ function Sidebar({ onConnectToggle }) {
     quantity: '',
     neuron: {
       equation: '',
-      parameters: { tau: '', I: '' },
-      variables: { v: '' },
+      parameters: { },
+      variables: {  },
     },
     attributes: { firingRate: '', threshold: '' },
   });
@@ -143,6 +144,7 @@ function Sidebar({ onConnectToggle }) {
               onChange={(e) => setSimulationTime(e.target.value)}
             />
           </div>
+          <CodeGenerator items={items} />
         </div>
       )}
 
@@ -152,8 +154,10 @@ function Sidebar({ onConnectToggle }) {
       {/* Gestionador para crear neuronas personalizadas */}
       {showGestionador && (
         <div className="gestionador-container">
-          <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-          <Gestionador neuron={newModel} onSave={handleSaveModel} />
+          <div className="gestionador-content">
+            <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
+            <Gestionador neuron={newModel} onSave={handleSaveModel} />
+          </div>
         </div>
       )}
     </div>

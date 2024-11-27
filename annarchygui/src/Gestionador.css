@@ -6,32 +6,39 @@ body {
 }
 
 .gestionador-container .container {
-  border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
   width: 100%;
   max-width: 800px;
   margin: 20px auto;
   background-color: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
 }
 
-.gestionador-container .header {
+.gestionador-container .header,
+.gestionador-container .population-size,
+.gestionador-container .attribute {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.header label {
+.header label,
+.population-size label,
+.attribute label {
   font-weight: bold;
   margin-right: 10px;
+  width: 150px; /* Ancho fijo para alinear los textos */
+  text-align: left; /* Alinea el texto a la izquierda */
 }
 
-.header input {
+.header input,
+.population-size input,
+.attribute input {
   width: 200px;
   padding: 8px;
   border: 1px solid #ccc;
@@ -117,4 +124,12 @@ body {
   border: 2px solid black;
   margin-top: 20px;
   background-color: #eaeaea;
+}
+
+.gestionador-container .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
 }

@@ -3,8 +3,7 @@ import './Lienzo.css';
 import ContextMenu from './ContextMenu';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
-  const [items, setItems] = useState([]);
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, item: null, tipo:null});
@@ -380,9 +379,11 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting] }) {
       <button onClick={() => setShowGestionador(true)}>Abrir Gestionador</button>
 
       {showGestionador && selectedNeuron && (
-        <div className="gestionador-container">
-          <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-          <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} />
+        <div className="gestionador-container" onClick={handleCloseGestionador}>
+          <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
+            <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
+            <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} />
+          </div>
         </div>
       )}
     </div>

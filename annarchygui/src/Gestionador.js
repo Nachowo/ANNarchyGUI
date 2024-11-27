@@ -2,20 +2,26 @@ import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
 function Gestionador({ neuron, onSave }) {
+  const [name, setName] = useState(neuron.name || '');
   const [equation, setEquation] = useState(neuron.neuron.equation);
   const [parameters, setParameters] = useState(Object.entries(neuron.neuron.parameters || {}).map(([name, value]) => ({ name, value })));
   const [variables, setVariables] = useState(Object.entries(neuron.neuron.variables || {}).map(([name, value]) => ({ name, value })));
   const [attributes, setAttributes] = useState(Object.entries(neuron.attributes || {}).map(([name, value]) => ({ name, value })));
-  const [quantity, setquantity] = useState(neuron.quantity || '');
+  const [quantity, setQuantity] = useState(neuron.quantity || '');
 
   useEffect(() => {
     console.log(neuron);
+    setName(neuron.name || '');
     setEquation(neuron.neuron.equation);
     setParameters(Object.entries(neuron.neuron.parameters || {}).map(([name, value]) => ({ name, value })));
     setVariables(Object.entries(neuron.neuron.variables || {}).map(([name, value]) => ({ name, value })));
     setAttributes(Object.entries(neuron.attributes || {}).map(([name, value]) => ({ name, value })));
-    setquantity(neuron.quantity || '');
+    setQuantity(neuron.quantity || '');
   }, [neuron]);
+
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
 
   const handleEquationChange = (e) => {
     setEquation(e.target.value);
@@ -39,8 +45,8 @@ function Gestionador({ neuron, onSave }) {
     setAttributes(newAttributes);
   };
 
-  const handlequantityChange = (e) => {
-    setquantity(e.target.value);
+  const handleQuantityChange = (e) => {
+    setQuantity(e.target.value);
   };
 
   const addParameter = () => {
@@ -62,6 +68,7 @@ function Gestionador({ neuron, onSave }) {
   const handleSave = () => {
     const updatedNeuron = {
       ...neuron,
+      name,
       neuron: {
         ...neuron.neuron,
         equation,
@@ -87,24 +94,24 @@ function Gestionador({ neuron, onSave }) {
     <div className="container">
       {/* Encabezado */}
       <div className="header">
-        <label htmlFor="nombre">Nombre:</label>
-        <input type="text" id="nombre" defaultValue={neuron.name} />
+        <label htmlFor="nombre">Name:</label>
+        <input type="text" id="nombre" value={name} onChange={handleNameChange} />
       </div>
 
       {/* Tamaño de la Población */}
       <div className="population-size">
-        <label htmlFor="quantity">Tamaño de la Población:</label>
+        <label htmlFor="quantity">Population Size:</label>
         <input
           type="text"
           id="quantity"
           value={quantity}
-          onChange={handlequantityChange}
+          onChange={handleQuantityChange}
         />
       </div>
 
       {/* Ecuación */}
       <div className="equation">
-        <label htmlFor="equation">Ecuación:</label>
+        <label htmlFor="equation">Equation:</label>
         <input
           type="text"
           id="equation"
@@ -120,9 +127,9 @@ function Gestionador({ neuron, onSave }) {
           <table className="table">
             <thead>
               <tr>
-                <th>Parámetros</th>
-                <th>Valor</th>
-                <th>Acciones</th>
+                <th>Parameters</th>
+                <th>Value</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -149,7 +156,7 @@ function Gestionador({ neuron, onSave }) {
               ))}
               <tr>
                 <td colSpan="3">
-                  <button onClick={addParameter}>Añadir Parámetro</button>
+                  <button onClick={addParameter}>Add Parameter</button>
                 </td>
               </tr>
             </tbody>
@@ -162,8 +169,8 @@ function Gestionador({ neuron, onSave }) {
             <thead>
               <tr>
                 <th>Variable</th>
-                <th>Valor</th>
-                <th>Acciones</th>
+                <th>Value</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -190,7 +197,7 @@ function Gestionador({ neuron, onSave }) {
               ))}
               <tr>
                 <td colSpan="3">
-                  <button onClick={addVariable}>Añadir Variable</button>
+                  <button onClick={addVariable}>Add Variable</button>
                 </td>
               </tr>
             </tbody>
@@ -200,7 +207,7 @@ function Gestionador({ neuron, onSave }) {
 
       {/* Atributos */}
       <div className="attributes">
-        <h3>Atributos</h3>
+        <h3>Atributtes</h3>
         {attributes.map((attribute, index) => (
           <div key={index} className="attribute">
             <label>{attribute.name}:</label>

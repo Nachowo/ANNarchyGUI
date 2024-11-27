@@ -6,6 +6,7 @@ import ContextMenu from './ContextMenu';
 
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
+  const [items, setItems] = useState([]); // Estado para los items del lienzo
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = () => {
@@ -20,8 +21,8 @@ function App() {
         <button className='buttonHeader'>Simular</button>
       </header>
       <div className="App-body">
-        <Lienzo isConnecting={[isConnecting, setIsConnecting]} />
-        <Sidebar onConnectToggle={handleConnectToggle} />
+        <Lienzo isConnecting={[isConnecting, setIsConnecting]} items={items} setItems={setItems} />
+        <Sidebar onConnectToggle={handleConnectToggle} items={items} />
       </div>
     </div>
   );
