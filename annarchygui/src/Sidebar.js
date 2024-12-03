@@ -3,7 +3,7 @@ import './Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import CodeGenerator from './CodeGenerator'; // Importa el componente CodeGenerator
 
-function Sidebar({ onConnectToggle, items }) {
+function Sidebar({ onConnectToggle, items, connections }) {
   const [activeTab, setActiveTab] = useState('Opciones');
   const [simulationTime, setSimulationTime] = useState(0);
   const [customModels, setCustomModels] = useState([]);
@@ -18,6 +18,13 @@ function Sidebar({ onConnectToggle, items }) {
       variables: {  },
     },
     attributes: { firingRate: '', threshold: '' },
+  });
+
+  const [showSynapseModels, setShowSynapseModels] = useState(false);
+  const [customSynapses, setCustomSynapses] = useState([]);
+  const [newSynapse, setNewSynapse] = useState({
+    name: '',
+    attributes: { weight: '', delay: '' },
   });
 
   const predefinedModels = [
@@ -70,6 +77,21 @@ function Sidebar({ onConnectToggle, items }) {
     }
   ];
 
+  const predefinedSynapses = [
+    {
+      id: 1,
+      type: 'Sinapsis',
+      name: 'Excitatory Synapse',
+      attributes: { weight: 0.1, delay: 1 },
+    },
+    {
+      id: 2,
+      type: 'Sinapsis',
+      name: 'Inhibitory Synapse',
+      attributes: { weight: -0.1, delay: 1 },
+    },
+  ];
+
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
@@ -77,6 +99,15 @@ function Sidebar({ onConnectToggle, items }) {
   const handleSaveModel = (updatedModel) => {
     setCustomModels([...customModels, { ...updatedModel, id: customModels.length + 1, type: 'Población neuronal' }]);
     setShowGestionador(false);
+  };
+
+  const handleSaveSynapse = (updatedSynapse) => {
+    setCustomSynapses([...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.attributes.name }]);
+    setShowGestionador(false);
+  };
+
+  const handleSynapseClick = (synapse) => {
+    onConnectToggle(synapse);
   };
 
   return (
@@ -130,6 +161,37 @@ function Sidebar({ onConnectToggle, items }) {
             )}
           </div>
           <button onClick={() => setShowGestionador(true)}>Crear Neurona</button>
+          
+          <div className="Sidebar-Section">
+            <h3 onClick={() => setShowSynapseModels(!showSynapseModels)}>
+              Sinapsis {showSynapseModels ? '▲' : '▼'}
+            </h3>
+            {showSynapseModels && (
+              <div className="Sidebar-Submenu">
+                {predefinedSynapses.map((synapse) => (
+                  <button
+                    key={synapse.id}
+                    className="Sidebar-Item"
+                    onClick={() => handleSynapseClick(synapse)}
+                  >
+                    {synapse.name}
+                  </button>
+                ))}
+                {customSynapses.map((synapse) => (
+                  <button
+                    key={synapse.id}
+                    className="Sidebar-Item"
+                    onClick={() => handleSynapseClick(synapse)}
+                  >
+                    {synapse.name} (Personalizado)
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button onClick={() => setShowGestionador(true)}>Crear Sinapsis</button>
+          <div>
+            </div>
         </div>
       )}
 
@@ -144,12 +206,9 @@ function Sidebar({ onConnectToggle, items }) {
               onChange={(e) => setSimulationTime(e.target.value)}
             />
           </div>
-          <CodeGenerator items={items} />
+          <CodeGenerator items={items} connections={connections} />
         </div>
       )}
-
-      {/* Botón de conexión */}
-      <button onClick={onConnectToggle}>Conectar</button>
 
       {/* Gestionador para crear neuronas personalizadas */}
       {showGestionador && (

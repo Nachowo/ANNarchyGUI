@@ -50,6 +50,7 @@
   margin-bottom: 10px;
   cursor: grab;
   border-radius: 5px;
+  color: black;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 

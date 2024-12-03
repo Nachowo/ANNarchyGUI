@@ -3,12 +3,11 @@ import './Lienzo.css';
 import ContextMenu from './ContextMenu';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, item: null, tipo:null});
   const [selectedItems, setSelectedItems] = useState([]);
-  const [connections, setConnections] = useState([]);
   const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false); // Estado para mostrar/ocultar el Gestionador
   const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
@@ -114,7 +113,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   };
 
   const handleSaveNeuron = (updatedNeuron) => {
-    setItems(items.map(item => item.id === updatedNeuron.id ? updatedNeuron : item));
+    setItems(items.map(item => item.id === updatedNeuron.id ? { ...updatedNeuron, name: updatedNeuron.attributes.name } : item));
     setShowGestionador(false);
   };
 
@@ -156,12 +155,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         ) {
           setStimulusMonitorConnections(prevConnections => [
             ...prevConnections,
-            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
+            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name:selectedSynapse.name } : { name: selectedSynapse.name } }
           ]);
         } else if (origen.type === 'Población neuronal' && destino.type === 'Población neuronal') {
           setConnections(prevConnections => [
             ...prevConnections,
-            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: {direccion: "a", tipoProyeccion: "xd"} }
+            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name } : { name: selectedSynapse.name } }
           ]);
         } else {
           if (origen.type === 'Monitor' || origen.type === 'Estimulo') {
@@ -177,7 +176,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       setSelectedItems([]);
       document.body.style.cursor = 'default';
     }
-  }, [selectedItems, setIsConnecting]);
+  }, [selectedItems, setIsConnecting, selectedSynapse, setConnections]);
 
   //Cerrar el contextMenu si se hace click fuera de el
   useEffect(() => {

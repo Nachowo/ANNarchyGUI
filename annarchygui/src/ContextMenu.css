@@ -80,3 +80,76 @@
   background-color: #f44336;
   color: white;
 }
+
+.context-menu-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.context-menu-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.context-menu-header .close {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.context-menu-body {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.context-menu-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.context-menu-content div {
+  margin-bottom: 20px;
+}
+
+.context-menu-content label {
+  font-weight: bold;
+  margin-right: 10px;
+  width: 150px;
+  text-align: left;
+}
+
+.context-menu-content input,
+.context-menu-content select {
+  width: 200px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.context-menu-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.context-menu-footer button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.context-menu-footer button:hover {
+  background-color: #ddd;
+}

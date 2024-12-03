@@ -9,6 +9,7 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
   const [stimulusType, setStimulusType] = useState('');
   const [synapse, setSynapse] = useState({});
   const [regla, setRegla] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Actualiza los atributos cuando cambia el elemento seleccionado
   useEffect(() => {
@@ -93,7 +94,7 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
   // Guarda los cambios en los atributos
   const handleSave = (e) => {
     e.stopPropagation(); 
-    onEdit(item.id, { ...attributes, name: attributes.name, quantity, neuron, synapse, regla }); 
+    onEdit(item.id, { ...attributes, name: synapse.name, quantity, neuron, synapse, regla }); 
   };
 
   // Renderiza el contenido del menú basado en el tipo
@@ -313,37 +314,58 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
         );
       case 4:
         return (
-          <li>
+          <div className="context-menu-content">
+            {/* Sección 1: Origen, Destino y Tipo de Conexión */}
             <div>
-              <label>Ecuación:</label>
+              <label>Origen:</label>
               <input
                 type="text"
-                value={synapse.equation || ''}
-                onChange={(e) => handleSynapseChange(e, 'equation')}
+                value={attributes.origen || ''}
+                onChange={(e) => handleEditChange(e, 'origen')}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
             <div>
-              <label>Parámetros:</label>
+              <label>Destino:</label>
               <input
                 type="text"
-                value={synapse.parameters?.peso || ''}
-                onChange={(e) => handleSynapseParamChange(e, 'peso')}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <input
-                type="text"
-                value={synapse.parameters?.delay || ''}
-                onChange={(e) => handleSynapseParamChange(e, 'delay')}
+                value={attributes.destino || ''}
+                onChange={(e) => handleEditChange(e, 'destino')}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
             <div>
-              <label>Variables:</label>
+              <label>Tipo de Conexión:</label>
+              <select
+                value={attributes.tipoConexion || ''}
+                onChange={(e) => handleEditChange(e, 'tipoConexion')}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value="Excitatoria">Excitatoria</option>
+                <option value="Inhibitoria">Inhibitoria</option>
+              </select>
+            </div>
+
+            {/* Sección 2: Peso, Delay y Regla */}
+            <div>
+              <label>Peso:</label>
               <input
-                type="text"
-                value={synapse.variables?.direccion || ''}
-                onChange={(e) => handleSynapseVarChange(e, 'direccion')}
+                type="range"
+                min="0.0"
+                max="1.0"
+                step="0.01"
+                value={attributes.weight || 0}
+                onChange={(e) => handleEditChange(e, 'weight')}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span>{attributes.weight || 0}</span>
+            </div>
+            <div>
+              <label>Delay:</label>
+              <input
+                type="number"
+                value={attributes.delay || ''}
+                onChange={(e) => handleEditChange(e, 'delay')}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -354,8 +376,8 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
                 onChange={(e) => setRegla(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
               >
-                <option value="allToAll">All to All</option>
                 <option value="oneToOne">One to One</option>
+                <option value="allToAll">All to All</option>
                 <option value="fixedProbability">Probabilidad Arreglada</option>
                 <option value="random">Random</option>
               </select>
@@ -371,21 +393,37 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
                 />
               </div>
             )}
-            {Object.keys(attributes).map((attr) => (
-              attr !== 'firingRate' && attr !== 'threshold' && attr !== 'probabilidad' && (
-                <div key={attr}>
-                  <label>{attr}:</label>
-                  <input
-                    type="text"
-                    value={attributes[attr]}
-                    onChange={(e) => handleEditChange(e, attr)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              )
-            ))}
+
+            {/* Sección 3: Avanzada */}
+            <div>
+              <button onClick={() => setShowAdvanced(!showAdvanced)}>
+                {showAdvanced ? 'Ocultar Avanzado' : 'Mostrar Avanzado'}
+              </button>
+              {showAdvanced && (
+                <>
+                  <div>
+                    <label>Ecuación:</label>
+                    <input
+                      type="text"
+                      value={synapse.equation || ''}
+                      onChange={(e) => handleSynapseChange(e, 'equation')}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div>
+                    <label>Tipo de Plasticidad:</label>
+                    <input
+                      type="text"
+                      value={synapse.plasticity || ''}
+                      onChange={(e) => handleSynapseChange(e, 'plasticity')}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
             <button onClick={handleSave}>Guardar</button>
-          </li>
+          </div>
         );
       default:
         return null;
@@ -393,23 +431,17 @@ function ContextMenu({ x, y, item, tipo, onEdit, onClose, onDelete }) {
   };
 
   return (
-    <div
-      className="context-menu"
-      style={{ top: y, left: x }}
-      onClick={(e) => e.stopPropagation()} 
-    >
-      <ul>
-        <li
-          onClick={(e) => {
-            e.stopPropagation(); 
-            onDelete();
-          }}
-        >
-          Eliminar
-        </li>
+    <div className="context-menu-container">
+      <div className="context-menu-header">
+        <span className="close" onClick={onClose}>&times;</span>
+      </div>
+      <div className="context-menu-body">
         {renderMenuContent()}
-        <li onClick={(e) => { e.stopPropagation(); onClose(); }}>Cerrar</li>
-      </ul>
+      </div>
+      <div className="context-menu-footer">
+        <button onClick={onDelete}>Eliminar</button>
+        <button onClick={onClose}>Cerrar</button>
+      </div>
     </div>
   );
 }

@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 
-let lienzoRef = null;
 let code = '';
-
-/**
- * Establece la referencia al componente Lienzo.
- * @param {Object} ref - Referencia al componente Lienzo.
- */
-export function setLienzoRef(ref) {
-  lienzoRef = ref;
-}
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -34,17 +25,13 @@ export function getNeurons(items) {
  * @param {Array} items - Lista de elementos en el lienzo.
  * @returns {Array} - Lista de sinapsis.
  */
-export function getSynapses(connections, items) {
-  return connections.map(connection => {
-    const origen = items.find(item => item.id === connection.origen);
-    const destino = items.find(item => item.id === connection.destino);
-    return {
-      id: connection.id,
-      origen: origen ? origen.name : null,
-      destino: destino ? destino.name : null,
-      attributes: connection.attributes
-    };
-  });
+export function getSynapses(connections) {
+  return connections.map(connection => ({
+    id: connection.id,
+    origen: connection.origen,
+    destino: connection.destino,
+    attributes: connection.attributes
+  }));
 }
 
 /**
@@ -57,6 +44,14 @@ export function getItemsFromLienzo(items) {
 }
 
 /**
+ * Obtiene el listado de conexiones desde el Lienzo y lo imprime en consola.
+ * @param {Array} connections - Lista de conexiones en el lienzo.
+ */
+export function printConnections(connections) {
+  console.log('Connections:', connections);
+}
+
+/**
  * Asegura que no haya espacios en los nombres y los reemplace con un guion.
  * @param {string} name - Nombre a procesar.
  * @returns {string} - Nombre procesado.
@@ -66,17 +61,28 @@ export function formatName(name) {
 }
 
 /**
- * Traduce el listado de items en neuronas estilo ANNarchy y lo pone en code.
+ * Traduce el listado de items en neuronas y sinapsis estilo ANNarchy y lo pone en code.
  * @param {Array} items - Lista de elementos en el lienzo.
+ * @param {Array} connections - Lista de conexiones en el lienzo.
  */
-export function generateANNarchyCode(items) {
+export function generateANNarchyCode(items, connections) {
   const neurons = getNeurons(items);
-  code = neurons.map(neuron => {
+  const synapses = getSynapses(connections);
+
+  const neuronCode = neurons.map(neuron => {
     const formattedName = formatName(neuron.name);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
     const vars = Object.entries(neuron.variables).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
-    return `${formattedName} = Neuron(\n\tequations='${neuron.equation}',\n\tparameters={\n${params}\n\t},\n\tvariables={\n${vars}\n\t}\n)`;
+    return `${formattedName} = Neuron(\n\tequations='${neuron.equation}',\n\tparameters="""\n${params}\n\t""",\n\tvariables="""\n${vars}\n\t"""\n)`;
   }).join('\n\n');
+
+  const synapseCode = synapses.map(synapse => {
+    const formattedName = formatName(synapse.attributes.name);
+    const params = `\t\tw=${synapse.attributes.weight},\n\t\tdelay=${synapse.attributes.delay}`;
+    return `${formattedName} = Synapse(\n\tparameters="""\n${params}\n\t"""\n)`;
+  }).join('\n\n');
+
+  code = `${neuronCode}\n\n${synapseCode}`;
 }
 
 /**
@@ -95,17 +101,22 @@ export function downloadCodeAsFile(code) {
   URL.revokeObjectURL(url);
 }
 
-const CodeGenerator = ({ items }) => {
-  const handleTestGetItems = () => {
+const CodeGenerator = ({ items, connections }) => {
+  const handleGenerateCode = () => {
     const itemsList = getItemsFromLienzo(items);
-    console.log('Items:', itemsList);
-    generateANNarchyCode(itemsList);
-    console.log('Código tipo ANNarchy:', code);
+    generateANNarchyCode(itemsList, connections);
     downloadCodeAsFile(code);
   };
 
+  const handlePrintConnections = () => {
+    printConnections(connections);
+  };
+
   return (
-    <button onClick={handleTestGetItems}>Probar Obtener Items</button>
+    <div>
+      <button onClick={handleGenerateCode}>Generar Código</button>
+      <button onClick={handlePrintConnections}>Imprimir Conexiones</button>
+    </div>
   );
 };
 
