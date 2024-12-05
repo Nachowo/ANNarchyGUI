@@ -265,7 +265,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     const destinoItem = items.find(item => item.id === connection.destino);
 
     if (!origenItem || !destinoItem) {
-    //  return null; // Si no se encuentra el elemento, no renderizar la conexión
+      return null; // Si no se encuentra el elemento, no renderizar la conexión
     }
 
     const x1 = origenItem.x + 50;
@@ -314,7 +314,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     const destinoItem = items.find(item => item.id === connection.destino);
 
     if (!origenItem || !destinoItem) {
-    //  return null; // Si no se encuentra el elemento, no renderizar la conexión
+      return null; // Si no se encuentra el elemento, no renderizar la conexión
     }
 
     const x1 = origenItem.x + 50;

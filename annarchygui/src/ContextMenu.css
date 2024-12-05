@@ -48,7 +48,7 @@
   margin: 10px 0 5px;
 }
 
-.synapse-editor input, .synapse-editor select {
+.synapse-editor input, .synapse-editor select, .synapse-editor textarea {
   width: calc(100% - 20px);
   padding: 8px;
   margin-top: 5px;
@@ -129,7 +129,8 @@
 }
 
 .context-menu-content input,
-.context-menu-content select {
+.context-menu-content select,
+.context-menu-content textarea {
   width: 200px;
   padding: 8px;
   border: 1px solid #ccc;

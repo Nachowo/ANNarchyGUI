@@ -12,12 +12,18 @@ function Sidebar({ onConnectToggle, items, connections }) {
   const [newModel, setNewModel] = useState({
     name: '',
     quantity: '',
-    neuron: {
-      equation: '',
-      parameters: { },
-      variables: {  },
-    },
-    attributes: { firingRate: '', threshold: '' },
+    attributes: {
+      tipo: '',
+      parameters: {},
+      equations: {},
+      functions: {},
+      variables: {},
+      spike: {},
+      axon_spike: {},
+      reset: {},
+      axon_reset: {},
+      refractory: {}
+    }
   });
 
   const [showSynapseModels, setShowSynapseModels] = useState(false);
@@ -33,47 +39,72 @@ function Sidebar({ onConnectToggle, items, connections }) {
       type: 'Población neuronal',
       name: 'LIF Neuron',
       quantity: 100,
-      neuron: {
-        equation: 'dv/dt = (-v + I) / tau : 1',
+      attributes: {
+        tipo: 'Spiking neuron',
         parameters: { tau: 10, I: 1 },
+        equations: { dv: 'dv/dt = (-v + I) / tau : 1' },
+        functions: {},
         variables: { v: -65 },
-      },
-      attributes: { firingRate: 10, threshold: -55 },
+        spike: {},
+        axon_spike: {},
+        reset: {},
+        axon_reset: {},
+        refractory: {},
+      }
     },
     {
       id: 2,
       type: 'Población neuronal',
       name: 'Izhikevich Neuron',
       quantity: 100,
-      neuron: {
-        equation: 'dv/dt = 0.04*v^2 + 5*v + 140 - u + I; du/dt = a*(b*v - u)',
+      attributes: {
+        tipo: 'Spiking neuron',
         parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
+        equations: { dv: 'dv/dt = 0.04*v^2 + 5*v + 140 - u + I', du: 'du/dt = a*(b*v - u)' },
+        functions: {},
         variables: { v: -65, u: -14 },
-      },
-      attributes: { firingRate: 10, threshold: -55 },
+        spike: {},
+        axon_spike: {},
+        reset: {},
+        axon_reset: {},
+        refractory: {},
+      }
     },
     {
       id: 3,
       type: 'Población neuronal',
       name: 'Hodgkin-Huxley Neuron',
       quantity: 100,
-      neuron: {
-        equation: 'dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1',
+      attributes: {
+        tipo: 'Spiking neuron',
         parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
+        equations: { dv: 'dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1' },
+        functions: {},
         variables: { v: -65, m: 0.0529, h: 0.5961, n: 0.3177 },
-      },
-      attributes: { firingRate: 10, threshold: -55 },
+        spike: {},
+        axon_spike: {},
+        reset: {},
+        axon_reset: {},
+        refractory: {},
+      }
     },
     {
       id: 4,
       type: 'Población neuronal',
       name: 'Poisson Neuron',
       quantity: 100,
-      neuron: {
-        equation: 'spike = 1.0 * (rand() < rate * dt) : boolean',
+      attributes: {
+        tipo: 'Rate-Coded neuron',
         parameters: { rate: 10.0 },
+        equations: { spike: 'spike = 1.0 * (rand() < rate * dt) : boolean' },
+        functions: {},
         variables: {},
-      },
+        spike: {},
+        axon_spike: {},
+        reset: {},
+        axon_reset: {},
+        refractory: {},
+      }
     }
   ];
 
@@ -82,13 +113,27 @@ function Sidebar({ onConnectToggle, items, connections }) {
       id: 1,
       type: 'Sinapsis',
       name: 'Excitatory Synapse',
-      attributes: { weight: 0.1, delay: 1 },
+      attributes: {
+        weight: 0.1,
+        delay: 1,
+        equation: 'dw/dt = pre_rate * post_rate - decay * w',
+        clip: 'w = clip(w, 0.0, 1.0)',
+        preSynaptic: 'g_exc += w',
+        postSynaptic: 'g_inh -= w'
+      },
     },
     {
       id: 2,
       type: 'Sinapsis',
       name: 'Inhibitory Synapse',
-      attributes: { weight: -0.1, delay: 1 },
+      attributes: {
+        weight: -0.1,
+        delay: 1,
+        equation: 'dw/dt = pre_rate * post_rate - decay * w',
+        clip: 'w = clip(w, 0.0, 1.0)',
+        preSynaptic: 'g_exc += w',
+        postSynaptic: 'g_inh -= w'
+      },
     },
   ];
 

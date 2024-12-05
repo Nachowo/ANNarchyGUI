@@ -79,7 +79,17 @@ export function generateANNarchyCode(items, connections) {
   const synapseCode = synapses.map(synapse => {
     const formattedName = formatName(synapse.attributes.name);
     const params = `\t\tw=${synapse.attributes.weight},\n\t\tdelay=${synapse.attributes.delay}`;
-    return `${formattedName} = Synapse(\n\tparameters="""\n${params}\n\t"""\n)`;
+    const equation = synapse.attributes.equation;
+    const clip = synapse.attributes.clip;
+    const preSpike = synapse.attributes.preSynaptic;
+    const postSpike = synapse.attributes.postSynaptic;
+    const attributes = [
+      { key: 'equation', value: equation },
+      { key: 'clip', value: clip },
+      { key: 'pre_spike', value: preSpike },
+      { key: 'post_spike', value: postSpike }
+    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="""\n\t\t${attr.value}\n\t"""`).join(',\n');
+    return `${formattedName} = Synapse(\n\tparameters="""\n${params}\n\t""",\n${attributes}\n)`;
   }).join('\n\n');
 
   code = `${neuronCode}\n\n${synapseCode}`;

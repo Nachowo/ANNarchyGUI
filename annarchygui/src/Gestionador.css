@@ -45,6 +45,107 @@ body {
   border-radius: 4px;
 }
 
+.gestionador-container .equations,
+.gestionador-container .parameters,
+.gestionador-container .variables,
+.gestionador-container .functions,
+.gestionador-container .spike,
+.gestionador-container .axon-spike,
+.gestionador-container .reset,
+.gestionador-container .axon-reset,
+.gestionador-container .refractory {
+  margin-bottom: 20px;
+}
+
+.equations h3,
+.parameters h3,
+.variables h3,
+.functions h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.equations .equation,
+.parameters .parameter,
+.variables .variable,
+.functions .function {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.equations .equation input,
+.parameters .parameter input,
+.variables .variable input,
+.functions .function input {
+  width: calc(50% - 10px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.equations .equation button,
+.parameters .parameter button,
+.variables .variable button,
+.functions .function button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.equations .equation button:hover,
+.parameters .parameter button:hover,
+.variables .variable button:hover,
+.functions .function button:hover {
+  background-color: #0056b3;
+}
+
+.equations button,
+.parameters button,
+.variables button,
+.functions button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.equations button:hover,
+.parameters button:hover,
+.variables button:hover,
+.functions button:hover {
+  background-color: #0056b3;
+}
+
+.spike label,
+.axon-spike label,
+.reset label,
+.axon-reset label,
+.refractory label {
+  font-weight: bold;
+  margin-right: 10px;
+  width: 150px; /* Ancho fijo para alinear los textos */
+  text-align: left; /* Alinea el texto a la izquierda */
+}
+
+.spike input,
+.axon-spike input,
+.reset input,
+.axon-reset input,
+.refractory input {
+  width: calc(100% - 160px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 .gestionador-container .equation {
   text-align: left;
   margin-bottom: 20px;
@@ -132,4 +233,22 @@ body {
   right: 10px;
   font-size: 24px;
   cursor: pointer;
+}
+
+.gestionador-container .close:hover {
+  color: red;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
