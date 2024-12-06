@@ -5,6 +5,135 @@ body {
   background-color: #f0f2f5;
 }
 
+.neuron-form {
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  background-color: #fff;
+  overflow-y: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.neuron-form .row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.neuron-form label {
+  font-weight: bold;
+  margin-right: 10px;
+  width: 150px;
+  text-align: left;
+}
+
+.neuron-form input,
+.neuron-form select {
+  width: calc(100% - 12px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.neuron-form .group {
+  flex: 1;
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+
+.neuron-form .group h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.neuron-form .table {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.neuron-form .table .row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.neuron-form .table .row input {
+  width: calc(50% - 12px);
+  margin-right: 10px;
+}
+
+.neuron-form .table .row .delete {
+  padding: 5px 10px;
+  background-color: #ff4d4d;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.neuron-form .table .row .delete:hover {
+  background-color: #cc0000;
+}
+
+.neuron-form .add {
+  padding: 5px 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: center; /* Centrar el botón */
+}
+
+.neuron-form .add:hover {
+  background-color: #0056b3;
+}
+
+.neuron-form .actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.neuron-form .actions .delete {
+  padding: 10px 20px;
+  background-color: #ff4d4d;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.neuron-form .actions .delete:hover {
+  background-color: #cc0000;
+}
+
+.neuron-form .actions .save {
+  padding: 10px 20px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.neuron-form .actions .save:hover {
+  background-color: #0056b3;
+}
+
 .gestionador-container .container {
   border-radius: 8px;
   padding: 20px;
@@ -115,6 +244,7 @@ body {
   color: white;
   border-radius: 4px;
   cursor: pointer;
+  align-self: center; /* Centrar el botón */
 }
 
 .equations button:hover,
@@ -122,6 +252,15 @@ body {
 .variables button:hover,
 .functions button:hover {
   background-color: #0056b3;
+}
+
+.equations textarea {
+  width: calc(100% - 12px); /* Ajustar el ancho para que se adapte a la celda */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Incluir el padding y el borde en el ancho total */
+  font-size: 16px;
 }
 
 .spike label,
@@ -169,7 +308,6 @@ body {
 .gestionador-container .tables-container {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
   flex-grow: 1;
 }
 
@@ -251,4 +389,9 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+.fields-container {
+  display: flex;
+  justify-content: space-between;
 }

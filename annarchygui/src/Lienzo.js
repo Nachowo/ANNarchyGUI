@@ -113,7 +113,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   };
 
   const handleSaveNeuron = (updatedNeuron) => {
-    setItems(items.map(item => item.id === updatedNeuron.id ? { ...updatedNeuron, name: updatedNeuron.attributes.name } : item));
+    setItems(items.map(item => item.id === updatedNeuron.id ? { ...updatedNeuron, name: updatedNeuron.name } : item));
     setShowGestionador(false);
   };
 
