@@ -156,6 +156,14 @@ body {
   margin-bottom: 20px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-around;
+  background-color: #007bff;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
 .header label,
 .population-size label,
 .attribute label {
@@ -172,6 +180,51 @@ body {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.header button {
+  flex: 1;
+  padding: 15px 20px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.header button.active {
+  background-color: #0056b3;
+}
+
+.header button:hover {
+  background-color: #0056b3;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  background-color: #007bff;
+  border-radius: 0 0 8px 8px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 15px 20px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.tabs button.active {
+  background-color: #0056b3;
+}
+
+.tabs button:hover {
+  background-color: #0056b3;
 }
 
 .gestionador-container .equations,

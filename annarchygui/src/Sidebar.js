@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
+import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
 import CodeGenerator from './CodeGenerator'; // Importa el componente CodeGenerator
 
 function Sidebar({ onConnectToggle, items, connections }) {
@@ -36,6 +37,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
     name: '',
     attributes: { weight: '', delay: '' },
   });
+  const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
 
   const predefinedModels = [
     {
@@ -116,27 +118,31 @@ function Sidebar({ onConnectToggle, items, connections }) {
     {
       id: 1,
       type: 'Sinapsis',
-      name: 'Excitatory Synapse',
+      name: 'Spiking Synapse',
       attributes: {
-        weight: 0.1,
-        delay: 1,
-        equation: 'dw/dt = pre_rate * post_rate - decay * w',
-        clip: 'w = clip(w, 0.0, 1.0)',
-        preSynaptic: 'g_exc += w',
-        postSynaptic: 'g_inh -= w'
+        parameters: { weight: 0.5, delay: 1.0 },
+        equations: 'dI/dt = -I / tau : current',
+        psp: 'exp(-t/tau)',
+        operation: 'sum',
+        pre_spike: 'I += weight',
+        post_spike: '',
+        pre_axon_spike: '',
+        functions: 'tau = 10.0'
       },
     },
     {
       id: 2,
       type: 'Sinapsis',
-      name: 'Inhibitory Synapse',
+      name: 'Rate-Coded Synapse',
       attributes: {
-        weight: -0.1,
-        delay: 1,
-        equation: 'dw/dt = pre_rate * post_rate - decay * w',
-        clip: 'w = clip(w, 0.0, 1.0)',
-        preSynaptic: 'g_exc += w',
-        postSynaptic: 'g_inh -= w'
+        parameters: { weight: 1.0 },
+        equations: 'I = weight * rate_pre',
+        psp: '',
+        operation: 'sum',
+        pre_spike: '',
+        post_spike: '',
+        pre_axon_spike: '',
+        functions: ''
       },
     },
   ];
@@ -152,7 +158,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
 
   const handleSaveSynapse = (updatedSynapse) => {
     setCustomSynapses([...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.attributes.name }]);
-    setShowGestionador(false);
+    setShowSynapseGestionador(false);
   };
 
   const handleSynapseClick = (synapse) => {
@@ -161,7 +167,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
 
   return (
     <div className="Sidebar" id='sidebar'>
-      {/* Tabs */}
+      {}
       <ul className="Sidebar-Tabs">
         <li
           className={activeTab === 'Opciones' ? 'active' : ''}
@@ -238,7 +244,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
               </div>
             )}
           </div>
-          <button onClick={() => setShowGestionador(true)}>Crear Sinapsis</button>
+          <button onClick={() => setShowSynapseGestionador(true)}>Crear Sinapsis</button>
           <div>
             </div>
         </div>
@@ -265,6 +271,14 @@ function Sidebar({ onConnectToggle, items, connections }) {
           <div className="gestionador-content">
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
             <Gestionador neuron={newModel} onSave={handleSaveModel} />
+          </div>
+        </div>
+      )}
+      {showSynapseGestionador && (
+        <div className="gestionador-container">
+          <div className="gestionador-content">
+            <span className="close" onClick={() => setShowSynapseGestionador(false)}>&times;</span>
+            <SynapseGestionador synapse={newSynapse} onSave={handleSaveSynapse} />
           </div>
         </div>
       )}

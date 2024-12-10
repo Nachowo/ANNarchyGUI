@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Lienzo.css';
-import ContextMenu from './ContextMenu';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
+import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
 function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, item: null, tipo:null});
   const [selectedItems, setSelectedItems] = useState([]);
   const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false); // Estado para mostrar/ocultar el Gestionador
   const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
+  const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
+  const [selectedSynapseItem, setSelectedSynapseItem] = useState(null);
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -57,18 +58,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
-  //Funcion para mostrar el contextMenu
-  const handleContextMenu = (event, item, tipo) => {
-    event.preventDefault();
-    console.log('Context Menu:', item);
-    setContextMenu({ visible: true, x: event.clientX, y: event.clientY, itemId: item.id, tipo });
-  };
-
-  //Funcion para cerrar el contextMenu
-  const closeContextMenu = useCallback(() => {
-    setContextMenu({ ...contextMenu, visible: false });
-  }, [contextMenu]);
-
   // Función para eliminar todas las conexiones que involucren un elemento
   const removeConnections = (itemId) => {
     setConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
@@ -76,11 +65,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   };
 
   //Funcion para eliminar un elemento y sus conexiones
-  const handleDeleteItem = () => {
-    const itemId = contextMenu.itemId;
+  const handleDeleteItem = (itemId) => {
     setItems(items.filter(item => item.id !== itemId));
     removeConnections(itemId);
-    closeContextMenu();
   };
 
   //Funcion para editar los atributos de un elemento
@@ -88,7 +75,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setItems(items.map(item =>
       item.id === id ? { ...item, attributes: updatedAttributes, name: updatedAttributes.name, quantity: updatedAttributes.quantity, neuron: updatedAttributes.neuron } : item
     ));
-    closeContextMenu();
   };
 
   //Funcion para manejar las conexiones entre elementos
@@ -119,6 +105,19 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
 
   const handleCloseGestionador = () => {
     setShowGestionador(false);
+  };
+
+  const handleSaveSynapse = (updatedSynapse) => {
+    setConnections(connections.map(connection =>
+      connection.id === updatedSynapse.id ? { ...connection, attributes: updatedSynapse.attributes } : connection
+    ));
+    setShowSynapseGestionador(false);
+  };
+
+  const handleSynapseClick = (event, connection) => {
+    event.preventDefault();
+    setSelectedSynapseItem(connection);
+    setShowSynapseGestionador(true);
   };
 
   useEffect(() => {
@@ -177,23 +176,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       document.body.style.cursor = 'default';
     }
   }, [selectedItems, setIsConnecting, selectedSynapse, setConnections]);
-
-  //Cerrar el contextMenu si se hace click fuera de el
-  useEffect(() => {
-    const handleClickOutside = () => {
-      closeContextMenu();
-    };
-
-    if (contextMenu.visible) {
-      window.addEventListener('click', handleClickOutside);
-    }
-
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [contextMenu.visible, closeContextMenu]);
-
-
 
   //Funcion para quitar el modo de conexion si se hace click en el lienzo
   const handleCanvasClick = () => {
@@ -256,88 +238,88 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       onDrop={handleDrop}
       onClick={handleCanvasClick}
     >
-<svg className="connections-svg">
-<defs>
-  {renderArrowMarker()}
-</defs>
-  {connections.map((connection, index) => {
-    const origenItem = items.find(item => item.id === connection.origen);
-    const destinoItem = items.find(item => item.id === connection.destino);
+      <svg className="connections-svg">
+        <defs>
+          {renderArrowMarker()}
+        </defs>
+        {connections.map((connection, index) => {
+          const origenItem = items.find(item => item.id === connection.origen);
+          const destinoItem = items.find(item => item.id === connection.destino);
 
-    if (!origenItem || !destinoItem) {
-      return null; // Si no se encuentra el elemento, no renderizar la conexión
-    }
+          if (!origenItem || !destinoItem) {
+            return null; // Si no se encuentra el elemento, no renderizar la conexión
+          }
 
-    const x1 = origenItem.x + 50;
-    const y1 = origenItem.y + 25;
-    const x2 = destinoItem.x + 50;
-    const y2 = destinoItem.y + 25;
+          const x1 = origenItem.x + 50;
+          const y1 = origenItem.y + 25;
+          const x2 = destinoItem.x + 50;
+          const y2 = destinoItem.y + 25;
 
-    const isNeuronConnection = origenItem.type === 'Población neuronal' && destinoItem.type === 'Población neuronal';
+          const isNeuronConnection = origenItem.type === 'Población neuronal' && destinoItem.type === 'Población neuronal';
 
-    return (
-      <React.Fragment key={index}>
-        <line
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke="transparent"
-          strokeWidth="10"
-          pointerEvents="all"
-          onContextMenu={(e) => {
-            if (isNeuronConnection) {
-              e.preventDefault();
-              handleContextMenu(e, connection, 4);
-            }
-          }}
-          onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
-          onMouseLeave={(e) => e.target.setAttribute('stroke', 'transparent')}
-        />
-        <line
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke="black"
-          strokeWidth="2"
-          markerEnd="url(#arrowhead)"
-          pointerEvents="none"
-          onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
-          onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
-        />
-      </React.Fragment>
-    );
-  })}
-  {stimulusMonitorConnections.map((connection, index) => {
-    const origenItem = items.find(item => item.id === connection.origen);
-    const destinoItem = items.find(item => item.id === connection.destino);
+          return (
+            <React.Fragment key={index}>
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="transparent"
+                strokeWidth="10"
+                pointerEvents="all"
+                onContextMenu={(e) => {
+                  if (isNeuronConnection) {
+                    e.preventDefault();
+                    handleSynapseClick(e, connection);
+                  }
+                }}
+                onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
+                onMouseLeave={(e) => e.target.setAttribute('stroke', 'transparent')}
+              />
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="black"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                pointerEvents="none"
+                onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
+                onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
+              />
+            </React.Fragment>
+          );
+        })}
+        {stimulusMonitorConnections.map((connection, index) => {
+          const origenItem = items.find(item => item.id === connection.origen);
+          const destinoItem = items.find(item => item.id === connection.destino);
 
-    if (!origenItem || !destinoItem) {
-      return null; // Si no se encuentra el elemento, no renderizar la conexión
-    }
+          if (!origenItem || !destinoItem) {
+            return null; // Si no se encuentra el elemento, no renderizar la conexión
+          }
 
-    const x1 = origenItem.x + 50;
-    const y1 = origenItem.y + 25;
-    const x2 = destinoItem.x + 50;
-    const y2 = destinoItem.y + 25;
+          const x1 = origenItem.x + 50;
+          const y1 = origenItem.y + 25;
+          const x2 = destinoItem.x + 50;
+          const y2 = destinoItem.y + 25;
 
-    return (
-      <React.Fragment key={index}>
-        <line
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke="black"
-          strokeWidth="2"
-          markerEnd="url(#arrowhead)"
-          pointerEvents="none"
-        />
-      </React.Fragment>
-    );
-  })}
-</svg>
+          return (
+            <React.Fragment key={index}>
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="black"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                pointerEvents="none"
+              />
+            </React.Fragment>
+          );
+        })}
+      </svg>
       <div className="items">
         {items.map((item, index) => (
           <div
@@ -349,10 +331,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
             onContextMenu={(e) => {
               if (item.type === 'Población neuronal') {
                 handleNeuronContextMenu(e, item);
-              } else if (item.type === 'Monitor') {
-                handleContextMenu(e, item, 2);
-              } else if (item.type === 'Estimulo') {
-                handleContextMenu(e, item, 3);
               }
             }}
             onClick={(event) => handleItemClick(item, event)}
@@ -363,17 +341,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         ))}
       </div>
-      {contextMenu.visible && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y - 50}
-          onClose={closeContextMenu}
-          onDelete={handleDeleteItem}
-          item={items.find(item => item.id === contextMenu.itemId)}
-          tipo={contextMenu.tipo}
-          onEdit={handleEditItem}
-        />
-      )}
       <button onClick={debugear}>debug</button>
       <button onClick={() => setShowGestionador(true)}>Abrir Gestionador</button>
 
@@ -382,6 +349,14 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
             <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} />
+          </div>
+        </div>
+      )}
+      {showSynapseGestionador && selectedSynapseItem && (
+        <div className="gestionador-container" onClick={() => setShowSynapseGestionador(false)}>
+          <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
+            <span className="close" onClick={() => setShowSynapseGestionador(false)}>&times;</span>
+            <SynapseGestionador synapse={selectedSynapseItem} onSave={handleSaveSynapse} />
           </div>
         </div>
       )}
