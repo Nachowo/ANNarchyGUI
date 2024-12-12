@@ -17,7 +17,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: '',
       quantity: '1',
       attributes: {
-        tipo: 'Spiking neuron', 
+        tipo: 'Spiking', 
         parameters: {},
         equations: '',
         functions: {},
@@ -46,7 +46,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'LIF Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking neuron',
+        tipo: 'Spiking',
         parameters: { tau: 10, I: 1 },
         equations:  'dv/dt = (I - v) / tau',
         functions: {},
@@ -64,7 +64,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Izhikevich Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking neuron',
+        tipo: 'Spiking',
         parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
         equations: 'dv/dt = 0.04 * v^2 + 5 * v + 140 - u + I : 1',
         functions: {},
@@ -82,7 +82,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Hodgkin-Huxley Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking neuron',
+        tipo: 'Spiking',
         parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
         equations:  'dv: dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1' ,
         functions: {},
@@ -100,7 +100,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Poisson Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Rate-Coded neuron',
+        tipo: 'Rate-Coded',
         parameters: { rate: 10.0 },
         equations:  'spike: spike = 1.0 * (rand() < rate * dt) : boolean' ,
         functions: {},
@@ -118,7 +118,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
     {
       id: 1,
       type: 'Sinapsis',
-      name: 'Spiking Synapse',
+      name: 'Spiking',
       attributes: {
         parameters: { weight: 0.5, delay: 1.0 },
         equations: 'dI/dt = -I / tau : current',
@@ -133,7 +133,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
     {
       id: 2,
       type: 'Sinapsis',
-      name: 'Rate-Coded Synapse',
+      name: 'Rate-Coded',
       attributes: {
         parameters: { weight: 1.0 },
         equations: 'I = weight * rate_pre',
@@ -183,74 +183,74 @@ function Sidebar({ onConnectToggle, items, connections }) {
         </li>
       </ul>
 
-      {/* Opciones */}
-      {activeTab === 'Opciones' && (
-        <div className="Sidebar-Content">
-          <div className="Sidebar-Section">
-            <h3 onClick={() => setShowNeuronModels(!showNeuronModels)}>
-              Neuronas {showNeuronModels ? '▲' : '▼'}
-            </h3>
-            {showNeuronModels && (
-              <div className="Sidebar-Submenu">
-                {predefinedModels.map((model) => (
-                  <div
-                    key={model.id}
-                    className="Sidebar-Item"
-                    draggable
-                    onDragStart={(event) => handleDragStart(event, model)}
-                  >
-                    {model.name}
-                  </div>
-                ))}
-                {customModels.map((model) => (
-                  <div
-                    key={model.id}
-                    className="Sidebar-Item"
-                    draggable
-                    onDragStart={(event) => handleDragStart(event, model)}
-                  >
-                    {model.name} (Personalizado)
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <button onClick={() => setShowGestionador(true)}>Crear Neurona</button>
-          
-          <div className="Sidebar-Section">
-            <h3 onClick={() => setShowSynapseModels(!showSynapseModels)}>
-              Sinapsis {showSynapseModels ? '▲' : '▼'}
-            </h3>
-            {showSynapseModels && (
-              <div className="Sidebar-Submenu">
-                {predefinedSynapses.map((synapse) => (
-                  <button
-                    key={synapse.id}
-                    className="Sidebar-Item"
-                    onClick={() => handleSynapseClick(synapse)}
-                  >
-                    {synapse.name}
-                  </button>
-                ))}
-                {customSynapses.map((synapse) => (
-                  <button
-                    key={synapse.id}
-                    className="Sidebar-Item"
-                    onClick={() => handleSynapseClick(synapse)}
-                  >
-                    {synapse.name} (Personalizado)
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button onClick={() => setShowSynapseGestionador(true)}>Crear Sinapsis</button>
-          <div>
+      
+        {activeTab === 'Opciones' && (
+          <div className="Sidebar-Content">
+            <div className="Sidebar-Section">
+          <h3 onClick={() => setShowNeuronModels(!showNeuronModels)}>
+            Neuronas {showNeuronModels ? '▲' : '▼'}
+          </h3>
+          {showNeuronModels && (
+            <div className="Sidebar-Submenu">
+              {predefinedModels.map((model) => (
+            <div
+              key={model.id}
+              className="Sidebar-Item"
+              draggable
+              onDragStart={(event) => handleDragStart(event, model)}
+            >
+              {model.name}
             </div>
-        </div>
-      )}
+              ))}
+              {customModels.map((model) => (
+            <div
+              key={model.id}
+              className="Sidebar-Item"
+              draggable
+              onDragStart={(event) => handleDragStart(event, model)}
+            >
+              {model.name} (Personalizado)
+            </div>
+              ))}
+            </div>
+          )}
+            </div>
+            <button onClick={() => setShowGestionador(true)}>Crear Neurona</button>
+            
+            <div className="Sidebar-Section">
+          <h3 onClick={() => setShowSynapseModels(!showSynapseModels)}>
+            Sinapsis {showSynapseModels ? '▲' : '▼'}
+          </h3>
+          {showSynapseModels && (
+            <div className="Sidebar-Submenu">
+              {predefinedSynapses.map((synapse) => (
+            <div
+              key={synapse.id}
+              className="Sidebar-Item"
+              onClick={() => handleSynapseClick(synapse)}
+            >
+              {synapse.name}
+            </div>
+              ))}
+              {customSynapses.map((synapse) => (
+            <div
+              key={synapse.id}
+              className="Sidebar-Item"
+              onClick={() => handleSynapseClick(synapse)}
+            >
+              {synapse.name} (Personalizado)
+            </div>
+              ))}
+            </div>
+          )}
+            </div>
+            <button onClick={() => setShowSynapseGestionador(true)}>Crear Sinapsis</button>
+            <div>
+          </div>
+          </div>
+        )}
 
-      {/* Simulación */}
+        {/* Simulación */}
       {activeTab === 'Simulación' && (
         <div className="Sidebar-Content">
           <div>

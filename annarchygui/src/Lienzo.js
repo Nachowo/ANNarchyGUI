@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
@@ -109,7 +109,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
 
   const handleSaveSynapse = (updatedSynapse) => {
     setConnections(connections.map(connection =>
-      connection.id === updatedSynapse.id ? { ...connection, attributes: updatedSynapse.attributes } : connection
+      connection.id === updatedSynapse.id ? { ...connection, attributes: updatedSynapse.attributes, connections: updatedSynapse.connections } : connection
     ));
     setShowSynapseGestionador(false);
   };
@@ -154,13 +154,17 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         ) {
           setStimulusMonitorConnections(prevConnections => [
             ...prevConnections,
-            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name:selectedSynapse.name } : { name: selectedSynapse.name } }
+            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name:selectedSynapse.name } : { name: selectedSynapse.name }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
           ]);
         } else if (origen.type === 'Población neuronal' && destino.type === 'Población neuronal') {
-          setConnections(prevConnections => [
-            ...prevConnections,
-            { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name } : { name: selectedSynapse.name } }
-          ]);
+          if (origen.attributes.tipo === destino.attributes.tipo && (!selectedSynapse || selectedSynapse.name === origen.attributes.tipo)) {
+            setConnections(prevConnections => [
+              ...prevConnections,
+              { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name } : { name: selectedSynapse.name }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
+            ]);
+          } else {
+            alert('Solo se pueden conectar neuronas del mismo tipo y usar sinapsis del mismo tipo.');
+          }
         } else {
           if (origen.type === 'Monitor' || origen.type === 'Estimulo') {
             alert('Monitores y estímulos solo pueden conectar hacia una población neuronal.');

@@ -16,16 +16,15 @@ function SynapseGestionador({ synapse, onSave }) {
   const [variables, setVariables] = useState(Object.entries(synapse.attributes.variables || {}).map(([name, value]) => ({ name, value })));
   const [prePopulation, setPrePopulation] = useState('');
   const [postPopulation, setPostPopulation] = useState('');
-  const [target, setTarget] = useState('');
-  const [synapseType, setSynapseType] = useState('');
-  const [connectionName, setConnectionName] = useState('');
-  const [disableOmp, setDisableOmp] = useState(true);
-  const [rule, setRule] = useState('');
-  const [weights, setWeights] = useState('');
-  const [delays, setDelays] = useState('');
+  const [target, setTarget] = useState(synapse.connections?.target || 'exc');
+  const [disableOmp, setDisableOmp] = useState(synapse.connections?.disable_omp || true);
+  const [rule, setRule] = useState(synapse.connections?.rule || 'all_to_all');
+  const [weights, setWeights] = useState(synapse.connections?.weights || '');
+  const [delays, setDelays] = useState(synapse.connections?.delays || '');
 
   useEffect(() => {
-    setName(synapse.name || '');
+    console.log('Synapse:', synapse);
+    setName(synapse.attributes.name || '');
     setTipo(synapse.attributes.tipo || 'spiking');
     setParameters(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
     setEquations(synapse.attributes.equations || '');
@@ -79,7 +78,7 @@ function SynapseGestionador({ synapse, onSave }) {
 
     const updatedSynapse = {
       ...synapse,
-      name: name || synapse.name,
+      name: name || synapse.attributes.name,
       attributes: {
         tipo,
         parameters: parameters.reduce((acc, param) => {
@@ -97,6 +96,13 @@ function SynapseGestionador({ synapse, onSave }) {
           acc[variable.name] = variable.value;
           return acc;
         }, {})
+      },
+      connections: {
+        target,
+        disable_omp: disableOmp,
+        rule,
+        weights,
+        delays
       }
     };
     onSave(updatedSynapse);
@@ -104,14 +110,13 @@ function SynapseGestionador({ synapse, onSave }) {
 
   return (
     <div className="neuron-form">
-      <div className="tabs">
+      {synapse.id && (<div className="tabs">
         <button className={activeTab === 'synapse' ? 'active' : ''} onClick={() => setActiveTab('synapse')}>Sinapsis</button>
         <button className={activeTab === 'connection' ? 'active' : ''} onClick={() => setActiveTab('connection')}>Conexión</button>
       </div>
-      
+      )}
       {activeTab === 'synapse' && (
         <>
-        
           <div className="row">
             <label htmlFor="name">Nombre:</label>
             <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la sinapsis" />
@@ -199,7 +204,12 @@ function SynapseGestionador({ synapse, onSave }) {
           )}
           <div className="row">
             <label htmlFor="operation">Operación:</label>
-            <input type="text" id="operation" value={operation} onChange={(e) => setOperation(e.target.value)} placeholder="Operación" />
+            <select id="operation" value={operation} onChange={(e) => setOperation(e.target.value)}>
+              <option value="sum">sum</option>
+              <option value="mean">mean</option>
+              <option value="max">max</option>
+              <option value="min">min</option>
+            </select>
           </div>
           {tipo === 'rate-coded' && (
             <div className="row">
@@ -209,7 +219,7 @@ function SynapseGestionador({ synapse, onSave }) {
           )}
         </>
       )}
-      {activeTab === 'connection' && (
+      {activeTab === 'connection' && synapse.id && (
         <div className="connection-form">
           <h3>Configuración de la Proyección</h3>
           <div className="row">
@@ -244,7 +254,7 @@ function SynapseGestionador({ synapse, onSave }) {
         </div>
       )}
       <div className="actions">
-        <button className="delete">Eliminar</button>
+        {synapse.id && <button className="delete">Eliminar</button>}
         <button className="save" onClick={handleSave}>Guardar</button>
       </div>
     </div>
