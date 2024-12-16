@@ -1,0 +1,26 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+annarchygui/node_modules
+annarchygui/.pnp
+annarchygui/.pnp.js
+
+# testing
+annarchygui/coverage
+
+# production
+annarchygui/build
+
+# misc
+annarchygui/.DS_Store
+annarchygui/.env.local
+annarchygui/.env.development.local
+annarchygui/.env.test.local
+annarchygui/.env.production.local
+
+annarchygui/npm-debug.log*
+annarchygui/yarn-debug.log*
+annarchygui/yarn-error.log*
+
+# Ignore the ann directory in Backend
+Backend/annarchy/
