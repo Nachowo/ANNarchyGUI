@@ -17,7 +17,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: '',
       quantity: '1',
       attributes: {
-        tipo: 'Spiking', 
+        tipo: 'Spiking neuron', 
         parameters: {},
         equations: '',
         functions: {},
@@ -46,14 +46,14 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'LIF Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking',
+        tipo: 'Spiking neuron',
         parameters: { tau: 10, I: 1 },
         equations:  'dv/dt = (I - v) / tau',
         functions: {},
         variables: { v: -65 },
-        spike: '',
+        spike: 'v >= -50',
         axon_spike: '',
-        reset: '',
+        reset: 'v = -65',
         axon_reset: '',
         refractory: '',
       }
@@ -64,7 +64,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Izhikevich Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking',
+        tipo: 'Spiking neuron',
         parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
         equations: 'dv/dt = 0.04 * v^2 + 5 * v + 140 - u + I : 1',
         functions: {},
@@ -82,7 +82,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Hodgkin-Huxley Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Spiking',
+        tipo: 'Spiking neuron',
         parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
         equations:  'dv: dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1' ,
         functions: {},
@@ -100,7 +100,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       name: 'Poisson Neuron',
       quantity: 1,
       attributes: {
-        tipo: 'Rate-Coded',
+        tipo: 'Rate-Coded neuron',
         parameters: { rate: 10.0 },
         equations:  'spike: spike = 1.0 * (rand() < rate * dt) : boolean' ,
         functions: {},
@@ -118,7 +118,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
     {
       id: 1,
       type: 'Sinapsis',
-      name: 'Spiking',
+      name: 'Spiking neuron',
       attributes: {
         parameters: { weight: 0.5, delay: 1.0 },
         equations: 'dI/dt = -I / tau : current',
@@ -157,7 +157,9 @@ function Sidebar({ onConnectToggle, items, connections }) {
   };
 
   const handleSaveSynapse = (updatedSynapse) => {
-    setCustomSynapses([...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.attributes.name }]);
+    const newCustomSynapses = [...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.attributes.name }];
+    setCustomSynapses(newCustomSynapses);
+    console.log(newCustomSynapses); // Imprimir el arreglo de customSynapses
     setShowSynapseGestionador(false);
   };
 
@@ -173,13 +175,13 @@ function Sidebar({ onConnectToggle, items, connections }) {
           className={activeTab === 'Opciones' ? 'active' : ''}
           onClick={() => setActiveTab('Opciones')}
         >
-          Opciones
+          Options
         </li>
         <li
           className={activeTab === 'Simulación' ? 'active' : ''}
           onClick={() => setActiveTab('Simulación')}
         >
-          Simulación
+          Simulation
         </li>
       </ul>
 
@@ -188,7 +190,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
           <div className="Sidebar-Content">
             <div className="Sidebar-Section">
           <h3 onClick={() => setShowNeuronModels(!showNeuronModels)}>
-            Neuronas {showNeuronModels ? '▲' : '▼'}
+            Neurons {showNeuronModels ? '▲' : '▼'}
           </h3>
           {showNeuronModels && (
             <div className="Sidebar-Submenu">
@@ -209,17 +211,17 @@ function Sidebar({ onConnectToggle, items, connections }) {
               draggable
               onDragStart={(event) => handleDragStart(event, model)}
             >
-              {model.name} (Personalizado)
+              {model.name} (Custom)
             </div>
               ))}
             </div>
           )}
             </div>
-            <button onClick={() => setShowGestionador(true)}>Crear Neurona</button>
+            <button onClick={() => setShowGestionador(true)}>Create Neuron</button>
             
             <div className="Sidebar-Section">
           <h3 onClick={() => setShowSynapseModels(!showSynapseModels)}>
-            Sinapsis {showSynapseModels ? '▲' : '▼'}
+            Synapses {showSynapseModels ? '▲' : '▼'}
           </h3>
           {showSynapseModels && (
             <div className="Sidebar-Submenu">
@@ -238,23 +240,23 @@ function Sidebar({ onConnectToggle, items, connections }) {
               className="Sidebar-Item"
               onClick={() => handleSynapseClick(synapse)}
             >
-              {synapse.name} (Personalizado)
+              {synapse.name} (Custom)
             </div>
               ))}
             </div>
           )}
             </div>
-            <button onClick={() => setShowSynapseGestionador(true)}>Crear Sinapsis</button>
+            <button onClick={() => setShowSynapseGestionador(true)}>Create Synapse</button>
             <div>
           </div>
           </div>
         )}
 
-        {/* Simulación */}
+        {/* Simulation */}
       {activeTab === 'Simulación' && (
         <div className="Sidebar-Content">
           <div>
-            <label>Tiempo de Simulación:</label>
+            <label>Simulation Time:</label>
             <input
               type="number"
               value={simulationTime}
@@ -265,7 +267,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
         </div>
       )}
 
-      {/* Gestionador para crear neuronas personalizadas */}
+      {/* Manager to create custom neurons */}
       {showGestionador && (
         <div className="gestionador-container">
           <div className="gestionador-content">

@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <button className='buttonHeader'>Simular</button>
+        <button className='buttonHeader'>Simulate</button>
       </header>
       <div className="App-body">
         <Lienzo isConnecting={[isConnecting, setIsConnecting]} items={items} setItems={setItems} selectedSynapse={selectedSynapse} connections={connections} setConnections={setConnections} />

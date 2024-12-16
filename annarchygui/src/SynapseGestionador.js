@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
-function SynapseGestionador({ synapse, onSave }) {
+function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
   const [activeTab, setActiveTab] = useState('synapse');
   const [name, setName] = useState(synapse.name || '');
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
@@ -14,8 +14,6 @@ function SynapseGestionador({ synapse, onSave }) {
   const [preAxonSpike, setPreAxonSpike] = useState(synapse.attributes.pre_axon_spike || '');
   const [functions, setFunctions] = useState(synapse.attributes.functions || '');
   const [variables, setVariables] = useState(Object.entries(synapse.attributes.variables || {}).map(([name, value]) => ({ name, value })));
-  const [prePopulation, setPrePopulation] = useState('');
-  const [postPopulation, setPostPopulation] = useState('');
   const [target, setTarget] = useState(synapse.connections?.target || 'exc');
   const [disableOmp, setDisableOmp] = useState(synapse.connections?.disable_omp || true);
   const [rule, setRule] = useState(synapse.connections?.rule || 'all_to_all');
@@ -23,7 +21,7 @@ function SynapseGestionador({ synapse, onSave }) {
   const [delays, setDelays] = useState(synapse.connections?.delays || '');
 
   useEffect(() => {
-    console.log('Synapse:', synapse);
+    console.log('Synapse al abrir gestionador:', synapse);
     setName(synapse.attributes.name || '');
     setTipo(synapse.attributes.tipo || 'spiking');
     setParameters(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
@@ -66,20 +64,17 @@ function SynapseGestionador({ synapse, onSave }) {
   };
 
   const handleSave = () => {
-    if (tipo === 'spiking' && (!equations || !operation)) {
-      alert('Los campos Ecuaciones y Operación son obligatorios para Spiking synapses.');
-      return;
-    }
+    
 
     if (tipo === 'rate-coded' && (!equations || !operation)) {
-      alert('Los campos Ecuaciones y Operación son obligatorios para Rate-Coded synapses.');
+      alert('The fields Equations and Operation are required for Rate-Coded synapses.');
       return;
     }
 
     const updatedSynapse = {
       ...synapse,
-      name: name || synapse.attributes.name,
       attributes: {
+        name: name || synapse.name,
         tipo,
         parameters: parameters.reduce((acc, param) => {
           acc[param.name] = param.value;
@@ -105,55 +100,61 @@ function SynapseGestionador({ synapse, onSave }) {
         delays
       }
     };
+    console.log('Updated synapse:', updatedSynapse);
     onSave(updatedSynapse);
+  };
+
+  const handleDelete = () => {
+    onDelete(synapse.id);
+    setShowSynapseGestionador(false); // Close the manager after deleting the synapse
   };
 
   return (
     <div className="neuron-form">
       {synapse.id && (<div className="tabs">
-        <button className={activeTab === 'synapse' ? 'active' : ''} onClick={() => setActiveTab('synapse')}>Sinapsis</button>
-        <button className={activeTab === 'connection' ? 'active' : ''} onClick={() => setActiveTab('connection')}>Conexión</button>
+        <button className={activeTab === 'synapse' ? 'active' : ''} onClick={() => setActiveTab('synapse')}>Synapse</button>
+        <button className={activeTab === 'connection' ? 'active' : ''} onClick={() => setActiveTab('connection')}>Connection</button>
       </div>
       )}
       {activeTab === 'synapse' && (
         <>
           <div className="row">
-            <label htmlFor="name">Nombre:</label>
-            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la sinapsis" />
+            <label htmlFor="name">Name:</label>
+            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Synapse name" />
           </div>
           <div className="row">
-            <label htmlFor="tipo">Tipo:</label>
+            <label htmlFor="tipo">Type:</label>
             <select id="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
               <option value="spiking">Spiking</option>
               <option value="rate-coded">Rate-Coded</option>
             </select>
           </div>
           <div className="row">
-            <label htmlFor="equations">Ecuaciones:</label>
-            <input type="text" id="equations" value={equations} onChange={(e) => setEquations(e.target.value)} placeholder="Ecuaciones de la sinapsis" />
+            <label htmlFor="equations">Equations:</label>
+            <input type="text" id="equations" value={equations} onChange={(e) => setEquations(e.target.value)} placeholder="Synapse equations" />
           </div>
           <div className="tables-container">
             <div className="group">
-              <h3>Parámetros</h3>
+              <h3>Parameters</h3>
               <div className="table">
                 {parameters.map((param, index) => (
                   <div className="row" key={index}>
                     <input
                       type="text"
-                      placeholder="Nombre del parámetro"
+                      placeholder="Parameter name"
                       value={param.name}
                       onChange={(e) => handleParameterChange(index, "name", e.target.value)}
                     />
                     <input
                       type="text"
-                      placeholder="Valor del parámetro"
+                      placeholder="Parameter value"
                       value={param.value}
                       onChange={(e) => handleParameterChange(index, "value", e.target.value)}
                     />
-                    <button className="delete" onClick={() => removeParameter(index)}>Eliminar</button>
+                    <button className="delete" onClick={() => removeParameter(index)}>Delete</button>
                   </div>
                 ))}
-                <button className="add" onClick={addParameter}>Añadir parámetro</button>
+                <button className="add" onClick={addParameter}>Add parameter</button>
               </div>
             </div>
 
@@ -164,20 +165,20 @@ function SynapseGestionador({ synapse, onSave }) {
                   <div className="row" key={index}>
                     <input
                       type="text"
-                      placeholder="Nombre de la variable"
+                      placeholder="Variable name"
                       value={variable.name}
                       onChange={(e) => handleVariableChange(index, "name", e.target.value)}
                     />
                     <input
                       type="text"
-                      placeholder="Valor de la variable"
+                      placeholder="Variable value"
                       value={variable.value}
                       onChange={(e) => handleVariableChange(index, "value", e.target.value)}
                     />
-                    <button className="delete" onClick={() => removeVariable(index)}>Eliminar</button>
+                    <button className="delete" onClick={() => removeVariable(index)}>Delete</button>
                   </div>
                 ))}
-                <button className="add" onClick={addVariable}>Añadir variable</button>
+                <button className="add" onClick={addVariable}>Add variable</button>
               </div>
             </div>
           </div>
@@ -203,7 +204,7 @@ function SynapseGestionador({ synapse, onSave }) {
             </>
           )}
           <div className="row">
-            <label htmlFor="operation">Operación:</label>
+            <label htmlFor="operation">Operation:</label>
             <select id="operation" value={operation} onChange={(e) => setOperation(e.target.value)}>
               <option value="sum">sum</option>
               <option value="mean">mean</option>
@@ -213,49 +214,49 @@ function SynapseGestionador({ synapse, onSave }) {
           </div>
           {tipo === 'rate-coded' && (
             <div className="row">
-              <label htmlFor="functions">Funciones:</label>
-              <input type="text" id="functions" value={functions} onChange={(e) => setFunctions(e.target.value)} placeholder="Funciones" />
+              <label htmlFor="functions">Functions:</label>
+              <input type="text" id="functions" value={functions} onChange={(e) => setFunctions(e.target.value)} placeholder="Functions" />
             </div>
           )}
         </>
       )}
       {activeTab === 'connection' && synapse.id && (
         <div className="connection-form">
-          <h3>Configuración de la Proyección</h3>
+          <h3>Projection Configuration</h3>
           <div className="row">
             <label htmlFor="target">Target:</label>
             <select id="target" value={target} onChange={(e) => setTarget(e.target.value)}>
-              <option value="exc">Excitatoria</option>
-              <option value="inh">Inhibitoria</option>
-              {/* Otras opciones */}
+              <option value="exc">Excitatory</option>
+              <option value="inh">Inhibitory</option>
+              {/* Other options */}
             </select>
           </div>
           <div className="row">
             <label htmlFor="disableOmp">disable_omp:</label>
             <input type="checkbox" id="disableOmp" checked={disableOmp} onChange={(e) => setDisableOmp(e.target.checked)} />
           </div>
-          <h3>Configuración de la Conexión</h3>
+          <h3>Connection Configuration</h3>
           <div className="row">
             <label htmlFor="rule">Rule:</label>
             <select id="rule" value={rule} onChange={(e) => setRule(e.target.value)}>
               <option value="all_to_all">all_to_all</option>
               <option value="one_to_one">one_to_one</option>
-              {/* Otras opciones */}
+              {/* Other options */}
             </select>
           </div>
           <div className="row">
             <label htmlFor="weights">Weights:</label>
-            <input type="text" id="weights" value={weights} onChange={(e) => setWeights(e.target.value)} placeholder="Campo numérico o función personalizada" />
+            <input type="text" id="weights" value={weights} onChange={(e) => setWeights(e.target.value)} placeholder="Numeric field or custom function" />
           </div>
           <div className="row">
             <label htmlFor="delays">Delays:</label>
-            <input type="text" id="delays" value={delays} onChange={(e) => setDelays(e.target.value)} placeholder="Campo numérico o función personalizada" />
+            <input type="text" id="delays" value={delays} onChange={(e) => setDelays(e.target.value)} placeholder="Numeric field or custom function" />
           </div>
         </div>
       )}
       <div className="actions">
-        {synapse.id && <button className="delete">Eliminar</button>}
-        <button className="save" onClick={handleSave}>Guardar</button>
+        {synapse.id && <button className="delete" onClick={handleDelete}>Delete</button>}
+        <button className="save" onClick={handleSave}>Save</button>
       </div>
     </div>
   );

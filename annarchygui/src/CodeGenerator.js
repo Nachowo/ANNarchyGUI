@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 let code = '';
+const simulationTime = 100; // Valor estático para propósitos de prueba
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -54,12 +56,12 @@ export function printConnections(connections) {
 }
 
 /**
- * Asegura que no haya espacios en los nombres y los reemplace con un guion.
+ * Asegura que no haya espacios en los nombres y los reemplace con un guion bajo.
  * @param {string} name - Nombre a procesar.
  * @returns {string} - Nombre procesado.
  */
 export function formatName(name) {
-  return name.replace(/\s+/g, '-');
+  return name ? name.replace(/\s+/g, '_') : ''; // Verificar que name no sea undefined o null
 }
 
 /**
@@ -81,8 +83,17 @@ export function generateNeuronCode(neurons) {
   return uniqueNeurons.map(neuron => {
     const formattedName = formatName(neuron.name);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
-    const vars = Object.entries(neuron.variables).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
-    return `${formattedName} = Neuron(\n\tequations='${neuron.equation}',\n\tparameters="""\n${params}\n\t""",\n\tvariables="""\n${vars}\n\t"""\n)`;
+    //const vars = Object.entries(neuron.variables).map(([key, value]) => `${key}=${value},`).join('\n\t\t');
+    const firstVarValue = Object.entries(neuron.variables)[0];
+    const equations = `\t\t${neuron.equation} : init= ${firstVarValue[1]}`;
+    const attributes = [
+      { key: 'spike', value: neuron.attributes.spike },
+      { key: 'axon_spike', value: neuron.attributes.axon_spike },
+      { key: 'reset', value: neuron.attributes.reset },
+      { key: 'axon_reset', value: neuron.attributes.axon_reset },
+      { key: 'refractory', value: neuron.attributes.refractory }
+    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="${attr.value}"`).join(',\n');
+    return `${formattedName} = Neuron(\n\tequations="""\n${equations}\n\t""",\n\tparameters="""\n${params}\n\t""",\n${attributes}\n)`;
   }).join('\n\n');
 }
 
@@ -109,7 +120,7 @@ export function generateSynapseCode(synapses) {
     const attributes = [
       { key: 'equations', value: synapse.attributes.equations },
       { key: 'psp', value: synapse.attributes.psp },
-      { key: 'operation', value: synapse.attributes.operation },
+      //{ key: 'operation', value: synapse.attributes.operation },
       { key: 'pre_spike', value: synapse.attributes.pre_spike },
       { key: 'post_spike', value: synapse.attributes.post_spike },
       { key: 'pre_axon_spike', value: synapse.attributes.pre_axon_spike },
@@ -175,8 +186,36 @@ export function generateANNarchyCode(items, connections) {
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
 
-  code = `${neuronCode}\n\n${populationCode}\n\n${synapseCode}\n\n${projectionCode}`;
+  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${synapseCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
 }
+
+/**
+ * Envía el código al backend y recibe los resultados.
+ * @param {string} code - Código a enviar al backend.
+ * @returns {Promise<string>} - Respuesta del backend.
+ */
+export async function sendCodeToBackend(code) {
+  try {
+    const response = await fetch('http://localhost:5000/simulate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result.output; // Ajustar según la estructura de la respuesta del backend
+  } catch (error) {
+    console.error('Error al enviar el código al backend:', error);
+    throw error;
+  }
+}
+
 
 /**
  * Descarga el código generado como un archivo .py.
@@ -195,10 +234,21 @@ export function downloadCodeAsFile(code) {
 }
 
 const CodeGenerator = ({ items, connections }) => {
-  const handleGenerateCode = () => {
+  const [simulationOutput, setSimulationOutput] = useState('');
+
+  const handleGenerateCode = async () => {
     const itemsList = getItemsFromLienzo(items);
     generateANNarchyCode(itemsList, connections);
     downloadCodeAsFile(code);
+    
+    try {
+      const output = await sendCodeToBackend(code);
+      setSimulationOutput(output);
+    } catch (error) {
+      console.error('Error al enviar el código al backend:', error);
+      setSimulationOutput('Error al ejecutar la simulación.');
+    }
+    
   };
 
   const handlePrintConnections = () => {
@@ -209,6 +259,12 @@ const CodeGenerator = ({ items, connections }) => {
     <div>
       <button onClick={handleGenerateCode}>Generar Código</button>
       <button onClick={handlePrintConnections}>Imprimir Conexiones</button>
+      {simulationOutput && (
+        <div>
+          <h3>Resultado de la Simulación:</h3>
+          <pre>{simulationOutput}</pre>
+        </div>
+      )}
     </div>
   );
 };

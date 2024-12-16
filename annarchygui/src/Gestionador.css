@@ -307,7 +307,8 @@ body {
   background-color: #0056b3;
 }
 
-.equations textarea {
+.equations textarea,
+.neuron-form textarea {
   width: calc(100% - 12px); /* Ajustar el ancho para que se adapte a la celda */
   padding: 8px;
   border: 1px solid #ccc;

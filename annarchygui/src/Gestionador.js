@@ -14,7 +14,7 @@ function Gestionador({ neuron, onSave }) {
   const [axonReset, setAxonReset] = useState(neuron.attributes.axon_reset || '');
   const [refractory, setRefractory] = useState(neuron.attributes.refractory || '');
   const [firingRate, setFiringRate] = useState(neuron.attributes.firingRate || '');
-  const [quantity, setQuantity] = useState(neuron.quantity || '');
+  const [quantity, setQuantity] = useState(neuron.id !== undefined ? neuron.quantity : 1);
 
   useEffect(() => {
     console.log(neuron);
@@ -30,7 +30,7 @@ function Gestionador({ neuron, onSave }) {
     setAxonReset(neuron.attributes.axon_reset || '');
     setRefractory(neuron.attributes.refractory || '');
     setFiringRate(neuron.attributes.firingRate || '');
-    setQuantity(neuron.quantity || '');
+    setQuantity(neuron.id !== undefined ? neuron.quantity : 1);
   }, [neuron]);
 
   const handleNameChange = (e) => {
@@ -117,12 +117,12 @@ function Gestionador({ neuron, onSave }) {
 
   const handleSave = () => {
     if (tipo === 'Spiking neuron' && (!parameters.length || !equations || !spike)) {
-      alert('Los campos Parámetros, Ecuaciones y Spike son obligatorios para Spiking neurons.');
+      alert('The fields Parameters, Equations, and Spike are required for Spiking neurons.');
       return;
     }
 
     if (tipo === 'Rate-Coded neuron' && (!parameters.length || !equations || !firingRate)) {
-      alert('Los campos Parámetros, Ecuaciones y Firing Rate son obligatorios para Rate-Coded neurons.');
+      alert('The fields Parameters, Equations, and Firing Rate are required for Rate-Coded neurons.');
       return;
     }
 
@@ -154,18 +154,19 @@ function Gestionador({ neuron, onSave }) {
         firingRate
       }
     };
+    console.log(updatedNeuron);
     onSave(updatedNeuron);
   };
 
   return (
     <div className="neuron-form">
       <div className="row">
-        <label htmlFor="neuron-name">Nombre:</label>
+        <label htmlFor="neuron-name">Name:</label>
         <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
       </div>
 
       <div className="row">
-        <label htmlFor="neuron-type">Tipo de neurona:</label>
+        <label htmlFor="neuron-type">Neuron Type:</label>
         <select id="neuron-type" value={tipo} onChange={handleTipoChange} disabled={neuron.id !== undefined}>
           <option value="Spiking neuron">Spiking neuron</option>
           <option value="Rate-Coded neuron">Rate-Coded neuron</option>
@@ -173,39 +174,39 @@ function Gestionador({ neuron, onSave }) {
       </div>
 
       <div className="row">
-        <label htmlFor="equation">Ecuación:</label>
-        <input type="text" id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
+        <label htmlFor="equation">Equation:</label>
+        <textarea id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
       </div>
 
       {neuron.id !== undefined && (
         <div className="row">
-          <label htmlFor="quantity">Cantidad:</label>
+          <label htmlFor="quantity">Quantity:</label>
           <input type="number" id="quantity" value={quantity} onChange={handleQuantityChange} />
         </div>
       )}
 
       <div className="tables-container">
         <div className="group">
-          <h3>Parámetros</h3>
+          <h3>Parameters</h3>
           <div className="table">
             {parameters.map((param, index) => (
               <div className="row" key={index}>
                 <input
                   type="text"
-                  placeholder="Nombre"
+                  placeholder="Name"
                   value={param.name}
                   onChange={(e) => handleParameterChange(index, "name", e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="Valor"
+                  placeholder="Value"
                   value={param.value}
                   onChange={(e) => handleParameterChange(index, "value", e.target.value)}
                 />
-                <button className="delete" onClick={() => removeParameter(index)}>Eliminar</button>
+                <button className="delete" onClick={() => removeParameter(index)}>Delete</button>
               </div>
             ))}
-            <button className="add" onClick={addParameter}>Añadir parámetro</button>
+            <button className="add" onClick={addParameter}>Add parameter</button>
           </div>
         </div>
 
@@ -216,20 +217,20 @@ function Gestionador({ neuron, onSave }) {
               <div className="row" key={index}>
                 <input
                   type="text"
-                  placeholder="Nombre"
+                  placeholder="Name"
                   value={variable.name}
                   onChange={(e) => handleVariableChange(index, "name", e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="Valor"
+                  placeholder="Value"
                   value={variable.value}
                   onChange={(e) => handleVariableChange(index, "value", e.target.value)}
                 />
-                <button className="delete" onClick={() => removeVariable(index)}>Eliminar</button>
+                <button className="delete" onClick={() => removeVariable(index)}>Delete</button>
               </div>
             ))}
-            <button className="add" onClick={addVariable}>Añadir variable</button>
+            <button className="add" onClick={addVariable}>Add variable</button>
           </div>
         </div>
       </div>
@@ -243,10 +244,6 @@ function Gestionador({ neuron, onSave }) {
                 <input type="text" id="spike" value={spike} onChange={handleSpikeChange} />
               </div>
               <div className="row">
-                <label htmlFor="axon-spike">Axon Spike:</label>
-                <input type="text" id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
-              </div>
-              <div className="row">
                 <label htmlFor="reset">Reset:</label>
                 <input type="text" id="reset" value={reset} onChange={handleResetChange} />
               </div>
@@ -256,6 +253,10 @@ function Gestionador({ neuron, onSave }) {
         <div className="column">
           {tipo === 'Spiking neuron' && (
             <>
+            <div className="row">
+                <label htmlFor="axon-spike">Axon Spike:</label>
+                <input type="text" id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
+              </div>
               <div className="row">
                 <label htmlFor="axon-reset">Axon Reset:</label>
                 <input type="text" id="axon-reset" value={axonReset} onChange={handleAxonResetChange} />
@@ -281,8 +282,8 @@ function Gestionador({ neuron, onSave }) {
       </div>
 
       <div className="actions">
-        <button className="delete">Eliminar</button>
-        <button className="save" onClick={handleSave}>Guardar</button>
+        <button className="delete">Delete</button>
+        <button className="save" onClick={handleSave}>Save</button>
       </div>
     </div>
   );

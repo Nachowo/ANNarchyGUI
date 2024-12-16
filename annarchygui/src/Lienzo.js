@@ -107,6 +107,10 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setShowGestionador(false);
   };
 
+  const handleDeleteConnection = (connectionId) => {
+    setConnections(connections.filter(connection => connection.id !== connectionId));
+  };
+
   const handleSaveSynapse = (updatedSynapse) => {
     setConnections(connections.map(connection =>
       connection.id === updatedSynapse.id ? { ...connection, attributes: updatedSynapse.attributes, connections: updatedSynapse.connections } : connection
@@ -163,17 +167,17 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name } : { name: selectedSynapse.name }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
             ]);
           } else {
-            alert('Solo se pueden conectar neuronas del mismo tipo y usar sinapsis del mismo tipo.');
+            alert('Only neurons of the same type can be connected and use synapses of the same type.');
           }
         } else {
           if (origen.type === 'Monitor' || origen.type === 'Estimulo') {
-            alert('Monitores y estímulos solo pueden conectar hacia una población neuronal.');
+            alert('Monitors and stimuli can only connect to a neuronal population.');
           } else if (destino.type !== 'Población neuronal') {
-            alert('Las poblaciones neuronales siempre deben ir como destino.');
+            alert('Neuronal populations must always be the destination.');
           }
         }
       } else {
-        alert('No se puede conectar un elemento consigo mismo.');
+        alert('An item cannot be connected to itself.');
       }
       setIsConnecting(false);
       setSelectedItems([]);
@@ -191,8 +195,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   };
 
   const debugear = () => {
-    console.log('Conexiones actuales:', connections);
-    console.log('Elementos actuales:', items);
+    console.log('Current connections:', connections);
+    console.log('Current items:', items);
   };
 
   const renderArrowMarker = () => {
@@ -340,13 +344,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
             onClick={(event) => handleItemClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
-            <div className="item-name">{item.type}</div>
+            <div className="item-name">{item.type === 'Población neuronal' ? 'Population' : item.type}</div>
             <div>{item.name}</div> 
           </div>
         ))}
       </div>
       <button onClick={debugear}>debug</button>
-      <button onClick={() => setShowGestionador(true)}>Abrir Gestionador</button>
 
       {showGestionador && selectedNeuron && (
         <div className="gestionador-container" onClick={handleCloseGestionador}>
@@ -360,7 +363,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         <div className="gestionador-container" onClick={() => setShowSynapseGestionador(false)}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowSynapseGestionador(false)}>&times;</span>
-            <SynapseGestionador synapse={selectedSynapseItem} onSave={handleSaveSynapse} />
+            <SynapseGestionador synapse={selectedSynapseItem} onSave={handleSaveSynapse} onDelete={handleDeleteConnection} setShowSynapseGestionador={setShowSynapseGestionador} />
           </div>
         </div>
       )}
