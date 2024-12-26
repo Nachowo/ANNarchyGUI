@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 let code = '';
-const simulationTime = 1000; // Valor estático para propósitos de prueba
+let simulationTime = 1000; // Valor predeterminado
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -175,7 +175,8 @@ export function generateProjectionCode(connections, items) {
  * @param {Array} items - Lista de elementos en el lienzo.
  * @param {Array} connections - Lista de conexiones en el lienzo.
  */
-export function generateANNarchyCode(items, connections) {
+export function generateANNarchyCode(items, connections, simTime = 1000) {
+  simulationTime = simTime; // Actualizar el tiempo de simulación
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
 
@@ -233,12 +234,12 @@ export function downloadCodeAsFile(code) {
   URL.revokeObjectURL(url);
 }
 
-const CodeGenerator = ({ items, connections }) => {
+const CodeGenerator = ({ items, connections, simulationTime }) => {
   const [simulationOutput, setSimulationOutput] = useState('');
 
   const handleGenerateCode = async () => {
     const itemsList = getItemsFromLienzo(items);
-    generateANNarchyCode(itemsList, connections);
+    generateANNarchyCode(itemsList, connections, simulationTime);
     downloadCodeAsFile(code);
     
     try {

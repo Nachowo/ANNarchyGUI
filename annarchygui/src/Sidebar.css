@@ -145,11 +145,14 @@ pre {
   padding: 15px;
   border-radius: 5px;
   overflow-x: auto;
+  overflow-y: auto; /* Añadir scroll vertical */
+  max-height: 600px; /* Limitar la altura del contenedor */
   white-space: pre-wrap; /* Permite que el texto se ajuste al ancho del contenedor */
   word-wrap: break-word; /* Permite que las palabras largas se dividan y ajusten al contenedor */
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
   line-height: 1.5;
   border: 1px solid #ddd;
+  text-align: left; /* Alinear el texto a la izquierda */
 }
 
