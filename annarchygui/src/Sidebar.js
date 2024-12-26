@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
-import CodeGenerator from './CodeGenerator'; // Importa el componente CodeGenerator
+import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
 
 function Sidebar({ onConnectToggle, items, connections }) {
   const [activeTab, setActiveTab] = useState('Opciones');
-  const [simulationTime, setSimulationTime] = useState(0);
+  const [simulationTime, setSimulationTime] = useState(1000); // Valor predeterminado
   const [customModels, setCustomModels] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false);
   const [showNeuronModels, setShowNeuronModels] = useState(false);
@@ -38,6 +38,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
     attributes: { weight: '', delay: '' },
   });
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
+  const [networkCode, setNetworkCode] = useState('');
 
   const predefinedModels = [
     {
@@ -157,15 +158,23 @@ function Sidebar({ onConnectToggle, items, connections }) {
   };
 
   const handleSaveSynapse = (updatedSynapse) => {
-    const newCustomSynapses = [...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.attributes.name }];
+    const newCustomSynapses = [...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.name }];
     setCustomSynapses(newCustomSynapses);
-    console.log(newCustomSynapses); // Imprimir el arreglo de customSynapses
     setShowSynapseGestionador(false);
   };
 
   const handleSynapseClick = (synapse) => {
     onConnectToggle(synapse);
   };
+
+  const handleGenerateNetworkCode = () => {
+    const code = generateANNarchyCode(items, connections, simulationTime);
+    setNetworkCode(code);
+  };
+
+  useEffect(() => {
+    handleGenerateNetworkCode();
+  }, [items, connections, simulationTime]);
 
   return (
     <div className="Sidebar" id='sidebar'>
@@ -182,6 +191,15 @@ function Sidebar({ onConnectToggle, items, connections }) {
           onClick={() => setActiveTab('Simulación')}
         >
           Simulation
+        </li>
+        <li
+          className={activeTab === 'Código' ? 'active' : ''}
+          onClick={() => {
+            setActiveTab('Código');
+            handleGenerateNetworkCode();
+          }}
+        >
+          Code
         </li>
       </ul>
 
@@ -263,7 +281,14 @@ function Sidebar({ onConnectToggle, items, connections }) {
               onChange={(e) => setSimulationTime(e.target.value)}
             />
           </div>
-          <CodeGenerator items={items} connections={connections} />
+          <CodeGenerator items={items} connections={connections} simulationTime={simulationTime} />
+        </div>
+      )}
+
+      {activeTab === 'Código' && (
+        <div className="Sidebar-Content">
+          <h3>Generated Network Code:</h3>
+          <pre>{networkCode}</pre>
         </div>
       )}
 

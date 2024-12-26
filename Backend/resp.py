@@ -1,8 +1,110 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import subprocess
+import os
+
+app = Flask(__name__)
+CORS(app)
+
+# Ruta del volumen compartido
+VOLUME_PATH = os.getenv('VOLUME_PATH', '/shared')
+
+# Ruta para recibir el código y ejecutar la simulación
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    try:
+        print("Solicitud recibida en /simulate",flush=True)
+        
+        # Obtener el código desde la solicitud
+        data = request.get_json()
+        code = data.get('code', '')
+        print("Código recibido:", code)
+
+        if not code:
+            print("No se proporcionó ningún código.")
+            return jsonify({'error': 'No se proporcionó ningún código.'}), 400
+
+        # Asegurarse de que la ruta compartida exista
+       
+        if not os.path.exists(VOLUME_PATH):
+            print(f"El directorio compartido {VOLUME_PATH} no existe.",flush=True)
+            return jsonify({'error': f'El directorio compartido {VOLUME_PATH} no existe.'}), 500
+
+        # Guardar el código en un archivo temporal dentro del volumen compartido
+        temp_filename = os.path.join(VOLUME_PATH, 'simulation_code.py')
+        with open(temp_filename, 'w') as temp_file:
+            temp_file.write(code)
+        print(f"Código guardado en {temp_filename}",flush=True)
+
+
+        # Ejecutar el código con ANNarchy en Docker
+        result = subprocess.run(
+            [
+                'docker', 'run', '--rm',
+                '-v', f"{VOLUME_PATH}:/app",  # Montar el mismo volumen que usa el servidor padre
+                '-w', '/app',
+                'nachowo/ann', 'python', 'simulation_code.py'
+            ],
+            capture_output=True,
+            text=True
+        )
+        print("Resultado de la ejecución:", result)
+
+        # Verificar errores
+        if result.returncode != 0:
+            print("Error en la simulación:", result.stderr)
+            return jsonify({'error': 'Error en la simulación', 'details': result.stderr}), 500
+
+        # Leer resultados desde archivos generados por ANNarchy
+        results = {}
+        monitor_v_path = os.path.join(VOLUME_PATH, "monitor_v.csv")
+        monitor_spikes_path = os.path.join(VOLUME_PATH, "monitor_spikes.csv")
+
+        if os.path.exists(monitor_v_path):
+            with open(monitor_v_path, "r") as f:
+                results["monitor_v"] = f.read()  # Leer el contenido del archivo
+            print("monitor_v.csv leído")
+        if os.path.exists(monitor_spikes_path):
+            with open(monitor_spikes_path, "r") as f:
+                results["monitor_spikes"] = f.read()  # Leer el contenido del archivo
+            print("monitor_spikes.csv leído")
+
+        # Eliminar archivos temporales
+        os.remove(temp_filename)
+        print(f"Archivo temporal {temp_filename} eliminado")
+        if os.path.exists(monitor_v_path):
+            os.remove(monitor_v_path)
+            print("monitor_v.csv eliminado")
+        if os.path.exists(monitor_spikes_path):
+            os.remove(monitor_spikes_path)
+            print("monitor_spikes.csv eliminado")
+
+        # Retornar los resultados como JSON
+        print("Resultados retornados:", results)
+        return jsonify({'output': result.stdout, 'results': results})
+
+    except Exception as e:
+        print("Error en el servidor:", str(e))
+        return jsonify({'error': 'Error en el servidor', 'details': str(e)}), 500
+
+
+if __name__ == '__main__':
+    print("Iniciando servidor en el puerto 50000000000000000000000000\n\n\n")
+    print(os.listdir())
+    app.run(host='0.0.0.0', port=5000)
+    print("Servidor finalizado")
+
+
+
+
+
+##CODE GENERATOR
+'''
 import React, { useState } from 'react';
 import axios from 'axios';
 
 let code = '';
-const simulationTime = 1000; // Valor estático para propósitos de prueba
+const simulationTime = 100; // Valor estático para propósitos de prueba
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -10,6 +112,7 @@ const simulationTime = 1000; // Valor estático para propósitos de prueba
  * @returns {Array} - Lista de neuronas.
  */
 export function getNeurons(items) {
+  console.log('Items:', items);
   return items.filter(item => item.type === 'Población neuronal').map(neuron => ({
     id: neuron.id,
     name: neuron.name,
@@ -28,6 +131,7 @@ export function getNeurons(items) {
  * @returns {Array} - Lista de sinapsis.
  */
 export function getSynapses(connections) {
+  console.log('Connections:', connections);
   return connections.map(connection => ({
     id: connection.id,
     origen: connection.origen,
@@ -50,6 +154,7 @@ export function getItemsFromLienzo(items) {
  * @param {Array} connections - Lista de conexiones en el lienzo.
  */
 export function printConnections(connections) {
+  console.log('Connections:', connections);
 }
 
 /**
@@ -111,6 +216,7 @@ export function generateSynapseCode(synapses) {
   });
 
   return uniqueSynapses.map(synapse => {
+    console.log('Synapse:', synapse);
     const formattedName = formatName(synapse.attributes.name);
     const params = Object.entries(synapse.attributes.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
     const attributes = [
@@ -164,9 +270,7 @@ export function generateProjectionCode(connections, items) {
     const projectionName = `proj${index + 1}`;
     const synapseModel = formatName(connection.attributes.name);
     const connectFunction = connection.connections.rule === 'one_to_one' ? 'connect_one_to_one' : 'connect_all_to_all';
-    //return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, synapse=${synapseModel}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
-
-    return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
+    return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, synapse=${synapseModel}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
   }).join('\n\n');
 }
 
@@ -180,13 +284,11 @@ export function generateANNarchyCode(items, connections) {
   const synapses = getSynapses(connections);
 
   const neuronCode = generateNeuronCode(neurons);
-  //const synapseCode = generateSynapseCode(synapses);
+  const synapseCode = generateSynapseCode(synapses);
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
-  //  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${synapseCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
 
-  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
-  return code;
+  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${synapseCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
 }
 
 /**
@@ -202,8 +304,19 @@ export async function sendCodeToBackend(code) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ code }),
-    });
-
+    }) 
+      .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        console.error('Error:', data.details);
+      } else {
+        console.log('Output:', data.output); // Mensajes de consola
+        console.log('Monitor V Data:', data.results.monitor_v); // Datos de variables
+        console.log('Spike Data:', data.results.monitor_spikes); // Datos de disparos
+      }
+    })
+    .catch((error) => console.error('Error:', error));
+      
     if (!response.ok) {
       throw new Error(`Error del servidor: ${response.status}`);
     }
@@ -258,6 +371,7 @@ const CodeGenerator = ({ items, connections }) => {
   return (
     <div>
       <button onClick={handleGenerateCode}>Generar Código</button>
+      <button onClick={handlePrintConnections}>Imprimir Conexiones</button>
       {simulationOutput && (
         <div>
           <h3>Resultado de la Simulación:</h3>
@@ -268,4 +382,4 @@ const CodeGenerator = ({ items, connections }) => {
   );
 };
 
-export default CodeGenerator;
+export default CodeGenerator;'''

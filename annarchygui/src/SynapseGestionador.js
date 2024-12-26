@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
 function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
-  const [activeTab, setActiveTab] = useState('synapse');
+  const [activeTab, setActiveTab] = useState('connection'); // Pestaña predeterminada cambiada a 'connection'
   const [name, setName] = useState(synapse.name || '');
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
   const [parameters, setParameters] = useState(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
@@ -15,13 +15,11 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   const [functions, setFunctions] = useState(synapse.attributes.functions || '');
   const [variables, setVariables] = useState(Object.entries(synapse.attributes.variables || {}).map(([name, value]) => ({ name, value })));
   const [target, setTarget] = useState(synapse.connections?.target || 'exc');
-  const [disableOmp, setDisableOmp] = useState(synapse.connections?.disable_omp || true);
   const [rule, setRule] = useState(synapse.connections?.rule || 'all_to_all');
   const [weights, setWeights] = useState(synapse.connections?.weights || '');
   const [delays, setDelays] = useState(synapse.connections?.delays || '');
 
   useEffect(() => {
-    console.log('Synapse al abrir gestionador:', synapse);
     setName(synapse.attributes.name || '');
     setTipo(synapse.attributes.tipo || 'spiking');
     setParameters(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
@@ -64,7 +62,10 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   };
 
   const handleSave = () => {
-    
+    if (tipo === 'spiking' && (!equations || !operation)) {
+      alert('The fields Equations and Operation are required for Spiking synapses.');
+      return;
+    }
 
     if (tipo === 'rate-coded' && (!equations || !operation)) {
       alert('The fields Equations and Operation are required for Rate-Coded synapses.');
@@ -73,8 +74,8 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
 
     const updatedSynapse = {
       ...synapse,
+      name: name || synapse.name,
       attributes: {
-        name: name || synapse.name,
         tipo,
         parameters: parameters.reduce((acc, param) => {
           acc[param.name] = param.value;
@@ -94,13 +95,11 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
       },
       connections: {
         target,
-        disable_omp: disableOmp,
         rule,
         weights,
         delays
       }
     };
-    console.log('Updated synapse:', updatedSynapse);
     onSave(updatedSynapse);
   };
 
@@ -230,10 +229,6 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
               <option value="inh">Inhibitory</option>
               {/* Other options */}
             </select>
-          </div>
-          <div className="row">
-            <label htmlFor="disableOmp">disable_omp:</label>
-            <input type="checkbox" id="disableOmp" checked={disableOmp} onChange={(e) => setDisableOmp(e.target.checked)} />
           </div>
           <h3>Connection Configuration</h3>
           <div className="row">

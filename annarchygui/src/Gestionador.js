@@ -17,7 +17,6 @@ function Gestionador({ neuron, onSave }) {
   const [quantity, setQuantity] = useState(neuron.id !== undefined ? neuron.quantity : 1);
 
   useEffect(() => {
-    console.log(neuron);
     setName(neuron.name || '');
     setTipo(neuron.attributes.tipo || 'Spiking neuron');
     setEquations(neuron.attributes.equations || '');
@@ -154,7 +153,6 @@ function Gestionador({ neuron, onSave }) {
         firingRate
       }
     };
-    console.log(updatedNeuron);
     onSave(updatedNeuron);
   };
 
@@ -175,7 +173,7 @@ function Gestionador({ neuron, onSave }) {
 
       <div className="row">
         <label htmlFor="equation">Equation:</label>
-        <textarea id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
+        <input type="text" id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
       </div>
 
       {neuron.id !== undefined && (
@@ -244,6 +242,10 @@ function Gestionador({ neuron, onSave }) {
                 <input type="text" id="spike" value={spike} onChange={handleSpikeChange} />
               </div>
               <div className="row">
+                <label htmlFor="axon-spike">Axon Spike:</label>
+                <input type="text" id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
+              </div>
+              <div className="row">
                 <label htmlFor="reset">Reset:</label>
                 <input type="text" id="reset" value={reset} onChange={handleResetChange} />
               </div>
@@ -253,10 +255,6 @@ function Gestionador({ neuron, onSave }) {
         <div className="column">
           {tipo === 'Spiking neuron' && (
             <>
-            <div className="row">
-                <label htmlFor="axon-spike">Axon Spike:</label>
-                <input type="text" id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
-              </div>
               <div className="row">
                 <label htmlFor="axon-reset">Axon Reset:</label>
                 <input type="text" id="axon-reset" value={axonReset} onChange={handleAxonResetChange} />

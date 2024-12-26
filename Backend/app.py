@@ -19,22 +19,23 @@ def simulate():
 
         # Guardar el código en un archivo temporal
         temp_filename = 'simulation_code.py'
-        print(f"Guardando código en {temp_filename}")
+        print(f"Guardando código en {temp_filename}", flush=True)
         with open(temp_filename, 'w') as temp_file:
             temp_file.write(code)
-        print("Código guardado")
-        # Ejecutar el código con ANNarchy en Docker
-        print("Ejecutando código")
+        print("Código guardado", flush=True)
+        
+        # Ejecutar el código con ANNarchy en la máquina local
+        print("Ejecutando código", flush=True)
         result = subprocess.run(
-            ['docker', 'run', '--rm', '-v', f"{os.getcwd()}:/app", '-w', '/app', 'ann', 'python', temp_filename],
+            ['python', temp_filename],
             capture_output=True,
             text=True
         )
         # Depuración: imprime el resultado completo
-        print(f"STDOUT: {result.stdout}")
-        print(f"STDERR: {result.stderr}")
-        print(f"Return Code: {result.returncode}")
-        print("Código ejecutado")
+        print(f"STDOUT: {result.stdout}", flush=True)
+        print(f"STDERR: {result.stderr}", flush=True)
+        print(f"Return Code: {result.returncode}", flush=True)
+        print("Código ejecutado", flush=True)
 
         # Eliminar el archivo temporal
         os.remove(temp_filename)
