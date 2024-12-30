@@ -111,8 +111,8 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   return (
     <div className="neuron-form">
       {synapse.id && (<div className="tabs">
-        <button className={activeTab === 'synapse' ? 'active' : ''} onClick={() => setActiveTab('synapse')}>Synapse</button>
         <button className={activeTab === 'connection' ? 'active' : ''} onClick={() => setActiveTab('connection')}>Connection</button>
+        <button className={activeTab === 'synapse' ? 'active' : ''} onClick={() => setActiveTab('synapse')}>Synapse</button>
       </div>
       )}
       {activeTab === 'synapse' && (

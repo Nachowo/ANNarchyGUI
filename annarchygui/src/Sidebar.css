@@ -7,13 +7,12 @@
 
 .Sidebar-Tabs {
   display: flex;
-  justify-content: space-between;
+  justify-content:space-around;
   margin-bottom: 20px;
   border-bottom: 2px solid #ddd;
   list-style-type: none;
   padding: 0; /* Opcional: Elimina el espacio interior */
   margin: 0; /* Opcional: Elimina el espacio exterior */
-  display: flex; /* Para alinear los elementos en línea horizontal */
 }
 
 .Sidebar-Tabs li {

@@ -16,7 +16,6 @@ export function getNeurons(items) {
     quantity: neuron.quantity,
     equation: neuron.attributes.equations,
     parameters: neuron.attributes.parameters,
-    variables: neuron.attributes.variables,
     attributes: neuron.attributes
   }));
 }
@@ -80,9 +79,7 @@ export function generateNeuronCode(neurons) {
   return uniqueNeurons.map(neuron => {
     const formattedName = formatName(neuron.name);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
-    //const vars = Object.entries(neuron.variables).map(([key, value]) => `${key}=${value},`).join('\n\t\t');
-    const firstVarValue = Object.entries(neuron.variables)[0];
-    const equations = `\t\t${neuron.equation} : init= ${firstVarValue[1]}`;
+    const equations = `\t\t${neuron.equation}`;
     const attributes = [
       { key: 'spike', value: neuron.attributes.spike },
       { key: 'axon_spike', value: neuron.attributes.axon_spike },

@@ -12,6 +12,7 @@ function App() {
   const [simulationOutput, setSimulationOutput] = useState(''); // Estado para el resultado de la simulación
   const [isLoading, setIsLoading] = useState(false); // Estado para mostrar/ocultar el modal de carga
   const [showOutputModal, setShowOutputModal] = useState(false); // Estado para mostrar/ocultar el modal de resultado
+  const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -24,7 +25,7 @@ function App() {
   // Maneja la simulación
   const handleSimulate = async () => {
     const itemsList = items;
-    const code = generateANNarchyCode(itemsList, connections);
+    const code = generateANNarchyCode(itemsList, connections, simulationTime);
     downloadCodeAsFile(code);
     
     setIsLoading(true); // Mostrar el modal de carga
@@ -45,6 +46,13 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <label htmlFor="simulation-time">Simulation Time:</label>
+        <input
+          type="number"
+          id="simulation-time"
+          value={simulationTime}
+          onChange={(e) => setSimulationTime(e.target.value)}
+        />
         <button className='buttonHeader' onClick={handleSimulate}>Simulate</button>
       </header>
       <div className="App-body">

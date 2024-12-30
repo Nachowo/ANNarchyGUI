@@ -6,7 +6,6 @@ function Gestionador({ neuron, onSave }) {
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
   const [equations, setEquations] = useState(neuron.attributes.equations || '');
   const [parameters, setParameters] = useState(Object.entries(neuron.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
-  const [variables, setVariables] = useState(Object.entries(neuron.attributes.variables || {}).map(([name, value]) => ({ name, value })));
   const [functions, setFunctions] = useState(Object.entries(neuron.attributes.functions || {}).map(([name, value]) => ({ name, value })));
   const [spike, setSpike] = useState(neuron.attributes.spike || '');
   const [axonSpike, setAxonSpike] = useState(neuron.attributes.axon_spike || '');
@@ -21,7 +20,6 @@ function Gestionador({ neuron, onSave }) {
     setTipo(neuron.attributes.tipo || 'Spiking neuron');
     setEquations(neuron.attributes.equations || '');
     setParameters(Object.entries(neuron.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
-    setVariables(Object.entries(neuron.attributes.variables || {}).map(([name, value]) => ({ name, value })));
     setFunctions(Object.entries(neuron.attributes.functions || {}).map(([name, value]) => ({ name, value })));
     setSpike(neuron.attributes.spike || '');
     setAxonSpike(neuron.attributes.axon_spike || '');
@@ -48,12 +46,6 @@ function Gestionador({ neuron, onSave }) {
     const newParameters = [...parameters];
     newParameters[index][field] = value;
     setParameters(newParameters);
-  };
-
-  const handleVariableChange = (index, field, value) => {
-    const newVariables = [...variables];
-    newVariables[index][field] = value;
-    setVariables(newVariables);
   };
 
   const handleFunctionChange = (index, field, value) => {
@@ -98,14 +90,6 @@ function Gestionador({ neuron, onSave }) {
     setParameters(parameters.filter((_, i) => i !== index));
   };
 
-  const addVariable = () => {
-    setVariables([...variables, { name: '', value: '' }]);
-  };
-
-  const removeVariable = (index) => {
-    setVariables(variables.filter((_, i) => i !== index));
-  };
-
   const addFunction = () => {
     setFunctions([...functions, { name: '', value: '' }]);
   };
@@ -135,10 +119,6 @@ function Gestionador({ neuron, onSave }) {
         equations,
         parameters: parameters.reduce((acc, param) => {
           acc[param.name] = param.value;
-          return acc;
-        }, {}),
-        variables: variables.reduce((acc, variable) => {
-          acc[variable.name] = variable.value;
           return acc;
         }, {}),
         functions: functions.reduce((acc, func) => {
@@ -173,7 +153,7 @@ function Gestionador({ neuron, onSave }) {
 
       <div className="row">
         <label htmlFor="equation">Equation:</label>
-        <input type="text" id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
+        <textarea id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
       </div>
 
       {neuron.id !== undefined && (
@@ -205,30 +185,6 @@ function Gestionador({ neuron, onSave }) {
               </div>
             ))}
             <button className="add" onClick={addParameter}>Add parameter</button>
-          </div>
-        </div>
-
-        <div className="group variables">
-          <h3>Variables</h3>
-          <div className="table">
-            {variables.map((variable, index) => (
-              <div className="row" key={index}>
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={variable.name}
-                  onChange={(e) => handleVariableChange(index, "name", e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Value"
-                  value={variable.value}
-                  onChange={(e) => handleVariableChange(index, "value", e.target.value)}
-                />
-                <button className="delete" onClick={() => removeVariable(index)}>Delete</button>
-              </div>
-            ))}
-            <button className="add" onClick={addVariable}>Add variable</button>
           </div>
         </div>
       </div>

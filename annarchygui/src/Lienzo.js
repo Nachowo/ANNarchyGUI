@@ -161,10 +161,11 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
             { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name:selectedSynapse.name } : { name: selectedSynapse.name }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
           ]);
         } else if (origen.type === 'Población neuronal' && destino.type === 'Población neuronal') {
-          if (origen.attributes.tipo === destino.attributes.tipo && (!selectedSynapse || selectedSynapse.name === origen.attributes.tipo)) {
+          if (origen.attributes.tipo === destino.attributes.tipo) {
+            const synapseType = origen.attributes.tipo === 'Spiking neuron' ? 'spiking' : 'rate-coded';
             setConnections(prevConnections => [
               ...prevConnections,
-              { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name } : { name: selectedSynapse.name }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
+              { id: prevConnections.length + 1, origen: origen.id, destino: destino.id, attributes: selectedSynapse ? { ...selectedSynapse.attributes, name: selectedSynapse.name, tipo: synapseType } : { name: selectedSynapse.name, tipo: synapseType }, connections: { target: 'exc', disable_omp: true, rule: 'all_to_all', weights: '1', delays: '1' } }
             ]);
           } else {
             alert('Only neurons of the same type can be connected and use synapses of the same type.');

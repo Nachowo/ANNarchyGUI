@@ -6,7 +6,6 @@ import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Import
 
 function Sidebar({ onConnectToggle, items, connections }) {
   const [activeTab, setActiveTab] = useState('Opciones');
-  const [simulationTime, setSimulationTime] = useState(1000); // Valor predeterminado
   const [customModels, setCustomModels] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false);
   const [showNeuronModels, setShowNeuronModels] = useState(false);
@@ -119,33 +118,18 @@ function Sidebar({ onConnectToggle, items, connections }) {
     {
       id: 1,
       type: 'Sinapsis',
-      name: 'Spiking neuron',
+      name: 'Synapse',
       attributes: {
-        parameters: { weight: 0.5, delay: 1.0 },
-        equations: 'dI/dt = -I / tau : current',
-        psp: 'exp(-t/tau)',
-        operation: 'sum',
-        pre_spike: 'I += weight',
-        post_spike: '',
-        pre_axon_spike: '',
-        functions: 'tau = 10.0'
-      },
-    },
-    {
-      id: 2,
-      type: 'Sinapsis',
-      name: 'Rate-Coded',
-      attributes: {
-        parameters: { weight: 1.0 },
-        equations: 'I = weight * rate_pre',
+        parameters: {},
+        equations: '',
         psp: '',
-        operation: 'sum',
+        operation: '',
         pre_spike: '',
         post_spike: '',
         pre_axon_spike: '',
         functions: ''
       },
-    },
+    }
   ];
 
   const handleDragStart = (event, model) => {
@@ -168,13 +152,13 @@ function Sidebar({ onConnectToggle, items, connections }) {
   };
 
   const handleGenerateNetworkCode = () => {
-    const code = generateANNarchyCode(items, connections, simulationTime);
+    const code = generateANNarchyCode(items, connections);
     setNetworkCode(code);
   };
 
   useEffect(() => {
     handleGenerateNetworkCode();
-  }, [items, connections, simulationTime]);
+  }, [items, connections]);
 
   return (
     <div className="Sidebar" id='sidebar'>
@@ -185,12 +169,6 @@ function Sidebar({ onConnectToggle, items, connections }) {
           onClick={() => setActiveTab('Opciones')}
         >
           Options
-        </li>
-        <li
-          className={activeTab === 'Simulación' ? 'active' : ''}
-          onClick={() => setActiveTab('Simulación')}
-        >
-          Simulation
         </li>
         <li
           className={activeTab === 'Código' ? 'active' : ''}
@@ -271,19 +249,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
         )}
 
         {/* Simulation */}
-      {activeTab === 'Simulación' && (
-        <div className="Sidebar-Content">
-          <div>
-            <label>Simulation Time:</label>
-            <input
-              type="number"
-              value={simulationTime}
-              onChange={(e) => setSimulationTime(e.target.value)}
-            />
-          </div>
-          <CodeGenerator items={items} connections={connections} simulationTime={simulationTime} />
-        </div>
-      )}
+      
 
       {activeTab === 'Código' && (
         <div className="Sidebar-Content">
