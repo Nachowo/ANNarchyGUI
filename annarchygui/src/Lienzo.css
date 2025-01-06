@@ -144,3 +144,8 @@
   font-size: 24px;
   cursor: pointer;
 }
+
+.monitored {
+  background-color: #ffeb3b; /* Cambiar el color de fondo para las poblaciones con monitores */
+  border: 2px solid #fbc02d; /* Cambiar el color del borde para las poblaciones con monitores */
+}

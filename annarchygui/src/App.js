@@ -13,6 +13,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false); // Estado para mostrar/ocultar el modal de carga
   const [showOutputModal, setShowOutputModal] = useState(false); // Estado para mostrar/ocultar el modal de resultado
   const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
+  const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
+  const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -20,6 +22,13 @@ function App() {
     setIsConnecting(true);
     document.body.style.cursor = 'crosshair'; 
     console.log(`Modo conexión: true`);
+  };
+
+  // Maneja la creación de monitores
+  const handleMonitorToggle = () => {
+    setIsCreatingMonitor(true);
+    document.body.style.cursor = 'crosshair';
+    console.log(`Modo creación de monitor: true`);
   };
 
   // Maneja la simulación
@@ -56,8 +65,24 @@ function App() {
         <button className='buttonHeader' onClick={handleSimulate}>Simulate</button>
       </header>
       <div className="App-body">
-        <Lienzo isConnecting={[isConnecting, setIsConnecting]} items={items} setItems={setItems} selectedSynapse={selectedSynapse} connections={connections} setConnections={setConnections} />
-        <Sidebar onConnectToggle={handleConnectToggle} items={items} connections={connections} />
+        <Lienzo 
+          isConnecting={[isConnecting, setIsConnecting]} 
+          items={items} 
+          setItems={setItems} 
+          selectedSynapse={selectedSynapse} 
+          connections={connections} 
+          setConnections={setConnections} 
+          isCreatingMonitor={isCreatingMonitor} 
+          setIsCreatingMonitor={setIsCreatingMonitor} 
+          monitors={monitors} 
+          setMonitors={setMonitors} 
+        />
+        <Sidebar 
+          onConnectToggle={handleConnectToggle} 
+          items={items} 
+          connections={connections} 
+          onMonitorToggle={handleMonitorToggle} 
+        />
       </div>
       {isLoading && (
         <div className="loading-modal">
