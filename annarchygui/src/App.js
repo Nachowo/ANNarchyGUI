@@ -14,7 +14,7 @@ function App() {
   const [showOutputModal, setShowOutputModal] = useState(false); // Estado para mostrar/ocultar el modal de resultado
   const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
-  const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
+  const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Estado para la asignación de monitores
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -74,14 +74,15 @@ function App() {
           setConnections={setConnections} 
           isCreatingMonitor={isCreatingMonitor} 
           setIsCreatingMonitor={setIsCreatingMonitor} 
-          monitors={monitors} 
-          setMonitors={setMonitors} 
+          isAssigningMonitor={isAssigningMonitor} // Pasar estado de asignación
+          setIsAssigningMonitor={setIsAssigningMonitor} // Pasar función para actualizar estado
         />
         <Sidebar 
           onConnectToggle={handleConnectToggle} 
           items={items} 
           connections={connections} 
           onMonitorToggle={handleMonitorToggle} 
+          onAssignMonitor={setIsAssigningMonitor} // Pasar función para asignar monitor
         />
       </div>
       {isLoading && (

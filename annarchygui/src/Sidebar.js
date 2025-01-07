@@ -4,7 +4,7 @@ import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
 import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
 
-function Sidebar({ onConnectToggle, items, connections }) {
+function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor }) {
   const [activeTab, setActiveTab] = useState('Opciones');
   const [customModels, setCustomModels] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false);
@@ -12,6 +12,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
   const [newModel, setNewModel] = useState({
     name: '',
     quantity: '',
+    hasMonitor: false,
     attributes: {
       name: '',
       quantity: '1',
@@ -38,6 +39,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
   });
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
   const [networkCode, setNetworkCode] = useState('');
+  const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Nuevo estado para modo de asignación
 
   const predefinedModels = [
     {
@@ -45,6 +47,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       type: 'Población neuronal',
       name: 'LIF Neuron',
       quantity: 1,
+      hasMonitor: false,
       attributes: {
         tipo: 'Spiking neuron',
         parameters: { tau: 10, I: 1 },
@@ -63,6 +66,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       type: 'Población neuronal',
       name: 'Izhikevich Neuron',
       quantity: 1,
+      hasMonitor: false,
       attributes: {
         tipo: 'Spiking neuron',
         parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
@@ -81,6 +85,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       type: 'Población neuronal',
       name: 'Hodgkin-Huxley Neuron',
       quantity: 1,
+      hasMonitor: false,
       attributes: {
         tipo: 'Spiking neuron',
         parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
@@ -99,6 +104,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
       type: 'Población neuronal',
       name: 'Poisson Neuron',
       quantity: 1,
+      hasMonitor: false,
       attributes: {
         tipo: 'Rate-Coded neuron',
         parameters: { rate: 10.0 },
@@ -132,6 +138,18 @@ function Sidebar({ onConnectToggle, items, connections }) {
     }
   ];
 
+  const predefinedMonitors = [
+    {
+      id: 1,
+      type: 'Monitor',
+      name: 'Monitor',
+      attributes: {
+        target: '1',
+        variables: ["xd"]
+      }
+    }
+  ];
+
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
@@ -154,6 +172,11 @@ function Sidebar({ onConnectToggle, items, connections }) {
   const handleGenerateNetworkCode = () => {
     const code = generateANNarchyCode(items, connections);
     setNetworkCode(code);
+  };
+
+  const handleAssignMonitorClick = () => {
+    setIsAssigningMonitor(true);
+    onAssignMonitor(true); // Notificar al Lienzo que está en modo de asignación
   };
 
   useEffect(() => {
@@ -243,6 +266,7 @@ function Sidebar({ onConnectToggle, items, connections }) {
           )}
             </div>
             <button onClick={() => setShowSynapseGestionador(true)}>Create Synapse</button>
+            <button onClick={handleAssignMonitorClick}>Assign Monitor</button> {/* Nuevo botón */}
             <div>
           </div>
           </div>

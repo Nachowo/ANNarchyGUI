@@ -3,7 +3,7 @@ import './Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -12,6 +12,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
   const [selectedSynapseItem, setSelectedSynapseItem] = useState(null);
+  const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -37,8 +38,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         type: newItem.type,
         name: newItem.name,
         quantity: newItem.quantity, // Añadir la cantidad de neuronas
-        neuron: newItem.neuron, // Añadir el modelo de neurona
         attributes: newItem.attributes,
+        hasMonitor: false, // Añadir el atributo hasMonitor
         x: x - elementWidth / 2,
         y: y - elementHeight / 2,
       };
@@ -91,6 +92,26 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
+  // Función para manejar el clic en una población cuando está en modo de asignación
+  const handlePopulationClick = (item, event) => {
+    event.stopPropagation();
+    if (isAssigningMonitor) {
+      const newMonitor = {
+        id: monitors.length + 1,
+        target: '',
+        variables: [],
+        populationId: item.id,
+        populationName: item.name, // Guardar información de la neurona a la que se conecta
+      };
+      setMonitors([...monitors, newMonitor]); // Almacenar el monitor en el arreglo
+      setItems(items.map(i => i.id === item.id ? { ...i, hasMonitor: true } : i)); // Actualizar el atributo hasMonitor
+      setIsAssigningMonitor(false); // Salir del modo de asignación
+      console.log(`Monitor asignado a la población: ${item.name}`);
+    } else {
+      handleItemClick(item, event);
+    }
+  };
+
   //Funcion para mostrar el Gestionador al hacer clic derecho sobre una población neuronal
   const handleNeuronContextMenu = (event, item) => {
     event.preventDefault();
@@ -98,8 +119,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setShowGestionador(true);
   };
 
-  const handleSaveNeuron = (updatedNeuron) => {
+  const handleSaveNeuron = (updatedNeuron, updatedMonitors) => {
     setItems(items.map(item => item.id === updatedNeuron.id ? { ...updatedNeuron, name: updatedNeuron.name } : item));
+    setMonitors(monitors.map(monitor => {
+      const updatedMonitor = updatedMonitors.find(m => m.id === monitor.id);
+      return updatedMonitor ? { ...monitor, ...updatedMonitor } : monitor;
+    }));
     setShowGestionador(false);
   };
 
@@ -198,6 +223,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   const debugear = () => {
     console.log('Current connections:', connections);
     console.log('Current items:', items);
+    console.log('Current monitors:', monitors);
   };
 
   const renderArrowMarker = () => {
@@ -342,11 +368,14 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
                 handleNeuronContextMenu(e, item);
               }
             }}
-            onClick={(event) => handleItemClick(item, event)}
+            onClick={(event) => handlePopulationClick(item, event)}
             style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
           >
             <div className="item-name">{item.type === 'Población neuronal' ? 'Population' : item.type}</div>
-            <div>{item.name}</div> 
+            <div>{item.name}</div>
+            {item.hasMonitor && (
+              <div className="monitor-icon">📊</div> // Mostrar icono si hay un monitor asignado
+            )}
           </div>
         ))}
       </div>
@@ -356,7 +385,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         <div className="gestionador-container" onClick={handleCloseGestionador}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-            <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} />
+            <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} monitors={monitors} />
           </div>
         </div>
       )}
