@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
-import { generateANNarchyCode, sendCodeToBackend, downloadCodeAsFile } from './CodeGenerator';
+import { generateANNarchyCode, sendCodeToBackend, downloadCodeAsFile, getJobStatus } from './CodeGenerator';
 
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
@@ -15,41 +15,65 @@ function App() {
   const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Estado para la asignación de monitores
+  const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
     setSelectedSynapse(synapse);
     setIsConnecting(true);
     document.body.style.cursor = 'crosshair'; 
-    console.log(`Modo conexión: true`);
   };
 
   // Maneja la creación de monitores
   const handleMonitorToggle = () => {
     setIsCreatingMonitor(true);
     document.body.style.cursor = 'crosshair';
-    console.log(`Modo creación de monitor: true`);
   };
 
   // Maneja la simulación
   const handleSimulate = async () => {
     const itemsList = items;
-    const code = generateANNarchyCode(itemsList, connections, simulationTime);
+    const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
     downloadCodeAsFile(code);
     
     setIsLoading(true); // Mostrar el modal de carga
 
     try {
-      const output = await sendCodeToBackend(code);
-      setSimulationOutput(output);
-      setShowOutputModal(true); // Mostrar el modal de resultado
+      const jobId = await sendCodeToBackend(code);
+      console.log('ID del trabajo:', jobId);
+      pollJobStatus(jobId);
     } catch (error) {
       console.error('Error al enviar el código al backend:', error);
       setSimulationOutput('Error al ejecutar la simulación.');
       setShowOutputModal(true); // Mostrar el modal de resultado
-    } finally {
       setIsLoading(false); // Ocultar el modal de carga
     }
+  };
+
+  const pollJobStatus = async (jobId) => {
+    const pollInterval = 2000; // Intervalo de polling en milisegundos
+  
+    const checkStatus = async () => {
+      try {
+        const result = await getJobStatus(jobId);
+        const { status, error, output } = result;
+
+        if (status === 'En progreso' || status === 'En espera' || error) {
+          // Continuar con el polling
+          setTimeout(checkStatus, pollInterval);
+        } else {
+          // Resultado final
+          setSimulationOutput(output || error || status || 'Simulación completada.');
+          setShowOutputModal(true);
+          setIsLoading(false);
+        }
+      } catch (e) {
+        // Error de red o similar, seguir intentando
+        setTimeout(checkStatus, pollInterval);
+      }
+    };
+  
+    checkStatus();
   };
 
   return (
@@ -76,6 +100,8 @@ function App() {
           setIsCreatingMonitor={setIsCreatingMonitor} 
           isAssigningMonitor={isAssigningMonitor} // Pasar estado de asignación
           setIsAssigningMonitor={setIsAssigningMonitor} // Pasar función para actualizar estado
+          monitors={monitors} // Pasar monitores
+          setMonitors={setMonitors} // Pasar función para actualizar monitores
         />
         <Sidebar 
           onConnectToggle={handleConnectToggle} 
@@ -83,6 +109,7 @@ function App() {
           connections={connections} 
           onMonitorToggle={handleMonitorToggle} 
           onAssignMonitor={setIsAssigningMonitor} // Pasar función para asignar monitor
+          monitors={monitors} // Pasar monitores
         />
       </div>
       {isLoading && (

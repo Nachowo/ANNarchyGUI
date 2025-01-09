@@ -62,15 +62,7 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   };
 
   const handleSave = () => {
-    if (tipo === 'spiking' && (!equations || !operation)) {
-      alert('The fields Equations and Operation are required for Spiking synapses.');
-      return;
-    }
-
-    if (tipo === 'rate-coded' && (!equations || !operation)) {
-      alert('The fields Equations and Operation are required for Rate-Coded synapses.');
-      return;
-    }
+  
 
     const updatedSynapse = {
       ...synapse,

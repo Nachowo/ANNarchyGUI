@@ -34,7 +34,7 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
     const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
     setMonitorAttributes(neuronMonitors.map(monitor => ({
       id: monitor.id,
-      target: monitor.target || '',
+      target: neuron.name, // Mostrar el nombre de la población
       variables: monitor.variables || []
     })));
   }, [neuron, monitors]);
@@ -278,7 +278,7 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
               type="text" 
               id={`monitor-target-${index}`} 
               value={monitor.target || ''} 
-              onChange={(e) => handleMonitorAttributeChange(index, 'target', e.target.value)} 
+              disabled // Campo no editable
             />
           </div>
           <div className="row">

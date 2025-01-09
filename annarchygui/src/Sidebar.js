@@ -4,7 +4,7 @@ import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
 import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
 
-function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor }) {
+function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors }) {
   const [activeTab, setActiveTab] = useState('Opciones');
   const [customModels, setCustomModels] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false);
@@ -170,7 +170,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   };
 
   const handleGenerateNetworkCode = () => {
-    const code = generateANNarchyCode(items, connections);
+    const code = generateANNarchyCode(items, connections, monitors);
     setNetworkCode(code);
   };
 
@@ -180,8 +180,9 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   };
 
   useEffect(() => {
+
     handleGenerateNetworkCode();
-  }, [items, connections]);
+  }, [items, connections, monitors]);
 
   return (
     <div className="Sidebar" id='sidebar'>

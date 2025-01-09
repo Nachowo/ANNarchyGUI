@@ -45,13 +45,6 @@ export function getItemsFromLienzo(items) {
 }
 
 /**
- * Obtiene el listado de conexiones desde el Lienzo y lo imprime en consola.
- * @param {Array} connections - Lista de conexiones en el lienzo.
- */
-export function printConnections(connections) {
-}
-
-/**
  * Asegura que no haya espacios en los nombres y los reemplace con un guion bajo.
  * @param {string} name - Nombre a procesar.
  * @returns {string} - Nombre procesado.
@@ -168,29 +161,69 @@ export function generateProjectionCode(connections, items) {
 }
 
 /**
+ * Obtiene los monitores del lienzo.
+ * @param {Array} monitors - Lista de monitores.
+ * @returns {Array} - Lista de monitores.
+ */
+export function getMonitorsFromLienzo(monitors) {
+  return (monitors || []).map(monitor => ({
+    id: monitor.id,
+    populationId: monitor.populationId,
+    target: monitor.target,
+    variables: monitor.variables
+  }));
+}
+
+/**
+ * Genera el código ANNarchy para los monitores.
+ * @param {Array} monitors - Lista de monitores.
+ * @param {Array} items - Lista de elementos en el lienzo.
+ * @returns {string} - Código ANNarchy para los monitores.
+ */
+export function generateMonitorCode(monitors, items) {
+  const populationNames = items.reduce((acc, item) => {
+    const baseName = formatName(item.name);
+    const count = acc[baseName] || 0;
+    acc[baseName] = count + 1;
+    const populationName = `${baseName}${count + 1}`;
+    acc[item.id] = populationName;
+    return acc;
+  }, {});
+
+  return (monitors || []).map((monitor, index) => {
+    const populationName = populationNames[monitor.populationId];
+    const monitorName = `monitor${index + 1}`;
+    const variables = monitor.variables.join(', ');
+    return `${monitorName} = Monitor(${populationName}, [${variables}])`;
+  }).join('\n\n');
+}
+
+/**
  * Traduce el listado de items en neuronas y sinapsis estilo ANNarchy y lo pone en code.
  * @param {Array} items - Lista de elementos en el lienzo.
  * @param {Array} connections - Lista de conexiones en el lienzo.
+ * @param {Array} monitors - Lista de monitores en el lienzo.
  */
-export function generateANNarchyCode(items, connections, simTime = 1000) {
+export function generateANNarchyCode(items, connections, monitors, simTime = 1000) {
   simulationTime = simTime; // Actualizar el tiempo de simulación
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
+  const monitorList = getMonitorsFromLienzo(monitors);
 
   const neuronCode = generateNeuronCode(neurons);
   //const synapseCode = generateSynapseCode(synapses);
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
-  //  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${synapseCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
+  const monitorCode = generateMonitorCode(monitorList, items);
 
-  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${projectionCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
+  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${projectionCode}\n\n${monitorCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
   return code;
 }
 
 /**
  * Envía el código al backend y recibe los resultados.
  * @param {string} code - Código a enviar al backend.
- * @returns {Promise<string>} - Respuesta del backend.
+ * @returns {Promise<string>} - ID del trabajo (UUID).
  */
 export async function sendCodeToBackend(code) {
   try {
@@ -203,17 +236,44 @@ export async function sendCodeToBackend(code) {
     });
 
     if (!response.ok) {
-      throw new Error(`Error del servidor: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
-    return result.output; // Ajustar según la estructura de la respuesta del backend
+    console.log('Respuesta del backend:', result);
+    return result.job_id; // Ahora es una cadena UUID
   } catch (error) {
     console.error('Error al enviar el código al backend:', error);
     throw error;
   }
 }
 
+/**
+ * Obtiene el estado del trabajo desde el backend.
+ * @param {string} jobId - ID del trabajo (UUID).
+ * @returns {Promise<object>} - Resultado del trabajo.
+ */
+export async function getJobStatus(jobId) {
+  try {
+    const response = await fetch(`http://localhost:5000/status/${jobId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result; // Ajustar según la estructura de la respuesta del backend
+  } catch (error) {
+    console.error('Error al obtener el estado del trabajo desde el backend:', error);
+    throw error;
+  }
+}
 
 /**
  * Descarga el código generado como un archivo .py.
@@ -231,26 +291,46 @@ export function downloadCodeAsFile(code) {
   URL.revokeObjectURL(url);
 }
 
-const CodeGenerator = ({ items, connections, simulationTime }) => {
+const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
   const [simulationOutput, setSimulationOutput] = useState('');
 
   const handleGenerateCode = async () => {
     const itemsList = getItemsFromLienzo(items);
-    generateANNarchyCode(itemsList, connections, simulationTime);
-    downloadCodeAsFile(code);
-    
+    const monitorsList = getMonitorsFromLienzo(monitors);
+
+    const generatedCode = generateANNarchyCode(itemsList, connections, monitorsList, simulationTime);
+    downloadCodeAsFile(generatedCode);
+
     try {
-      const output = await sendCodeToBackend(code);
-      setSimulationOutput(output);
+      const jobId = await sendCodeToBackend(generatedCode);
+      console.log('ID del trabajo:', jobId);
+      pollJobStatus(jobId);
     } catch (error) {
       console.error('Error al enviar el código al backend:', error);
       setSimulationOutput('Error al ejecutar la simulación.');
     }
-    
   };
 
-  const handlePrintConnections = () => {
-    printConnections(connections);
+  const pollJobStatus = async (jobId) => {
+    const pollInterval = 2000;
+    const checkStatus = async () => {
+      try {
+        const result = await getJobStatus(jobId);
+        const { status, error, output } = result;
+
+        // Si está en progreso, en espera o hay error, seguir intentando
+        if (status === 'En progreso' || status === 'En espera' || error) {
+          setTimeout(checkStatus, pollInterval);
+        } else {
+          // Mostrar resultado final
+          setSimulationOutput(output || error || status || 'Simulación completada.');
+        }
+      } catch (e) {
+        // Si hubo error de conexión, seguir intentando
+        setTimeout(checkStatus, pollInterval);
+      }
+    };
+    checkStatus();
   };
 
   return (

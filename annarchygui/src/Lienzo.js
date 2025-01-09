@@ -3,7 +3,7 @@ import './Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -12,7 +12,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
   const [selectedSynapseItem, setSelectedSynapseItem] = useState(null);
-  const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -106,7 +105,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       setMonitors([...monitors, newMonitor]); // Almacenar el monitor en el arreglo
       setItems(items.map(i => i.id === item.id ? { ...i, hasMonitor: true } : i)); // Actualizar el atributo hasMonitor
       setIsAssigningMonitor(false); // Salir del modo de asignación
-      console.log(`Monitor asignado a la población: ${item.name}`);
     } else {
       handleItemClick(item, event);
     }
