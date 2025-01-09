@@ -69,15 +69,22 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
       hasMonitor: false,
       attributes: {
         tipo: 'Spiking neuron',
-        parameters: { a: 0.02, b: 0.2, c: -65, d: 8, I: 10 },
-        equations: 'dv/dt = 0.04 * v^2 + 5 * v + 140 - u + I : 1',
+        parameters: {
+          noise: 5.0,
+          a: 0.02,
+          b: 0.2,
+          c: -65.0,
+          d: 2.0,
+          v_thresh: 30.0
+        },
+        equations: "I = g_exc - g_inh + noise * Normal(0.0, 1.0)\ndv/dt = 0.04 * v^2 + 5.0 * v + 140.0 - u + I\ndu/dt = a * (b*v - u)",
         functions: {},
-        variables: { v: -65, u: -14 },
-        spike: '',
+        variables: {},
+        spike: "v >= v_thresh",
         axon_spike: '',
-        reset: '',
+        reset: "v = c\nu += d",
         axon_reset: '',
-        refractory: '',
+        refractory: ''
       }
     },
     {

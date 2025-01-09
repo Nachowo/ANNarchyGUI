@@ -68,6 +68,12 @@ function App() {
           setIsLoading(false);
         }
       } catch (e) {
+        if (e.message.includes('404')) {
+          setSimulationOutput('Error 404 al ejecutar la simulación.');
+          setShowOutputModal(true);
+          setIsLoading(false);
+          return;
+        }
         // Error de red o similar, seguir intentando
         setTimeout(checkStatus, pollInterval);
       }

@@ -79,7 +79,7 @@ export function generateNeuronCode(neurons) {
       { key: 'reset', value: neuron.attributes.reset },
       { key: 'axon_reset', value: neuron.attributes.axon_reset },
       { key: 'refractory', value: neuron.attributes.refractory }
-    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="${attr.value}"`).join(',\n');
+    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="""\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`).join(',\n');
     return `${formattedName} = Neuron(\n\tequations="""\n${equations}\n\t""",\n\tparameters="""\n${params}\n\t""",\n${attributes}\n)`;
   }).join('\n\n');
 }
@@ -319,13 +319,20 @@ const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
         const { status, error, output } = result;
 
         // Si está en progreso, en espera o hay error, seguir intentando
+        console.log('Estado del trabajo:', result);
         if (status === 'En progreso' || status === 'En espera' || error) {
           setTimeout(checkStatus, pollInterval);
-        } else {
+        }else if(status === '404 (NOT FOUND)'){
+          setSimulationOutput('Error al ejecutar la simulación.');
+        }else {
           // Mostrar resultado final
           setSimulationOutput(output || error || status || 'Simulación completada.');
         }
       } catch (e) {
+        if (e.message.includes('404')) {
+          setSimulationOutput('Error 404 al ejecutar la simulación.');
+          return;
+        }
         // Si hubo error de conexión, seguir intentando
         setTimeout(checkStatus, pollInterval);
       }

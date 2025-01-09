@@ -229,15 +229,15 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
                 <>
                   <div className="row">
                     <label htmlFor="spike">Spike:</label>
-                    <input type="text" id="spike" value={spike} onChange={handleSpikeChange} />
+                    <textarea id="spike" value={spike} onChange={handleSpikeChange} />
                   </div>
                   <div className="row">
                     <label htmlFor="axon-spike">Axon Spike:</label>
-                    <input type="text" id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
+                    <textarea id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
                   </div>
                   <div className="row">
                     <label htmlFor="reset">Reset:</label>
-                    <input type="text" id="reset" value={reset} onChange={handleResetChange} />
+                    <textarea id="reset" value={reset} onChange={handleResetChange} />
                   </div>
                 </>
               )}
@@ -247,11 +247,11 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
                 <>
                   <div className="row">
                     <label htmlFor="axon-reset">Axon Reset:</label>
-                    <input type="text" id="axon-reset" value={axonReset} onChange={handleAxonResetChange} />
+                    <textarea id="axon-reset" value={axonReset} onChange={handleAxonResetChange} />
                   </div>
                   <div className="row">
                     <label htmlFor="refractory">Refractory:</label>
-                    <input type="text" id="refractory" value={refractory} onChange={handleRefractoryChange} />
+                    <textarea id="refractory" value={refractory} onChange={handleRefractoryChange} />
                   </div>
                 </>
               )}
@@ -260,13 +260,13 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
           {tipo === 'Rate-Coded neuron' && (
             <div className="row">
               <label htmlFor="firing-rate">Firing rate:</label>
-              <input type="text" id="firing-rate" value={firingRate} onChange={handleFiringRateChange} />
+              <textarea id="firing-rate" value={firingRate} onChange={handleFiringRateChange} />
             </div>
           )}
           
           <div className="row">
             <label htmlFor="functions">Functions:</label>
-            <input type="text" id="functions" value={functions} onChange={handleFunctionChange} />
+            <textarea id="functions" value={functions} onChange={handleFunctionChange} />
           </div>
         </>
       )}
