@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
-function MonitorGestionador({ monitor, onSave }) {
+function MonitorGestionador({ monitor, neurons, onSave, onDelete, setShowMonitorGestionador }) {
   const [name, setName] = useState(monitor.name || '');
-  const [target, setTarget] = useState(monitor.attributes.target || '');
-  const [variables, setVariables] = useState(monitor.attributes.variables || []);
+  const [target, setTarget] = useState(monitor.attributes?.target || '');
+  const [variables, setVariables] = useState(monitor.attributes?.variables || []);
+  const [selectedVariables, setSelectedVariables] = useState([]);
 
   useEffect(() => {
     setName(monitor.name || '');
-    setTarget(monitor.attributes.target || '');
-    setVariables(monitor.attributes.variables || []);
+    setTarget(monitor.attributes?.target || '');
+    setVariables(monitor.attributes?.variables || []);
   }, [monitor]);
+
+  useEffect(() => {
+    if (monitor.populationId) {
+      const neurona = neurons.find(n => n.id === monitor.populationId);
+      if (neurona) {
+        setSelectedVariables(monitor.variables || []);
+      }
+    }
+  }, [monitor, neurons]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -24,6 +34,17 @@ function MonitorGestionador({ monitor, onSave }) {
     const newVariables = [...variables];
     newVariables[index] = value;
     setVariables(newVariables);
+  };
+
+  const handleVariableSelectChange = (e) => {
+    const options = e.target.options;
+    const selected = [];
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].selected) {
+        selected.push(options[i].value);
+      }
+    }
+    setSelectedVariables(selected);
   };
 
   const addVariable = () => {
@@ -41,7 +62,8 @@ function MonitorGestionador({ monitor, onSave }) {
       attributes: {
         target,
         variables
-      }
+      },
+      variables: selectedVariables
     };
     onSave(updatedMonitor);
   };
@@ -70,7 +92,27 @@ function MonitorGestionador({ monitor, onSave }) {
         ))}
         <button type="button" onClick={addVariable}>Add Variable</button>
       </div>
-      <button type="button" onClick={handleSave}>Save</button>
+      {monitor.populationId && (
+        <div className="row">
+          <label htmlFor="monitor-variables">Variables:</label>
+          <select
+            id="monitor-variables"
+            multiple
+            value={selectedVariables}
+            onChange={handleVariableSelectChange}
+          >
+            {neurons.find(n => n.id === monitor.populationId)?.attributes.variables.map((variable, index) => (
+              <option key={index} value={variable}>
+                {variable}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div className="actions">
+        <button className="delete" onClick={onDelete}>Eliminar</button>
+        <button className="save" onClick={handleSave}>Guardar</button>
+      </div>
     </div>
   );
 }

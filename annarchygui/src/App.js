@@ -49,6 +49,55 @@ function App() {
     }
   };
 
+  /**
+   * Extrae los datos del monitor de los resultados de la simulación.
+   * @param {object} monitors - Resultados de los monitores.
+   * @returns {object} - Datos del monitor.
+   */
+  function extractMonitorData(monitors) {
+    const monitorData = {};
+    for (const [monitorId, monitorResult] of Object.entries(monitors)) {
+      monitorData[monitorId] = monitorResult.v; // Extraer solo el arreglo 'v'
+    }
+    return monitorData;
+  }
+
+  /**
+   * Retorna solamente el arreglo 'v' de cada monitor.
+   * @param {object} monitors - Resultados de los monitores.
+   * @returns {object} - Objeto con sólo el array 'v' de cada monitor.
+   */
+  function getOnlyVArrays(monitors) {
+    const result = {};
+    for (const [monitorId, monitorData] of Object.entries(monitors)) {
+      if (monitorData && monitorData.v) {
+        result[monitorId] = monitorData.v;
+      }
+    }
+    return result;
+  }
+
+  function parseVArrayFromOutput(finalOutput) {
+    // Buscar el texto 'array([...])' y extraer su contenido interno.
+    const regex = /array\(\[([\s\S]*?)\]\)/;
+    const match = finalOutput.match(regex);
+    if (!match) return [];
+
+    // match[1] es la parte interna, p. ej. [[-65. ], [-58.4 ], ...]
+    const arrayStrings = match[1].trim();
+    // Extraer cada fila entre corchetes.
+    const rowRegex = /\[([^\]]+)\]/g;
+    let rows = [];
+    let rowMatch;
+
+    while ((rowMatch = rowRegex.exec(arrayStrings)) !== null) {
+      // Separar en valores y convertir a número.
+      const values = rowMatch[1].split(',').map(str => parseFloat(str));
+      rows.push(values);
+    }
+    return rows;
+  }
+
   const pollJobStatus = async (jobId) => {
     const pollInterval = 2000; // Intervalo de polling en milisegundos
   
@@ -56,18 +105,17 @@ function App() {
       try {
         const result = await getJobStatus(jobId);
         const { status, error, output, monitors } = result;
-
+        console.log('resultado:', result);
         if (status === 'En progreso' || status === 'En espera' || error) {
           // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
         } else {
           // Resultado final
           let finalOutput = output || error || status || 'Simulación completada.';
-          if (monitors) {
+          console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
+          if (monitors.length > 0) {
+            finalOutput = parseVArrayFromOutput(finalOutput); 
             finalOutput += '\n\nResultados de los Monitores:\n';
-            for (const [monitorId, monitorData] of Object.entries(monitors)) {
-              finalOutput += `${monitorId}: ${monitorData}\n`;
-            }
             downloadMonitorResults(monitors); // Descargar resultados de los monitores
           }
           setSimulationOutput(finalOutput);

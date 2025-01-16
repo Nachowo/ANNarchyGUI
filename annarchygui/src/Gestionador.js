@@ -122,15 +122,15 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
 
   const handleSave = () => {
     if (tipo === 'Spiking neuron' && (!parameters.length || !equations || !spike)) {
-      alert('The fields Parameters, Equations, and Spike are required for Spiking neurons.');
+      alert('Los campos Parámetros, Ecuaciones y Spike son requeridos para neuronas Spiking.');
       return;
     }
-
+  
     if (tipo === 'Rate-Coded neuron' && (!parameters.length || !equations || !firingRate)) {
-      alert('The fields Parameters, Equations, and Firing Rate are required for Rate-Coded neurons.');
+      alert('Los campos Parámetros, Ecuaciones y Firing Rate son requeridos para neuronas Rate-Coded.');
       return;
     }
-
+  
     const updatedNeuron = {
       ...neuron,
       name: name || neuron.name,
@@ -155,14 +155,14 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
         firingRate,
       }
     };
-
+  
     const updatedMonitors = monitorAttributes.map(monitor => ({
       id: monitor.id,
       populationId: neuron.id,
       target: monitor.target,
       variables: monitor.variables
     }));
-
+  
     onSave(updatedNeuron, updatedMonitors);
   };
 

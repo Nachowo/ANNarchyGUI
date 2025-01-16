@@ -57,11 +57,14 @@ def process_jobs():
             # Guardar resultados de los monitores
             monitor_results = {}
             if result.returncode == 0:
-                print(f"Obteniendo resultados de los monitores para el trabajo {job_id}", flush=True)
                 for line in result.stdout.splitlines():
-                    if line.startswith('Monitor'):
-                        monitor_id, monitor_data = line.split(':', 1)
-                        monitor_results[monitor_id.strip()] = monitor_data.strip()
+                    if line.startswith('Monitor Results:'):
+                        try:
+                            monitor_data = line.split('Monitor Results:', 1)[1].strip()
+                            monitor_results = eval(monitor_data)  # Convertir la cadena a diccionario
+                        except SyntaxError as e:
+                            print(f"Error al evaluar los datos del monitor: {str(e)}", flush=True)
+                            monitor_results = {'error': 'Error al evaluar los datos del monitor', 'details': str(e)}
 
             output['monitors'] = monitor_results
 

@@ -199,10 +199,28 @@ export function generateMonitorCode(monitors, items) {
 }
 
 /**
+ * Genera el código ANNarchy para manejar los resultados de los monitores.
+ * @param {Array} monitors - Lista de monitores.
+ * @returns {string} - Código ANNarchy para manejar los resultados de los monitores.
+ */
+function generateMonitorHandlingCode(monitors) {
+  return `
+# Manejo de los resultados de los monitores
+monitor_results = {}
+for monitor in [${monitors.map((monitor, index) => `monitor${index + 1}`).join(', ')}]:
+    data = monitor.get()
+    monitor_results[monitor.name] = data
+print("Monitor Results:", monitor_results)
+  `;
+}
+
+/**
  * Traduce el listado de items en neuronas y sinapsis estilo ANNarchy y lo pone en code.
  * @param {Array} items - Lista de elementos en el lienzo.
  * @param {Array} connections - Lista de conexiones en el lienzo.
  * @param {Array} monitors - Lista de monitores en el lienzo.
+ * @param {number} simTime - Tiempo de simulación.
+ * @returns {string} - Código ANNarchy generado.
  */
 export function generateANNarchyCode(items, connections, monitors, simTime = 1000) {
   simulationTime = simTime; // Actualizar el tiempo de simulación
@@ -215,8 +233,24 @@ export function generateANNarchyCode(items, connections, monitors, simTime = 100
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
   const monitorCode = generateMonitorCode(monitorList, items);
+  const monitorHandlingCode = generateMonitorHandlingCode(monitorList); // Añadir manejo de monitores
 
-  code = `from ANNarchy import *\n\n${neuronCode}\n\n${populationCode}\n\n${projectionCode}\n\n${monitorCode}\n\ncompile()\n\nsimulate(${simulationTime})`;
+  code = `from ANNarchy import *
+
+${neuronCode}
+
+${populationCode}
+
+${projectionCode}
+
+${monitorCode}
+
+compile()
+
+simulate(${simulationTime})
+
+${monitorHandlingCode}
+`;
   return code;
 }
 
