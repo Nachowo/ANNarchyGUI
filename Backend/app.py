@@ -50,6 +50,7 @@ def process_jobs():
             # Guardar el resultado
             output = {
                 'output': result.stdout,
+                # Agregar el contenido de stderr si se produce un error
                 'error': result.stderr if result.returncode != 0 else None,
                 'returncode': result.returncode
             }

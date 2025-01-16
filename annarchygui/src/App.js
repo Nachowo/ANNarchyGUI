@@ -3,6 +3,8 @@ import './App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
 import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
@@ -49,18 +51,6 @@ function App() {
     }
   };
 
-  /**
-   * Extrae los datos del monitor de los resultados de la simulación.
-   * @param {object} monitors - Resultados de los monitores.
-   * @returns {object} - Datos del monitor.
-   */
-  function extractMonitorData(monitors) {
-    const monitorData = {};
-    for (const [monitorId, monitorResult] of Object.entries(monitors)) {
-      monitorData[monitorId] = monitorResult.v; // Extraer solo el arreglo 'v'
-    }
-    return monitorData;
-  }
 
   /**
    * Retorna solamente el arreglo 'v' de cada monitor.
@@ -106,16 +96,54 @@ function App() {
         const result = await getJobStatus(jobId);
         const { status, error, output, monitors } = result;
         console.log('resultado:', result);
-        if (status === 'En progreso' || status === 'En espera' || error) {
-          // Continuar con el polling
+        if (status === 'En progreso' || status === 'En espera') {
           setTimeout(checkStatus, pollInterval);
+        } else if (error) {
+          setSimulationOutput('Error: ' + error);
+          setShowOutputModal(true);
+          setIsLoading(false);
         } else {
-          // Resultado final
-          let finalOutput = output || error || status || 'Simulación completada.';
-          console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
+          let finalOutput = output || status || 'Simulación completada.';
+          //console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
           if (monitors.length > 0) {
-            finalOutput = parseVArrayFromOutput(finalOutput); 
+            console.log("Se entró al if de gráficas");
+            const voltages = parseVArrayFromOutput(finalOutput);
+            finalOutput = voltages;
             finalOutput += '\n\nResultados de los Monitores:\n';
+
+            // Crear un contenedor con tamaño fijo y añadirle un canvas
+            const container = document.createElement('div');
+            container.style.width = '600px';
+            container.style.height = '400px';
+            container.style.margin = '0 auto';
+            document.body.appendChild(container);
+
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: voltages.map((_, index) => index),
+                datasets: [
+                  {
+                    label: 'Voltaje',
+                    data: voltages.map(value => value[0]),
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: false
+                  }
+                ]
+              },
+              options: {
+                scales: {
+                  x: { title: { display: true, text: 'Muestra' } },
+                  y: { title: { display: true, text: 'Voltaje (mV)' } }
+                }
+              }
+            });
+
             downloadMonitorResults(monitors); // Descargar resultados de los monitores
           }
           setSimulationOutput(finalOutput);
