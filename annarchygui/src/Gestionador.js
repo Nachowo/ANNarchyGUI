@@ -31,12 +31,16 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
     setFiringRate(neuron.attributes.firingRate || '');
     setQuantity(neuron.id !== undefined ? neuron.quantity : 1);
     
-    const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
-    setMonitorAttributes(neuronMonitors.map(monitor => ({
-      id: monitor.id,
-      target: neuron.name, // Mostrar el nombre de la población
-      variables: monitor.variables || []
-    })));
+    if (neuron.id !== undefined) {
+      const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
+      setMonitorAttributes(neuronMonitors.map(monitor => ({
+        id: monitor.id,
+        target: neuron.name, // Mostrar el nombre de la población
+        variables: monitor.variables || []
+      })));
+    } else {
+      setMonitorAttributes([]);
+    }
   }, [neuron, monitors]);
 
   const handleNameChange = (e) => {

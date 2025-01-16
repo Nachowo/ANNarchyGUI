@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Gestionador.css";
 
 function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
-  const [activeTab, setActiveTab] = useState('connection'); // Pestaña predeterminada cambiada a 'connection'
+  const [activeTab, setActiveTab] = useState(synapse.id ? 'connection' : 'synapse'); // Mostrar pestaña correcta según si se está creando o editando
   const [name, setName] = useState(synapse.name || '');
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
   const [parameters, setParameters] = useState(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));

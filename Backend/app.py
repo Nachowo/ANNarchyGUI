@@ -53,6 +53,18 @@ def process_jobs():
                 'error': result.stderr if result.returncode != 0 else None,
                 'returncode': result.returncode
             }
+
+            # Guardar resultados de los monitores
+            monitor_results = {}
+            if result.returncode == 0:
+                print(f"Obteniendo resultados de los monitores para el trabajo {job_id}", flush=True)
+                for line in result.stdout.splitlines():
+                    if line.startswith('Monitor'):
+                        monitor_id, monitor_data = line.split(':', 1)
+                        monitor_results[monitor_id.strip()] = monitor_data.strip()
+
+            output['monitors'] = monitor_results
+
             with queue_lock:
                 completed_jobs[job_id] = output
                 in_progress_jobs.pop(job_id, None)

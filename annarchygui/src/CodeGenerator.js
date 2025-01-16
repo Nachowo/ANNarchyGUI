@@ -194,7 +194,7 @@ export function generateMonitorCode(monitors, items) {
     const populationName = populationNames[monitor.populationId];
     const monitorName = `monitor${index + 1}`;
     const variables = monitor.variables.join(', ');
-    return `${monitorName} = Monitor(${populationName}, [${variables}])`;
+    return `${monitorName} = Monitor(${populationName}, ['${variables}'])`;
   }).join('\n\n');
 }
 
@@ -276,6 +276,19 @@ export async function getJobStatus(jobId) {
 }
 
 /**
+ * Procesa los resultados de los monitores para su visualización.
+ * @param {object} monitors - Resultados de los monitores.
+ * @returns {string} - Resultados formateados de los monitores.
+ */
+export function processMonitorResults(monitors) {
+  let monitorData = 'Resultados de los Monitores:\n';
+  for (const [monitorId, monitorResult] of Object.entries(monitors)) {
+    monitorData += `${monitorId}: ${monitorResult}\n`;
+  }
+  return monitorData;
+}
+
+/**
  * Descarga el código generado como un archivo .py.
  * @param {string} code - Código a descargar.
  */
@@ -285,6 +298,23 @@ export function downloadCodeAsFile(code) {
   const a = document.createElement('a');
   a.href = url;
   a.download = 'generated_code.py';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Descarga los resultados de los monitores como un archivo .txt.
+ * @param {object} monitors - Resultados de los monitores.
+ */
+export function downloadMonitorResults(monitors) {
+  const monitorData = processMonitorResults(monitors);
+  const blob = new Blob([monitorData], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'monitor_results.txt';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -316,17 +346,22 @@ const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
     const checkStatus = async () => {
       try {
         const result = await getJobStatus(jobId);
-        const { status, error, output } = result;
+        const { status, error, output, monitors } = result;
 
         // Si está en progreso, en espera o hay error, seguir intentando
         console.log('Estado del trabajo:', result);
         if (status === 'En progreso' || status === 'En espera' || error) {
           setTimeout(checkStatus, pollInterval);
-        }else if(status === '404 (NOT FOUND)'){
+        } else if (status === '404 (NOT FOUND)') {
           setSimulationOutput('Error al ejecutar la simulación.');
-        }else {
+        } else {
           // Mostrar resultado final
-          setSimulationOutput(output || error || status || 'Simulación completada.');
+          let finalOutput = output || error || status || 'Simulación completada.';
+          if (monitors) {
+            finalOutput += '\n\n' + processMonitorResults(monitors);
+            downloadMonitorResults(monitors); // Descargar resultados de los monitores
+          }
+          setSimulationOutput(finalOutput);
         }
       } catch (e) {
         if (e.message.includes('404')) {

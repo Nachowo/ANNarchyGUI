@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
-import { generateANNarchyCode, sendCodeToBackend, downloadCodeAsFile, getJobStatus } from './CodeGenerator';
+import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
 
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
@@ -34,7 +34,6 @@ function App() {
   const handleSimulate = async () => {
     const itemsList = items;
     const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
-    downloadCodeAsFile(code);
     
     setIsLoading(true); // Mostrar el modal de carga
 
@@ -56,14 +55,22 @@ function App() {
     const checkStatus = async () => {
       try {
         const result = await getJobStatus(jobId);
-        const { status, error, output } = result;
+        const { status, error, output, monitors } = result;
 
         if (status === 'En progreso' || status === 'En espera' || error) {
           // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
         } else {
           // Resultado final
-          setSimulationOutput(output || error || status || 'Simulación completada.');
+          let finalOutput = output || error || status || 'Simulación completada.';
+          if (monitors) {
+            finalOutput += '\n\nResultados de los Monitores:\n';
+            for (const [monitorId, monitorData] of Object.entries(monitors)) {
+              finalOutput += `${monitorId}: ${monitorData}\n`;
+            }
+            downloadMonitorResults(monitors); // Descargar resultados de los monitores
+          }
+          setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
         }
