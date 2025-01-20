@@ -96,17 +96,20 @@ function App() {
         const result = await getJobStatus(jobId);
         const { status, error, output, monitors } = result;
         console.log('resultado:', result);
-        if (status === 'En progreso' || status === 'En espera') {
+        console.log('monitores:', monitors);
+        console.log('output:', output);
+        console.log('status:', status);
+        console.log('error:', error);
+        
+        if (status === 'En progreso' || status === 'En espera' || error) {
+          // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
-        } else if (error) {
-          setSimulationOutput('Error: ' + error);
-          setShowOutputModal(true);
-          setIsLoading(false);
         } else {
-          let finalOutput = output || status || 'Simulación completada.';
+          // Resultado final
+          let finalOutput = output || error || status || 'Simulación completada.';
           //console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
-          if (monitors.length > 0) {
-            console.log("Se entró al if de gráficas");
+          if (!monitors.length > 0) {
+            console.log("se entro al if")
             const voltages = parseVArrayFromOutput(finalOutput);
             finalOutput = voltages;
             finalOutput += '\n\nResultados de los Monitores:\n';

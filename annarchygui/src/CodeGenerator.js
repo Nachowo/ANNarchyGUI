@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 let code = '';
-let simulationTime = 1000; // Valor predeterminado
+let simulationTime = 10; // Valor predeterminado
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -201,17 +201,29 @@ export function generateMonitorCode(monitors, items) {
 /**
  * Genera el código ANNarchy para manejar los resultados de los monitores.
  * @param {Array} monitors - Lista de monitores.
- * @returns {string} - Código ANNarchy para manejar los resultados de los monitores.
+ * @param {string} jobId - ID del trabajo para identificar los resultados.
+ * @returns {string} - Código ANNarchy para manejar los resultados de los monitores y enviarlos a stdout.
  */
-function generateMonitorHandlingCode(monitors) {
+function generateMonitorHandlingCode(monitors, jobId) {
   return `
-# Manejo de los resultados de los monitores
+import json
+
+# Manejo de los resultados de los monitores y enviarlos a stdout
 monitor_results = {}
 for monitor in [${monitors.map((monitor, index) => `monitor${index + 1}`).join(', ')}]:
     data = monitor.get()
-    monitor_results[monitor.name] = data
-print("Monitor Results:", monitor_results)
-  `;
+    if isinstance(data, dict):
+        # Convertir cada array de NumPy a lista
+        for key in data:
+            if isinstance(data[key], list):
+                monitor_results[monitor.name] = data[key]
+            else:
+                monitor_results[monitor.name] = data[key].tolist()
+    else:
+        monitor_results[monitor.name] = data.tolist()
+
+print(json.dumps(monitor_results))
+`;
 }
 
 /**
@@ -233,7 +245,7 @@ export function generateANNarchyCode(items, connections, monitors, simTime = 100
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
   const monitorCode = generateMonitorCode(monitorList, items);
-  const monitorHandlingCode = generateMonitorHandlingCode(monitorList); // Añadir manejo de monitores
+  const monitorHandlingCode = generateMonitorHandlingCode(monitorList, '${job_id}'); // Añadir manejo de monitores
 
   code = `from ANNarchy import *
 

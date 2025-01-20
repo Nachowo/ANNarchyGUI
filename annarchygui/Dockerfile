@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install the dependencies
 RUN npm install
 
+# Instalar chart.js
+RUN npm install chart.js
+
 # Copy the rest of the application code to the working directory
 COPY . .
 

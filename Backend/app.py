@@ -6,6 +6,8 @@ import subprocess
 import os
 import time
 import uuid  # Importar módulo uuid
+import json  # Importar módulo json
+import ast  # Importar módulo ast para evaluar expresiones de manera segura
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +18,18 @@ queue_lock = Lock()
 
 # Diccionario para almacenar los trabajos en progreso
 in_progress_jobs = {}
+
+# Función para extraer los resultados de los monitores desde result.stdout
+def extract_monitor_results(stdout):
+    monitor_results = {}
+    for line in stdout.splitlines():
+        if line.startswith('{') and line.endswith('}'):
+            try:
+                monitor_results = json.loads(line)
+                break
+            except json.JSONDecodeError as e:
+                print(f"Error al decodificar los datos del monitor: {str(e)}", flush=True)
+    return monitor_results
 
 # Función para procesar trabajos de la cola
 def process_jobs():
@@ -47,27 +61,19 @@ def process_jobs():
             # Eliminar el archivo temporal
             os.remove(temp_filename)
 
+            # Leer los resultados de los monitores desde stdout
+            monitor_results = extract_monitor_results(result.stdout)
+
             # Guardar el resultado
             output = {
                 'output': result.stdout,
-                # Agregar el contenido de stderr si se produce un error
                 'error': result.stderr if result.returncode != 0 else None,
-                'returncode': result.returncode
+                'returncode': result.returncode,
+                'monitors': monitor_results
             }
 
-            # Guardar resultados de los monitores
-            monitor_results = {}
-            if result.returncode == 0:
-                for line in result.stdout.splitlines():
-                    if line.startswith('Monitor Results:'):
-                        try:
-                            monitor_data = line.split('Monitor Results:', 1)[1].strip()
-                            monitor_results = eval(monitor_data)  # Convertir la cadena a diccionario
-                        except SyntaxError as e:
-                            print(f"Error al evaluar los datos del monitor: {str(e)}", flush=True)
-                            monitor_results = {'error': 'Error al evaluar los datos del monitor', 'details': str(e)}
-
-            output['monitors'] = monitor_results
+            print(f"Resultado del trabajo {job_id}: {output}", flush=True)
+            
 
             with queue_lock:
                 completed_jobs[job_id] = output
