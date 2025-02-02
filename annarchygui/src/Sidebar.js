@@ -59,7 +59,8 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         reset: 'v = -65',
         axon_reset: '',
         refractory: '',
-      }
+      },
+      variablesMonitor: ['v'],
     },
     {
       id: 2,
@@ -85,7 +86,8 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         reset: "v = c\nu += d",
         axon_reset: '',
         refractory: ''
-      }
+      },
+      variablesMonitor: ['v','u'],
     },
     {
       id: 3,
@@ -104,7 +106,8 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         reset: '',
         axon_reset: '',
         refractory: '',
-      }
+      },
+      variablesMonitor: ['v','m','h','n'],
     },
     {
       id: 4,
@@ -123,7 +126,8 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         reset: '',
         axon_reset: '',
         refractory: '',
-      }
+      },
+      variablesMonitor: ['spike','rate'],
     }
   ];
 

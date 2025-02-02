@@ -25,8 +25,7 @@ def extract_monitor_results(stdout):
     for line in stdout.splitlines():
         if line.startswith('{') and line.endswith('}'):
             try:
-                monitor_results = json.loads(line)
-                break
+                monitor_results.update(json.loads(line))
             except json.JSONDecodeError as e:
                 print(f"Error al decodificar los datos del monitor: {str(e)}", flush=True)
     return monitor_results

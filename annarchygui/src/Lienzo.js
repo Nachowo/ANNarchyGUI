@@ -41,6 +41,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         hasMonitor: false, // Añadir el atributo hasMonitor
         x: x - elementWidth / 2,
         y: y - elementHeight / 2,
+        variablesMonitor: newItem.variablesMonitor || [],
       };
       setItems([...items, itemToAdd]);
       setNextId(nextId + 1);

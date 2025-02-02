@@ -287,12 +287,31 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
           </div>
           <div className="row">
             <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
-            <input 
-              type="text" 
-              id={`monitor-variables-${index}`} 
-              value={(monitor.variables || []).join(', ')} 
-              onChange={(e) => handleMonitorAttributeChange(index, 'variables', e.target.value.split(',').map(v => v.trim()))} 
-            />
+            { (neuron.variablesMonitor && neuron.variablesMonitor.length > 0) ? (
+              <select
+                id={`monitor-variables-${index}`}
+                
+                value={monitor.variables || []}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, opt => opt.value);
+                  handleMonitorAttributeChange(index, 'variables', selected);
+                }}
+              >
+                {neuron.variablesMonitor.map((varName) => (
+                  <option key={varName} value={varName}>{varName}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                id={`monitor-variables-${index}`}
+                value={(monitor.variables || []).join(', ')}
+                onChange={(e) => {
+                  const valueArray = e.target.value.split(',').map(v => v.trim());
+                  handleMonitorAttributeChange(index, 'variables', valueArray);
+                }}
+              />
+            )}
           </div>
         </div>
       ))}
