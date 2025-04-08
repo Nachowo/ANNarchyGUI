@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Lienzo.css';
+import './../css/Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
@@ -378,7 +378,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         ))}
       </div>
-      <button onClick={debugear}>debug</button>
 
       {showGestionador && selectedNeuron && (
         <div className="gestionador-container" onClick={handleCloseGestionador}>
@@ -396,7 +395,11 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
+      <div className="debug-button-container">
+        <button onClick={debugear}>Debug</button>
+      </div>
     </div>
+    
   );
 }
 

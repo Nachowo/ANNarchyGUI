@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./Gestionador.css";
+import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
+import "./../css/Gestionador.css";
 
 function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
   const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
@@ -16,6 +17,7 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
   const [firingRate, setFiringRate] = useState(neuron.attributes.firingRate || '');
   const [quantity, setQuantity] = useState(neuron.id !== undefined ? neuron.quantity : 1);
   const [monitorAttributes, setMonitorAttributes] = useState([]);
+  const canvasRef = React.useRef(null);
 
   useEffect(() => {
     setName(neuron.name || '');
@@ -42,6 +44,34 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
       setMonitorAttributes([]);
     }
   }, [neuron, monitors]);
+
+  useEffect(() => {
+    if (activeTab === 'monitor' && window.monitorVoltages && canvasRef.current) {
+      // Inicializa el gráfico usando los datos globales
+      const ctx = canvasRef.current.getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: window.monitorVoltages.map((_, index) => index),
+          datasets: [
+            {
+              label: 'Voltajes',
+              data: window.monitorVoltages.map(value => value[0]),
+              borderColor: 'blue',
+              borderWidth: 2,
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          scales: {
+            x: { title: { display: true, text: 'Muestra' } },
+            y: { title: { display: true, text: 'Voltaje (mV)' } }
+          }
+        }
+      });
+    }
+  }, [activeTab]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -274,47 +304,56 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
           </div>
         </>
       )}
-      {activeTab === 'monitor' && monitorAttributes.map((monitor, index) => (
-        <div key={index}>
-          <div className="row">
-            <label htmlFor={`monitor-target-${index}`}>Target:</label>
-            <input 
-              type="text" 
-              id={`monitor-target-${index}`} 
-              value={monitor.target || ''} 
-              disabled // Campo no editable
-            />
-          </div>
-          <div className="row">
-            <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
-            { (neuron.variablesMonitor && neuron.variablesMonitor.length > 0) ? (
-              <select
-                id={`monitor-variables-${index}`}
-                
-                value={monitor.variables || []}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-                  handleMonitorAttributeChange(index, 'variables', selected);
-                }}
-              >
-                {neuron.variablesMonitor.map((varName) => (
-                  <option key={varName} value={varName}>{varName}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type="text"
-                id={`monitor-variables-${index}`}
-                value={(monitor.variables || []).join(', ')}
-                onChange={(e) => {
-                  const valueArray = e.target.value.split(',').map(v => v.trim());
-                  handleMonitorAttributeChange(index, 'variables', valueArray);
-                }}
-              />
-            )}
-          </div>
+      {activeTab === 'monitor' && (
+        <div>
+          {monitorAttributes.map((monitor, index) => (
+            <div key={index}>
+              <div className="row">
+                <label htmlFor={`monitor-target-${index}`}>Target:</label>
+                <input 
+                  type="text" 
+                  id={`monitor-target-${index}`} 
+                  value={monitor.target || ''} 
+                  disabled // Campo no editable
+                />
+              </div>
+              <div className="row">
+                <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
+                { (neuron.variablesMonitor && neuron.variablesMonitor.length > 0) ? (
+                  <select
+                    id={`monitor-variables-${index}`}
+                    value={monitor.variables && monitor.variables.length > 0 ? monitor.variables[0] : (neuron.variablesMonitor[0] || "")}
+                    onChange={(e) => {
+                      handleMonitorAttributeChange(index, 'variables', [e.target.value]);
+                    }}
+                  >
+                    {neuron.variablesMonitor.map((varName) => (
+                      <option key={varName} value={varName}>{varName}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    id={`monitor-variables-${index}`}
+                    value={(monitor.variables || []).join(', ')}
+                    onChange={(e) => {
+                      const valueArray = e.target.value.split(',').map(v => v.trim());
+                      handleMonitorAttributeChange(index, 'variables', valueArray);
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+          {/* Mostrar gráfico si existen datos en la variable global */}
+          {window.monitorVoltages && window.monitorVoltages.length > 0 && (
+            <div>
+              <h4>Monitor Chart:</h4>
+              <canvas ref={canvasRef} width="600" height="400"></canvas>
+            </div>
+          )}
         </div>
-      ))}
+      )}
       <div className="actions">
         <button className="delete">Delete</button>
         <button className="save" onClick={handleSave}>Save</button>

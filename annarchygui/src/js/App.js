@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './App.css';
+import './../css/App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
 import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
@@ -68,24 +68,18 @@ function App() {
   }
 
   function parseVArrayFromOutput(finalOutput) {
-    // Buscar el texto 'array([...])' y extraer su contenido interno.
-    const regex = /array\(\[([\s\S]*?)\]\)/;
-    const match = finalOutput.match(regex);
-    if (!match) return [];
-
-    // match[1] es la parte interna, p. ej. [[-65. ], [-58.4 ], ...]
-    const arrayStrings = match[1].trim();
-    // Extraer cada fila entre corchetes.
-    const rowRegex = /\[([^\]]+)\]/g;
-    let rows = [];
-    let rowMatch;
-
-    while ((rowMatch = rowRegex.exec(arrayStrings)) !== null) {
-      // Separar en valores y convertir a número.
-      const values = rowMatch[1].split(',').map(str => parseFloat(str));
-      rows.push(values);
+    // Busca el inicio de la parte JSON identificando el primer '{'
+    const jsonStart = finalOutput.indexOf('{');
+    if (jsonStart === -1) return [];
+    
+    try {
+      const jsonStr = finalOutput.substring(jsonStart);
+      const data = JSON.parse(jsonStr);
+      return data["Monitor"] || [];
+    } catch (error) {
+      console.error("Error al parsear JSON del output:", error);
+      return [];
     }
-    return rows;
   }
 
   const pollJobStatus = async (jobId) => {
@@ -97,7 +91,7 @@ function App() {
         const { status, error, output, monitors } = result;
         console.log('resultado:', result);
         console.log('monitores:', monitors);
-        console.log('output:', output);
+        //console.log('output:', output);
         console.log('status:', status);
         console.log('error:', error);
         
@@ -109,45 +103,11 @@ function App() {
           let finalOutput = output || error || status || 'Simulación completada.';
           //console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
           if (!monitors.length > 0) {
-            console.log("se entro al if")
             const voltages = parseVArrayFromOutput(finalOutput);
-            finalOutput = voltages;
-            finalOutput += '\n\nResultados de los Monitores:\n';
-
-            // Crear un contenedor con tamaño fijo y añadirle un canvas
-            const container = document.createElement('div');
-            container.style.width = '600px';
-            container.style.height = '400px';
-            container.style.margin = '0 auto';
-            document.body.appendChild(container);
-
-            const canvas = document.createElement('canvas');
-            container.appendChild(canvas);
-
-            const ctx = canvas.getContext('2d');
-            new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: voltages.map((_, index) => index),
-                datasets: [
-                  {
-                    label: 'Voltaje',
-                    data: voltages.map(value => value[0]),
-                    borderColor: 'blue',
-                    borderWidth: 2,
-                    fill: false
-                  }
-                ]
-              },
-              options: {
-                scales: {
-                  x: { title: { display: true, text: 'Muestra' } },
-                  y: { title: { display: true, text: 'Voltaje (mV)' } }
-                }
-              }
-            });
-
-            downloadMonitorResults(monitors); // Descargar resultados de los monitores
+            // Guardar los voltajes en una variable global
+            window.monitorVoltages = voltages;
+            finalOutput = "Simulation ended.";
+            // (Se elimina la generación inmediata del gráfico)
           }
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
@@ -171,7 +131,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <label htmlFor="simulation-time">Simulation Time:</label>
+        <label htmlFor="simulation-time" className="simulateLabel">Simulation Time:</label>
         <input
           type="number"
           id="simulation-time"

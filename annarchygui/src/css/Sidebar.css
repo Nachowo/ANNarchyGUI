@@ -155,3 +155,13 @@ pre {
   text-align: left; /* Alinear el texto a la izquierda */
 }
 
+.Sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;  /* Cambiado para que se agarre por el borde izquierdo */
+  width: 5px;
+  height: 100%;
+  cursor: ew-resize;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+

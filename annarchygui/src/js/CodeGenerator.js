@@ -194,7 +194,7 @@ export function generateMonitorCode(monitors, items) {
     const populationName = populationNames[monitor.populationId];
     const monitorName = `monitor${index + 1}`;
     const variables = monitor.variables.join(', ');
-    return `${monitorName} = Monitor(${populationName}, ['${variables}'])`;
+    return `${monitorName} = Monitor(${populationName}, ['${'v'}'])`;
   }).join('\n\n');
 }
 

@@ -7,6 +7,7 @@
   padding: 20px;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   padding: 10px;
 }
 
@@ -69,4 +70,11 @@
   background-color: #fff;
   padding: 20px;
   border-radius: 5px;
+}
+
+.simulateLabel {
+    font-size: 16px; /* o el tamaño de letra que prefieras */
+    font-weight: bold; /* mismo peso que el botón */
+    color: #fff; /* mismo color de letra que el botón simulate */
+    /* Agrega o ajusta propiedades para que se asemeje al estilo del botón, sin transformarlo en botón */
 }

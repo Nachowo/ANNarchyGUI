@@ -91,9 +91,13 @@ def process_jobs():
 # Diccionario para almacenar los resultados de los trabajos completados
 completed_jobs = {}
 
-# Iniciar un hilo para procesar la cola
-worker_thread = Thread(target=process_jobs, daemon=True)
-worker_thread.start()
+# Iniciar 3 hilos para procesar la cola
+worker_threads = []
+num_threads = 3
+for i in range(num_threads):
+    worker_thread = Thread(target=process_jobs, daemon=True)
+    worker_thread.start()
+    worker_threads.append(worker_thread)
 
 @app.route('/simulate', methods=['POST'])
 def simulate():

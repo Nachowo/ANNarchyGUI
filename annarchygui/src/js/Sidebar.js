@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Sidebar.css';
+import './../css/Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
 import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
@@ -40,6 +40,37 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
   const [networkCode, setNetworkCode] = useState('');
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Nuevo estado para modo de asignación
+
+  const [sidebarWidth, setSidebarWidth] = useState(250);
+  const [isResizing, setIsResizing] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [initialWidth, setInitialWidth] = useState(sidebarWidth);
+
+  const handleMouseMove = (e) => {
+    if (!isResizing) return;
+    const delta = e.clientX - startX;
+    const newWidth = initialWidth - delta;
+    setSidebarWidth(newWidth);
+  };
+
+  const handleMouseUp = () => {
+    if (isResizing) {
+      setIsResizing(false);
+      document.body.style.userSelect = 'auto'; // Restaurar selección de texto
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+  };
+
+  const startResize = (e) => {
+    e.preventDefault(); // Evitar comportamientos por defecto
+    setIsResizing(true);
+    setStartX(e.clientX);
+    setInitialWidth(sidebarWidth);
+    document.body.style.userSelect = 'none'; // Deshabilitar selección de texto
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   const predefinedModels = [
     {
@@ -196,7 +227,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   }, [items, connections, monitors]);
 
   return (
-    <div className="Sidebar" id='sidebar'>
+    <div className="Sidebar" id='sidebar' style={{ width: sidebarWidth + 'px', position: 'relative' }}>
       {}
       <ul className="Sidebar-Tabs">
         <li
@@ -278,6 +309,8 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
           )}
             </div>
             <button onClick={() => setShowSynapseGestionador(true)}>Create Synapse</button>
+            <div>
+          </div>
             <button onClick={handleAssignMonitorClick}>Assign Monitor</button> {/* Nuevo botón */}
             <div>
           </div>
@@ -311,6 +344,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
           </div>
         </div>
       )}
+      <div className="Sidebar-resize-handle" onMouseDown={startResize}></div>
     </div>
   );
 }
