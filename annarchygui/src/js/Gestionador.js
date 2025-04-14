@@ -37,7 +37,7 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
       const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
       setMonitorAttributes(neuronMonitors.map(monitor => ({
         id: monitor.id,
-        target: neuron.name, // Mostrar el nombre de la población
+        target: neuron.name, 
         variables: monitor.variables || []
       })));
     } else {

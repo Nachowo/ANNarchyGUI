@@ -91,7 +91,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['v'],
+      variablesMonitor: ['v', 'spike'], // Agregado spike
     },
     {
       id: 2,
@@ -118,7 +118,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: ''
       },
-      variablesMonitor: ['v','u'],
+      variablesMonitor: ['v','u', 'spike'], // Agregado spike
     },
     {
       id: 3,
@@ -138,7 +138,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['v','m','h','n'],
+      variablesMonitor: ['v','m','h','n'], // Sin cambios
     },
     {
       id: 4,
@@ -158,7 +158,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['spike','rate'],
+      variablesMonitor: ['spike','rate'], // Sin cambios
     }
   ];
 

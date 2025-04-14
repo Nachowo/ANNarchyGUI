@@ -96,6 +96,10 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   const handlePopulationClick = (item, event) => {
     event.stopPropagation();
     if (isAssigningMonitor) {
+      if (item.hasMonitor) {
+        alert('Esta población ya tiene un monitor asignado.');
+        return;
+      }
       const newMonitor = {
         id: monitors.length + 1,
         target: '',
@@ -125,6 +129,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       return updatedMonitor ? { ...monitor, ...updatedMonitor } : monitor;
     }));
     setShowGestionador(false);
+  };
+
+  const handleMonitorVariableChange = (monitorId, newVariables) => {
+    setMonitors(monitors.map(monitor =>
+      monitor.id === monitorId ? { ...monitor, variables: newVariables } : monitor
+    ));
   };
 
   const handleCloseGestionador = () => {
@@ -383,7 +393,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         <div className="gestionador-container" onClick={handleCloseGestionador}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-            <Gestionador neuron={selectedNeuron} onSave={handleSaveNeuron} monitors={monitors} />
+            <Gestionador
+              neuron={selectedNeuron}
+              onSave={handleSaveNeuron}
+              monitors={monitors}
+              onMonitorVariableChange={handleMonitorVariableChange} // Pasar la función
+            />
           </div>
         </div>
       )}

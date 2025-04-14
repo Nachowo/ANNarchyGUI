@@ -18,6 +18,8 @@ function App() {
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Estado para la asignación de monitores
   const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
+  const [loadingStage, setLoadingStage] = useState(''); // Estado para la etapa de carga
+  const [loadingProgress, setLoadingProgress] = useState(0); // Estado para el progreso de la barra
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -36,18 +38,21 @@ function App() {
   const handleSimulate = async () => {
     const itemsList = items;
     const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
-    
+
+    setLoadingProgress(33); // Primera etapa: Enviando
     setIsLoading(true); // Mostrar el modal de carga
 
     try {
       const jobId = await sendCodeToBackend(code);
       console.log('ID del trabajo:', jobId);
+      setLoadingProgress(66); // Segunda etapa: Esperando respuesta
       pollJobStatus(jobId);
     } catch (error) {
       console.error('Error al enviar el código al backend:', error);
       setSimulationOutput('Error al ejecutar la simulación.');
       setShowOutputModal(true); // Mostrar el modal de resultado
       setIsLoading(false); // Ocultar el modal de carga
+      setLoadingProgress(0); // Reiniciar progreso
     }
   };
 
@@ -91,7 +96,7 @@ function App() {
         const { status, error, output, monitors } = result;
         console.log('resultado:', result);
         console.log('monitores:', monitors);
-        //console.log('output:', output);
+        console.log('output:', output);
         console.log('status:', status);
         console.log('error:', error);
         
@@ -99,9 +104,8 @@ function App() {
           // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
         } else {
-          // Resultado final
+          setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
-          //console.log('Resultado final:', parseVArrayFromOutput(finalOutput));
           if (!monitors.length > 0) {
             const voltages = parseVArrayFromOutput(finalOutput);
             // Guardar los voltajes en una variable global
@@ -112,12 +116,14 @@ function App() {
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
+          setTimeout(() => setLoadingProgress(0), 500); // Reiniciar progreso tras un breve retraso
         }
       } catch (e) {
         if (e.message.includes('404')) {
           setSimulationOutput('Error 404 al ejecutar la simulación.');
           setShowOutputModal(true);
           setIsLoading(false);
+          setLoadingProgress(0); // Reiniciar progreso
           return;
         }
         // Error de red o similar, seguir intentando
@@ -167,7 +173,13 @@ function App() {
       {isLoading && (
         <div className="loading-modal">
           <div className="loading-content">
-            <h3>Cargando...</h3>
+            <h3>Simulación en progreso...</h3>
+            <div className="progress-bar-container">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${loadingProgress}%` }}
+              ></div>
+            </div>
           </div>
         </div>
       )}

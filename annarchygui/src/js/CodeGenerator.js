@@ -193,8 +193,8 @@ export function generateMonitorCode(monitors, items) {
   return (monitors || []).map((monitor, index) => {
     const populationName = populationNames[monitor.populationId];
     const monitorName = `monitor${index + 1}`;
-    const variables = monitor.variables.join(', ');
-    return `${monitorName} = Monitor(${populationName}, ['${'v'}'])`;
+    const variables = monitor.variables.map(v => `'${v}'`).join(', ');
+    return `${monitorName} = Monitor(${populationName}, [${variables}])`; // Usar las variables actualizadas
   }).join('\n\n');
 }
 
