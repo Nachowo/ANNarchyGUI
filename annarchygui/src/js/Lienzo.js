@@ -12,6 +12,34 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
   const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
   const [selectedSynapseItem, setSelectedSynapseItem] = useState(null);
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  // Recalcula las posiciones de los elementos cuando cambia el tamaño de la ventana
+  useEffect(() => {
+    const handleResize = () => {
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+
+      setItems((prevItems) =>
+        prevItems.map((item) => {
+          const adjustedX = Math.min(Math.max((item.x / canvasSize.width) * newWidth, 0), newWidth - 100); // Limitar dentro del lienzo
+          const adjustedY = Math.min(Math.max((item.y / canvasSize.height) * newHeight, 0), newHeight - 50); // Limitar dentro del lienzo
+          return {
+            ...item,
+            x: adjustedX,
+            y: adjustedY,
+          };
+        })
+      );
+
+      setCanvasSize({ width: newWidth, height: newHeight });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [canvasSize, setItems]);
 
   //Funcion para manejar el drag de un elemento NUEVO
   const handleDragOver = (event) => {
@@ -39,8 +67,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         quantity: newItem.quantity, // Añadir la cantidad de neuronas
         attributes: newItem.attributes,
         hasMonitor: false, // Añadir el atributo hasMonitor
-        x: x - elementWidth / 2,
-        y: y - elementHeight / 2,
+        x: Math.min(Math.max(x - elementWidth / 2, 0), canvasSize.width - elementWidth), // Limitar dentro del lienzo
+        y: Math.min(Math.max(y - elementHeight / 2, 0), canvasSize.height - elementHeight), // Limitar dentro del lienzo
         variablesMonitor: newItem.variablesMonitor || [],
       };
       setItems([...items, itemToAdd]);
@@ -50,8 +78,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         const updatedItems = [...items];
         updatedItems[draggedItemIndex] = {
           ...updatedItems[draggedItemIndex],
-          x: x - elementWidth / 2,
-          y: y - elementHeight / 2,
+          x: Math.min(Math.max(x - elementWidth / 2, 0), canvasSize.width - elementWidth), // Limitar dentro del lienzo
+          y: Math.min(Math.max(y - elementHeight / 2, 0), canvasSize.height - elementHeight), // Limitar dentro del lienzo
         };
         setItems(updatedItems);
         setDraggedItemIndex(null);
@@ -281,8 +309,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={handleCanvasClick}
+      style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} // Asegurar que el lienzo esté bajo el sidebar
     >
-      <svg className="connections-svg">
+      <svg className="connections-svg" style={{ zIndex: 1 }}>
         <defs>
           {renderArrowMarker()}
         </defs>
@@ -364,7 +393,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           );
         })}
       </svg>
-      <div className="items">
+      <div className="items" style={{ zIndex: 1 }}>
         {items.map((item, index) => (
           <div
             key={item.id}
@@ -378,7 +407,12 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               }
             }}
             onClick={(event) => handlePopulationClick(item, event)}
-            style={{ left: `${item.x}px`, top: `${item.y}px`, position: 'absolute' }}
+            style={{
+              left: `${item.x}px`,
+              top: `${item.y}px`,
+              position: 'absolute',
+              zIndex: 1, // Asegurar que los elementos estén bajo el sidebar
+            }}
           >
             <div className="item-name">{item.type === 'Población neuronal' ? 'Population' : item.type}</div>
             <div>{item.name}</div>
@@ -410,9 +444,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
-      <div className="debug-button-container">
-        <button onClick={debugear}>Debug</button>
-      </div>
+  
     </div>
     
   );

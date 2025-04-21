@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './../css/Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
@@ -42,30 +42,35 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Nuevo estado para modo de asignación
 
   const [sidebarWidth, setSidebarWidth] = useState(250);
-  const [isResizing, setIsResizing] = useState(false);
   const [startX, setStartX] = useState(0);
   const [initialWidth, setInitialWidth] = useState(sidebarWidth);
+  const resizeHandleRef = useRef(null); // Referencia al div de Sidebar-resize-handle
+
+  useEffect(() => {
+    if (resizeHandleRef.current) {
+      const rect = resizeHandleRef.current.getBoundingClientRect();
+      setStartX(rect.left); // Asignar automáticamente la posición inicial
+    }
+  }, []); // Ejecutar solo una vez al montar el componente
 
   const handleMouseMove = (e) => {
-    if (!isResizing) return;
     const delta = e.clientX - startX;
     const newWidth = initialWidth - delta;
+    if (newWidth < 200) return; // Limitar el ancho mínimo
     setSidebarWidth(newWidth);
   };
 
   const handleMouseUp = () => {
-    if (isResizing) {
-      setIsResizing(false);
       document.body.style.userSelect = 'auto'; // Restaurar selección de texto
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
-    }
+    
   };
 
   const startResize = (e) => {
     e.preventDefault(); // Evitar comportamientos por defecto
-    setIsResizing(true);
-    setStartX(e.clientX);
+    const rect = resizeHandleRef.current.getBoundingClientRect();
+    setStartX(rect.left); // Actualizar startX dinámicamente
     setInitialWidth(sidebarWidth);
     document.body.style.userSelect = 'none'; // Deshabilitar selección de texto
     window.addEventListener('mousemove', handleMouseMove);
@@ -344,7 +349,11 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
           </div>
         </div>
       )}
-      <div className="Sidebar-resize-handle" onMouseDown={startResize}></div>
+      <div
+        className="Sidebar-resize-handle"
+        ref={resizeHandleRef} // Asignar la referencia al div
+        onMouseDown={startResize}
+      ></div>
     </div>
   );
 }

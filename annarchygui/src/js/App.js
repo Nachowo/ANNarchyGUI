@@ -20,6 +20,7 @@ function App() {
   const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
   const [loadingStage, setLoadingStage] = useState(''); // Estado para la etapa de carga
   const [loadingProgress, setLoadingProgress] = useState(0); // Estado para el progreso de la barra
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true); // Estado para controlar la visibilidad del sidebar
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -137,14 +138,16 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <label htmlFor="simulation-time" className="simulateLabel">Simulation Time:</label>
-        <input
-          type="number"
-          id="simulation-time"
-          value={simulationTime}
-          onChange={(e) => setSimulationTime(e.target.value)}
-        />
-        <button className='buttonHeader' onClick={handleSimulate}>Simulate</button>
+        <div className="simulation-controls">
+          <label htmlFor="simulation-time" className="simulateLabel">Simulation Time:</label>
+          <input
+            type="number"
+            id="simulation-time"
+            value={simulationTime}
+            onChange={(e) => setSimulationTime(e.target.value)}
+          />
+          <button className="buttonHeader" onClick={handleSimulate}>Simulate</button>
+        </div>
       </header>
       <div className="App-body">
         <Lienzo 
@@ -168,6 +171,8 @@ function App() {
           onMonitorToggle={handleMonitorToggle} 
           onAssignMonitor={setIsAssigningMonitor} // Pasar función para asignar monitor
           monitors={monitors} // Pasar monitores
+          isVisible={isSidebarVisible} // Pasar visibilidad del sidebar
+          toggleVisibility={() => setIsSidebarVisible(!isSidebarVisible)} // Pasar función para alternar visibilidad
         />
       </div>
       {isLoading && (

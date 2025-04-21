@@ -1,8 +1,7 @@
 .Sidebar {
   width: 300px;
+  height: 100%;
   background-color: #f4f4f4;
-  padding: 15px;
-  border-right: 1px solid #ddd;
 }
 
 .Sidebar-Tabs {
@@ -13,6 +12,7 @@
   list-style-type: none;
   padding: 0; /* Opcional: Elimina el espacio interior */
   margin: 0; /* Opcional: Elimina el espacio exterior */
+  margin-top: 15px;
 }
 
 .Sidebar-Tabs li {
@@ -66,6 +66,7 @@ button {
   border: none;
   cursor: pointer;
   border-radius: 5px;
+  width: 200px;
 }
 
 button:first-child:hover {
@@ -158,10 +159,33 @@ pre {
 .Sidebar-resize-handle {
   position: absolute;
   top: 0;
-  left: 0;  /* Cambiado para que se agarre por el borde izquierdo */
   width: 5px;
   height: 100%;
   cursor: ew-resize;
   background-color: rgba(0, 0, 0, 0.2);
+}
+
+.Sidebar-toggle-button {
+  position: fixed;
+  top: 50%;
+  left: 100%;
+  right: 0%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 40px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+.Sidebar-toggle-button:hover {
+  background-color: #0056b3;
 }
 
