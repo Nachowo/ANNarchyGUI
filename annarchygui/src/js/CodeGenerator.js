@@ -180,6 +180,7 @@ export function getMonitorsFromLienzo(monitors) {
  * @param {Array} items - Lista de elementos en el lienzo.
  * @returns {string} - Código ANNarchy para los monitores.
  */
+//Cambiar para que pase el arreglo de monitores en lugar de escribirlos en codigo
 export function generateMonitorCode(monitors, items) {
   //console.log('Monitores en generacion:', monitors);
   const populationNames = items.reduce((acc, item) => {
@@ -227,7 +228,7 @@ for monitor in [${monitors.map((monitor, index) => `monitor${index + 1}`).join('
                 monitor_results[monitor.name] = data[key].tolist()
     else:
         monitor_results[monitor.name] = data.tolist()
-
+print(f"monitor")
 print(json.dumps(monitor_results))
 `;
 }

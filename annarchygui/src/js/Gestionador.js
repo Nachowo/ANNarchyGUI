@@ -378,12 +378,14 @@ function Gestionador({ neuron, onSave, monitors, setMonitors }) { // Añadir set
               </div>
               <div className="row">
                 <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
-                { (neuron.variablesMonitor && neuron.variablesMonitor.length > 0) ? (
+                {neuron.variablesMonitor && neuron.variablesMonitor.length > 0 ? (
                   <select
                     id={`monitor-variables-${index}`}
-                    value={monitor.variables && monitor.variables.length > 0 ? monitor.variables[0] : (neuron.variablesMonitor[0] || "")}
+                    multiple
+                    value={monitor.variables || []}
                     onChange={(e) => {
-                      handleMonitorAttributeChange(index, 'variables', [e.target.value]);
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      handleMonitorAttributeChange(index, 'variables', selectedOptions);
                     }}
                   >
                     {neuron.variablesMonitor.map((varName) => (
