@@ -148,50 +148,10 @@ body {
   z-index: 1000;
 }
 
-.gestionador-container .header,
-.gestionador-container .population-size,
-.gestionador-container .attribute {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
 
-.header {
-  display: flex;
-  justify-content: space-around;
-  background-color: #007bff;
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
-}
 
-.header label,
-.population-size label,
-.attribute label {
-  font-weight: bold;
-  margin-right: 10px;
-  width: 150px; /* Ancho fijo para alinear los textos */
-  text-align: left; /* Alinea el texto a la izquierda */
-}
 
-.header input,
-.population-size input,
-.attribute input {
-  width: 200px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
-.header button {
-  flex: 1;
-  padding: 15px 20px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-right: 10px;
-}
 
 .header button.active {
   background-color: #0056b3;
@@ -218,7 +178,12 @@ body {
   transition: background-color 0.3s;
   margin-right: 10px;
 }
-
+/* Estilo para el botón de la pestaña Monitor cuando está deshabilitado */
+.tabs button.disabled {
+  background-color: #d3d3d3; /* Color gris */
+  color: #808080; /* Texto gris */
+  cursor: not-allowed; /* Cambiar el cursor */
+}
 .tabs button.active {
   background-color: #0056b3;
 }

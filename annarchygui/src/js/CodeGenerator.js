@@ -181,6 +181,7 @@ export function getMonitorsFromLienzo(monitors) {
  * @returns {string} - Código ANNarchy para los monitores.
  */
 export function generateMonitorCode(monitors, items) {
+  //console.log('Monitores en generacion:', monitors);
   const populationNames = items.reduce((acc, item) => {
     const baseName = formatName(item.name);
     const count = acc[baseName] || 0;
@@ -205,13 +206,18 @@ export function generateMonitorCode(monitors, items) {
  * @returns {string} - Código ANNarchy para manejar los resultados de los monitores y enviarlos a stdout.
  */
 function generateMonitorHandlingCode(monitors, jobId) {
+  console.log(monitors);
   return `
 import json
 
 # Manejo de los resultados de los monitores y enviarlos a stdout
 monitor_results = {}
 for monitor in [${monitors.map((monitor, index) => `monitor${index + 1}`).join(', ')}]:
-    data = monitor.get()
+    #print("\\nMonitor:", monitor._get_population())
+    #print("Atributos disponibles en el monitor:", dir(monitor))
+    #print("Valores actuales del monitor:", vars(monitor))
+    data = monitor.get(monitor.variables[0])
+    print(f"Monitor: {monitor.name}, Data: {data}")
     if isinstance(data, dict):
         # Convertir cada array de NumPy a lista
         for key in data:
@@ -370,22 +376,7 @@ export function downloadMonitorResults(monitors) {
 const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
   const [simulationOutput, setSimulationOutput] = useState('');
 
-  const handleGenerateCode = async () => {
-    const itemsList = getItemsFromLienzo(items);
-    const monitorsList = getMonitorsFromLienzo(monitors);
 
-    const generatedCode = generateANNarchyCode(itemsList, connections, monitorsList, simulationTime);
-    downloadCodeAsFile(generatedCode);
-
-    try {
-      const jobId = await sendCodeToBackend(generatedCode);
-      console.log('ID del trabajo:', jobId);
-      pollJobStatus(jobId);
-    } catch (error) {
-      console.error('Error al enviar el código al backend:', error);
-      setSimulationOutput('Error al ejecutar la simulación.');
-    }
-  };
 
   const pollJobStatus = async (jobId) => {
     const pollInterval = 2000;
@@ -421,17 +412,7 @@ const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
     checkStatus();
   };
 
-  return (
-    <div>
-      <button onClick={handleGenerateCode}>Generar Código</button>
-      {simulationOutput && (
-        <div>
-          <h3>Resultado de la Simulación:</h3>
-          <pre>{simulationOutput}</pre>
-        </div>
-      )}
-    </div>
-  );
+  return ;
 };
 
 export default CodeGenerator;

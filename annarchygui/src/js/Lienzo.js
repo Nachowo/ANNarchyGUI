@@ -93,17 +93,16 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setStimulusMonitorConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
   };
 
-  //Funcion para eliminar un elemento y sus conexiones
+  // Función para eliminar los monitores asociados a una población
+  const removeMonitors = (populationId) => {
+    setMonitors(prevMonitors => prevMonitors.filter(monitor => monitor.populationId !== populationId));
+  };
+
+  // Funcion para eliminar un elemento y sus conexiones y monitores
   const handleDeleteItem = (itemId) => {
     setItems(items.filter(item => item.id !== itemId));
     removeConnections(itemId);
-  };
-
-  //Funcion para editar los atributos de un elemento
-  const handleEditItem = (id, updatedAttributes) => {
-    setItems(items.map(item =>
-      item.id === id ? { ...item, attributes: updatedAttributes, name: updatedAttributes.name, quantity: updatedAttributes.quantity, neuron: updatedAttributes.neuron } : item
-    ));
+    removeMonitors(itemId); // Eliminar monitores asociados
   };
 
   //Funcion para manejar las conexiones entre elementos
@@ -130,8 +129,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       }
       const newMonitor = {
         id: monitors.length + 1,
-        target: '',
-        variables: [],
+        target: item.name,
+        variables: [item.variablesMonitor[0]],
         populationId: item.id,
         populationName: item.name, // Guardar información de la neurona a la que se conecta
       };
@@ -300,6 +299,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       const itemId = items[index].id;
       setItems(items.filter((_, i) => i !== index));
       removeConnections(itemId);
+      removeMonitors(itemId); // Eliminar monitores asociados
     }
   };
 
@@ -309,7 +309,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={handleCanvasClick}
-      style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} // Asegurar que el lienzo esté bajo el sidebar
     >
       <svg className="connections-svg" style={{ zIndex: 1 }}>
         <defs>
@@ -431,6 +430,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               neuron={selectedNeuron}
               onSave={handleSaveNeuron}
               monitors={monitors}
+              setMonitors={setMonitors} // Pasar setMonitors como prop
               onMonitorVariableChange={handleMonitorVariableChange} // Pasar la función
             />
           </div>
@@ -444,7 +444,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
-  
+      <button className="debug-button" onClick={debugear}>Debug</button>
     </div>
     
   );

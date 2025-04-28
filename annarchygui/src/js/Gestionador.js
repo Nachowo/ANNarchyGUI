@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
 import "./../css/Gestionador.css";
 
-function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
+function Gestionador({ neuron, onSave, monitors, setMonitors }) { // Añadir setMonitors como prop
   const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
@@ -196,20 +196,79 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
     onSave(updatedNeuron, updatedMonitors);
   };
 
+  const handleMonitorToggle = (e) => {
+    const isChecked = e.target.checked;    
+
+    if (isChecked) {
+      // Crear monitor si no existe
+      if (!neuron.hasMonitor) {
+        const newMonitor = {
+          id: monitors.length + 1,
+          target: neuron.name,
+          variables: neuron.variablesMonitor.length > 0 ? [neuron.variablesMonitor[0]] : [],
+          populationId: neuron.id,
+          populationName: neuron.name,
+        };
+        setMonitors([...monitors, newMonitor]);
+        neuron.hasMonitor = true;
+      }
+    } else {
+      // Eliminar monitor asociado
+      setMonitors(monitors.filter((monitor) => monitor.populationId !== neuron.id));
+      neuron.hasMonitor = false;
+    }
+
+    setMonitorAttributes([]); // Actualizar el estado local si es necesario
+  };
+
   return (
     <div className="neuron-form">
-      {neuron.hasMonitor && (
-        <div className="tabs">
-          <button className={activeTab === 'neuron' ? 'active' : ''} onClick={() => setActiveTab('neuron')}>Neuron</button>
-          <button className={activeTab === 'monitor' ? 'active' : ''} onClick={() => setActiveTab('monitor')}>Monitor</button>
-        </div>
-      )}
+      <div className="tabs">
+        <button 
+          className={activeTab === 'neuron' ? 'active' : ''} 
+          onClick={() => setActiveTab('neuron')}
+        >
+          Neuron
+        </button>
+        <button 
+          style={{
+            backgroundColor: !neuron.hasMonitor ? '#ccc' : '',
+            cursor: !neuron.hasMonitor ? 'not-allowed' : 'pointer'
+          }}
+          className={activeTab === 'monitor' ? 'active' : ''} 
+          onClick={() => neuron.hasMonitor && setActiveTab('monitor')} 
+          disabled={!neuron.hasMonitor}
+        >
+          Monitor
+        </button>
+
+      </div>
       {activeTab === 'neuron' && (
         <>
-          <div className="row">
-            <label htmlFor="neuron-name">Name:</label>
-            <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
+          <div className="fields-container">
+            <div className="column">
+              <div className="row">
+                <label htmlFor="neuron-name">Name:</label>
+                <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
+              </div>
+            </div>
+            <div className="column">
+          <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
+              <label htmlFor="has-monitor">Enable Monitor:</label>
+              <input
+                type="checkbox"
+                id="has-monitor"
+                checked={neuron.hasMonitor}
+                onChange={handleMonitorToggle}
+              />
+            </div>
+            </div>
           </div>
+         
+
+          
+            
+          
 
           <div className="row">
             <label htmlFor="neuron-type">Neuron Type:</label>
@@ -354,8 +413,8 @@ function Gestionador({ neuron, onSave, monitors }) { // Añadir prop 'monitors'
           )}
         </div>
       )}
+
       <div className="actions">
-        <button className="delete">Delete</button>
         <button className="save" onClick={handleSave}>Save</button>
       </div>
     </div>
