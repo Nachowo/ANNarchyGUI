@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 let code = '';
-let simulationTime = 10; // Valor predeterminado
+let simulationTime = 100; // Valor predeterminado
 
 /**
  * Obtiene las neuronas del lienzo.
@@ -175,14 +175,12 @@ export function getMonitorsFromLienzo(monitors) {
 }
 
 /**
- * Genera el código ANNarchy para los monitores.
+ * Genera un arreglo de monitores como estructuras para ANNarchy.
  * @param {Array} monitors - Lista de monitores.
  * @param {Array} items - Lista de elementos en el lienzo.
- * @returns {string} - Código ANNarchy para los monitores.
+ * @returns {string} - Código ANNarchy que define un arreglo de monitores.
  */
-//Cambiar para que pase el arreglo de monitores en lugar de escribirlos en codigo
-export function generateMonitorCode(monitors, items) {
-  //console.log('Monitores en generacion:', monitors);
+export function writeMonitors(monitors, items) {
   const populationNames = items.reduce((acc, item) => {
     const baseName = formatName(item.name);
     const count = acc[baseName] || 0;
@@ -192,12 +190,36 @@ export function generateMonitorCode(monitors, items) {
     return acc;
   }, {});
 
-  return (monitors || []).map((monitor, index) => {
+  const monitorsArray = (monitors || []).map((monitor, index) => {
     const populationName = populationNames[monitor.populationId];
-    const monitorName = `monitor${index + 1}`;
     const variables = monitor.variables.map(v => `'${v}'`).join(', ');
-    return `${monitorName} = Monitor(${populationName}, [${variables}])`; // Usar las variables actualizadas
-  }).join('\n\n');
+    return `{
+    'id': ${monitor.id},
+    #'population': ${populationName},
+    'populationId': '${monitor.populationId}',
+    'variables': [${variables}]
+  }`;
+  }).join(',\n');
+
+  return `monitorsArreglo = [\n${monitorsArray}\n]`;
+}
+
+function createMonitorsCode(monitors, items) {
+  const populationNames = items.reduce((acc, item) => {
+    const baseName = formatName(item.name);
+    const count = acc[baseName] || 0;
+    acc[baseName] = count + 1;
+    const populationName = `${baseName}${count + 1}`;
+    acc[item.id] = populationName;
+    return acc;
+  }, {});
+
+  return `monitors = [
+${(monitors || []).map((monitor, index) => {
+  const populationName = populationNames[monitor.populationId];
+  return `  Monitor(${populationName}, ${monitor.variables.length > 1 ? `[${monitor.variables.map(v => `'${v}'`).join(', ')}]` : `'${monitor.variables[0]}'`})`;
+}).join(',\n')}
+]`;
 }
 
 /**
@@ -211,25 +233,40 @@ function generateMonitorHandlingCode(monitors, jobId) {
   return `
 import json
 
-# Manejo de los resultados de los monitores y enviarlos a stdout
 monitor_results = {}
-for monitor in [${monitors.map((monitor, index) => `monitor${index + 1}`).join(', ')}]:
-    #print("\\nMonitor:", monitor._get_population())
-    #print("Atributos disponibles en el monitor:", dir(monitor))
-    #print("Valores actuales del monitor:", vars(monitor))
-    data = monitor.get(monitor.variables[0])
-    print(f"Monitor: {monitor.name}, Data: {data}")
-    if isinstance(data, dict):
-        # Convertir cada array de NumPy a lista
-        for key in data:
-            if isinstance(data[key], list):
-                monitor_results[monitor.name] = data[key]
-            else:
-                monitor_results[monitor.name] = data[key].tolist()
-    else:
-        monitor_results[monitor.name] = data.tolist()
-print(f"monitor")
-print(json.dumps(monitor_results))
+
+for i in range(len(monitorsArreglo)):
+  monitor = monitorsArreglo[i]
+  monitorId = monitor['id']
+  populationId = monitor['populationId']
+  variables = monitor['variables']
+  results = {}
+  
+  for variable in variables:
+    # Extraer los resultados del monitor para cada variable
+    try:
+      print(f"Obteniendo resultados para monitor {monitorId} y variable {variable}")
+      data = monitors[i].get(variable)  # Obtener los datos del monitor
+      print(f"Datos obtenidos: {data}")  # Verificar que los datos se obtienen correctamente
+      
+      if hasattr(data, 'tolist'):  # Verificar si es un ndarray
+        results[variable] = data.tolist()  # Convertir a lista si es necesario
+      else:
+        results[variable] = data  # Asignar directamente si no es ndarray
+      
+      print(f"Resultados procesados para {variable}: {results[variable]}")  # Verificar que se asignaron correctamente
+    except Exception as e:
+      results[variable] = f"Error al obtener resultados: {str(e)}"
+  
+  # Guardar los resultados junto con el ID de la población
+  monitor_results[populationId] = {
+    'monitorId': monitorId,
+    'results': results
+  }
+  print(f"Resultados acumulados para población {populationId}: {monitor_results[populationId]}")
+
+# Imprimir los resultados finales en pantalla
+print(json.dumps(monitor_results, indent=2))
 `;
 }
 
@@ -241,7 +278,7 @@ print(json.dumps(monitor_results))
  * @param {number} simTime - Tiempo de simulación.
  * @returns {string} - Código ANNarchy generado.
  */
-export function generateANNarchyCode(items, connections, monitors, simTime = 1000) {
+export function generateANNarchyCode(items, connections, monitors, simTime = 10 ) {
   simulationTime = simTime; // Actualizar el tiempo de simulación
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
@@ -251,21 +288,26 @@ export function generateANNarchyCode(items, connections, monitors, simTime = 100
   //const synapseCode = generateSynapseCode(synapses);
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
-  const monitorCode = generateMonitorCode(monitorList, items);
+  const monitorCode = writeMonitors(monitorList, items);
+  const monitorsCreated  = createMonitorsCode(monitors, items);
   const monitorHandlingCode = generateMonitorHandlingCode(monitorList, '${job_id}'); // Añadir manejo de monitores
 
   code = `from ANNarchy import *
 
+#Neuronal models
 ${neuronCode}
 
+#Populations
 ${populationCode}
 
+#Projections
 ${projectionCode}
 
+#Monitors
 ${monitorCode}
+${monitorsCreated}
 
 compile()
-
 simulate(${simulationTime})
 
 ${monitorHandlingCode}
@@ -334,9 +376,9 @@ export async function getJobStatus(jobId) {
  * @returns {string} - Resultados formateados de los monitores.
  */
 export function processMonitorResults(monitors) {
-  let monitorData = 'Resultados de los Monitores:\n';
+  let monitorData = 'Resultados de los Monitores:\\n';
   for (const [monitorId, monitorResult] of Object.entries(monitors)) {
-    monitorData += `${monitorId}: ${monitorResult}\n`;
+    monitorData += `${monitorId}: ${monitorResult}\\n`;
   }
   return monitorData;
 }
@@ -396,7 +438,7 @@ const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
           // Mostrar resultado final
           let finalOutput = output || error || status || 'Simulación completada.';
           if (monitors) {
-            finalOutput += '\n\n' + processMonitorResults(monitors);
+            finalOutput += '\\n\\n' + processMonitorResults(monitors);
             downloadMonitorResults(monitors); // Descargar resultados de los monitores
           }
           setSimulationOutput(finalOutput);
