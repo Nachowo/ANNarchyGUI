@@ -229,9 +229,11 @@ ${(monitors || []).map((monitor, index) => {
  * @returns {string} - Código ANNarchy para manejar los resultados de los monitores y enviarlos a stdout.
  */
 function generateMonitorHandlingCode(monitors, jobId) {
-  console.log(monitors);
   return `
 import json
+import base64
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 monitor_results = {}
 
@@ -241,29 +243,44 @@ for i in range(len(monitorsArreglo)):
   populationId = monitor['populationId']
   variables = monitor['variables']
   results = {}
-  
+  graphs = {}
+
   for variable in variables:
     # Extraer los resultados del monitor para cada variable
     try:
       print(f"Obteniendo resultados para monitor {monitorId} y variable {variable}")
       data = monitors[i].get(variable)  # Obtener los datos del monitor
-      print(f"Datos obtenidos: {data}")  # Verificar que los datos se obtienen correctamente
-      
+      if variable == 'spike':
+        graf = monitors[i].histogram(data)
+
+        # Generar gráfico y codificarlo en base64
+        plt.figure()
+        plt.plot(graf)
+        plt.title(f"Monitor {monitorId} - Variable {variable}")
+        plt.xlabel("Tiempo")
+        plt.ylabel("Frecuencia")
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
+        buffer.close()
+        plt.close()
+
+
       if hasattr(data, 'tolist'):  # Verificar si es un ndarray
         results[variable] = data.tolist()  # Convertir a lista si es necesario
       else:
         results[variable] = data  # Asignar directamente si no es ndarray
-      
-      print(f"Resultados procesados para {variable}: {results[variable]}")  # Verificar que se asignaron correctamente
+
     except Exception as e:
       results[variable] = f"Error al obtener resultados: {str(e)}"
-  
+
   # Guardar los resultados junto con el ID de la población
   monitor_results[populationId] = {
     'monitorId': monitorId,
-    'results': results
+    'results': results,
+    'graphs': graphs  # Incluir gráficos en los resultados
   }
-  print(f"Resultados acumulados para población {populationId}: {monitor_results[populationId]}")
 
 # Imprimir los resultados finales en pantalla
 print(json.dumps(monitor_results, indent=2))
@@ -278,7 +295,7 @@ print(json.dumps(monitor_results, indent=2))
  * @param {number} simTime - Tiempo de simulación.
  * @returns {string} - Código ANNarchy generado.
  */
-export function generateANNarchyCode(items, connections, monitors, simTime = 10 ) {
+export function generateANNarchyCode(items, connections, monitors, simTime ) {
   simulationTime = simTime; // Actualizar el tiempo de simulación
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
@@ -429,7 +446,6 @@ const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
         const { status, error, output, monitors } = result;
 
         // Si está en progreso, en espera o hay error, seguir intentando
-        console.log('Estado del trabajo:', result);
         if (status === 'En progreso' || status === 'En espera' || error) {
           setTimeout(checkStatus, pollInterval);
         } else if (status === '404 (NOT FOUND)') {

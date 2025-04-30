@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './../css/App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
@@ -20,6 +20,27 @@ function App() {
   const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
   const [loadingStage, setLoadingStage] = useState(''); // Estado para la etapa de carga
   const [loadingProgress, setLoadingProgress] = useState(0); // Estado para el progreso de la barra
+  const [graphics, setGraphics] = useState([]); // Estado para los gráficos
+  const [graphicMonitors, setGraphicMonitors] = useState([]); // Estado para los IDs de los monitores
+
+  useEffect(() => {
+    // Actualizar el código ANNarchy cuando simulationTime cambie
+    const itemsList = items;
+  }, [simulationTime]);
+
+  const parseBackendResponse = (responseString) => {
+    try {
+      // Saltar las dos primeras líneas del string
+      const lines = responseString.split('\n');
+      const jsonString = lines.slice(2).join('\n');
+
+      const jsonResponse = JSON.parse(jsonString);
+      return jsonResponse;
+    } catch (error) {
+      console.error('Error al convertir la respuesta del backend a JSON:', error);
+      return null;
+    }
+  };
 
   // Maneja el cambio de modo de conexión
   const handleConnectToggle = (synapse) => {
@@ -44,7 +65,7 @@ function App() {
 
     try {
       const jobId = await sendCodeToBackend(code);
-      console.log('ID del trabajo:', jobId);
+      //console.log('ID del trabajo:', jobId);
       setLoadingProgress(66); // Segunda etapa: Esperando respuesta
       pollJobStatus(jobId);
     } catch (error) {
@@ -56,63 +77,42 @@ function App() {
     }
   };
 
-
-  /**
-   * Retorna solamente el arreglo 'v' de cada monitor.
-   * @param {object} monitors - Resultados de los monitores.
-   * @returns {object} - Objeto con sólo el array 'v' de cada monitor.
-   */
-  function getOnlyVArrays(monitors) {
-    const result = {};
-    for (const [monitorId, monitorData] of Object.entries(monitors)) {
-      if (monitorData && monitorData.v) {
-        result[monitorId] = monitorData.v;
-      }
-    }
-    return result;
-  }
-
-  function parseVArrayFromOutput(finalOutput) {
-    // Busca el inicio de la parte JSON identificando el primer '{'
-    const jsonStart = finalOutput.indexOf('{');
-    if (jsonStart === -1) return [];
-    
-    try {
-      const jsonStr = finalOutput.substring(jsonStart);
-      const data = JSON.parse(jsonStr);
-      return data["Monitor"] || [];
-    } catch (error) {
-      console.error("Error al parsear JSON del output:", error);
-      return [];
-    }
-  }
-
   const pollJobStatus = async (jobId) => {
     const pollInterval = 2000; // Intervalo de polling en milisegundos
-  
+
+    const displayFirstGraph = (jsonResponse) => {
+      const firstMonitor = Object.values(jsonResponse)[0];
+      const firstGraphBase64 = Object.values(firstMonitor.graphs)[0];
+
+      // Crear un elemento de imagen
+      const imgElement = document.createElement('img');
+      imgElement.src = `data:image/png;base64,${firstGraphBase64}`;
+      imgElement.alt = 'First Monitor Graph';
+      imgElement.style.maxWidth = '100%';
+
+      // Actualizar el estado con el nuevo gráfico y el ID del monitor
+      setGraphics((prevGraphics) => [...prevGraphics, imgElement]);
+      setGraphicMonitors((prevMonitors) => [...prevMonitors, firstMonitor.monitorId]);
+    };
+
     const checkStatus = async () => {
       try {
         const result = await getJobStatus(jobId);
-        const { status, error, output, monitors } = result;
+        const { status, error, output } = result;
         console.log('resultado:', result);
-        console.log('monitores:', monitors);
         console.log('output:', output);
         console.log('status:', status);
         console.log('error:', error);
-        
+        const json = parseBackendResponse(output);
+        console.log('json:', json);
+
         if (status === 'En progreso' || status === 'En espera' || error) {
           // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
         } else {
           setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
-          if (!monitors.length > 0) {
-            const voltages = parseVArrayFromOutput(finalOutput);
-            // Guardar los voltajes en una variable global
-            window.monitorVoltages = voltages;
-            finalOutput = "Simulation ended.";
-            // (Se elimina la generación inmediata del gráfico)
-          }
+          displayFirstGraph(json); // Mostrar el primer gráfico recibido
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
@@ -130,7 +130,7 @@ function App() {
         setTimeout(checkStatus, pollInterval);
       }
     };
-  
+
     checkStatus();
   };
 
@@ -168,9 +168,10 @@ function App() {
           items={items} 
           connections={connections} 
           onMonitorToggle={handleMonitorToggle} 
-          onAssignMonitor={setIsAssigningMonitor} // Pasar función para asignar monitor
-          monitors={monitors} // Pasar monitores
-      />
+          onAssignMonitor={setIsAssigningMonitor} 
+          monitors={monitors} 
+          simulationTime={simulationTime} // Pasar simulationTime como propiedad
+        />
       </div>
       {isLoading && (
         <div className="loading-modal">
@@ -189,11 +190,16 @@ function App() {
         <div className="output-modal">
           <div className="output-content">
             <h3>Simulation Output:</h3>
-            <pre>{simulationOutput}</pre>
             <button onClick={() => setShowOutputModal(false)}>Cerrar</button>
+            {graphics.length > 0 && (
+              <img src={graphics[0].src} alt="Monitor Graph" style={{ maxWidth: '100%' }} />
+            )}
           </div>
         </div>
       )}
+      <button onClick={() => alert(`El largo del arreglo de gráficos es: ${graphics.length}`)}>
+        Mostrar Largo de Gráficos
+      </button>
     </div>
   );
 }
