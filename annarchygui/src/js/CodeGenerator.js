@@ -278,7 +278,6 @@ for i in range(len(monitorsArreglo)):
   # Guardar los resultados junto con el ID de la población
   monitor_results[populationId] = {
     'monitorId': monitorId,
-    'results': results,
     'graphs': graphs  # Incluir gráficos en los resultados
   }
 

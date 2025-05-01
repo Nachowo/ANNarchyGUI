@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
 import "./../css/Gestionador.css";
 
-function Gestionador({ neuron, onSave, monitors, setMonitors }) { // Añadir setMonitors como prop
+function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors }) { 
   const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
@@ -72,6 +72,22 @@ function Gestionador({ neuron, onSave, monitors, setMonitors }) { // Añadir set
       });
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    console.log('graphicMonitors:', graphicMonitors);
+    if (activeTab === 'monitor' &&  Array.isArray(graphicMonitors)) {
+      
+      const monitorIndex = graphicMonitors.indexOf(neuron.id);
+      if (monitorIndex !== -1 && graphics[monitorIndex]) {
+        const graphicElement = graphics[monitorIndex];
+        const monitorContainer = document.getElementById('monitor-graphic-container');
+        if (monitorContainer) {
+          monitorContainer.innerHTML = ''; // Limpiar contenido previo
+          monitorContainer.appendChild(graphicElement); // Agregar el gráfico correspondiente
+        }
+      }
+    }
+  }, [activeTab, neuron.id, graphicMonitors, graphics]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -413,6 +429,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors }) { // Añadir set
               <canvas ref={canvasRef} width="600" height="400"></canvas>
             </div>
           )}
+          <div id="monitor-graphic-container"></div>
         </div>
       )}
 

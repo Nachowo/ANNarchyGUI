@@ -30,9 +30,8 @@ function App() {
 
   const parseBackendResponse = (responseString) => {
     try {
-      // Saltar las dos primeras líneas del string
-      const lines = responseString.split('\n');
-      const jsonString = lines.slice(2).join('\n');
+      // Saltar hasta el primer "{" en el string
+      const jsonString = responseString.substring(responseString.indexOf('{'));
 
       const jsonResponse = JSON.parse(jsonString);
       return jsonResponse;
@@ -60,6 +59,9 @@ function App() {
     const itemsList = items;
     const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
 
+    setGraphics([]); // Vaciar el arreglo de gráficos
+    setGraphicMonitors([]); // Vaciar el arreglo de monitores
+
     setLoadingProgress(33); // Primera etapa: Enviando
     setIsLoading(true); // Mostrar el modal de carga
 
@@ -81,38 +83,40 @@ function App() {
     const pollInterval = 2000; // Intervalo de polling en milisegundos
 
     const displayFirstGraph = (jsonResponse) => {
-      const firstMonitor = Object.values(jsonResponse)[0];
-      const firstGraphBase64 = Object.values(firstMonitor.graphs)[0];
+      Object.values(jsonResponse).forEach((monitor) => {
+        Object.values(monitor.graphs).forEach((graphBase64) => {
+          // Crear un elemento de imagen
+          const imgElement = document.createElement('img');
+          imgElement.src = `data:image/png;base64,${graphBase64}`;
+          imgElement.alt = 'Monitor Graph';
+          imgElement.style.maxWidth = '100%';
 
-      // Crear un elemento de imagen
-      const imgElement = document.createElement('img');
-      imgElement.src = `data:image/png;base64,${firstGraphBase64}`;
-      imgElement.alt = 'First Monitor Graph';
-      imgElement.style.maxWidth = '100%';
-
-      // Actualizar el estado con el nuevo gráfico y el ID del monitor
-      setGraphics((prevGraphics) => [...prevGraphics, imgElement]);
-      setGraphicMonitors((prevMonitors) => [...prevMonitors, firstMonitor.monitorId]);
+          // Actualizar el estado con el nuevo gráfico y el ID del monitor
+          setGraphics((prevGraphics) => [...prevGraphics, imgElement]);
+          setGraphicMonitors((prevMonitors) => [...prevMonitors, monitor.monitorId]);
+        });
+      });
     };
 
     const checkStatus = async () => {
       try {
         const result = await getJobStatus(jobId);
         const { status, error, output } = result;
-        console.log('resultado:', result);
-        console.log('output:', output);
-        console.log('status:', status);
-        console.log('error:', error);
-        const json = parseBackendResponse(output);
-        console.log('json:', json);
+        //console.log('resultado:', result);
+        //console.log('output:', output);
+        //console.log('status:', status);
+        //console.log('error:', error);
+        
 
         if (status === 'En progreso' || status === 'En espera' || error) {
           // Continuar con el polling
           setTimeout(checkStatus, pollInterval);
         } else {
+          const json = parseBackendResponse(output);
+          console.log('json:', json);
           setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
-          displayFirstGraph(json); // Mostrar el primer gráfico recibido
+          displayFirstGraph(json); // Mostrar los gráficos recibidos
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
@@ -158,10 +162,12 @@ function App() {
           setConnections={setConnections} 
           isCreatingMonitor={isCreatingMonitor} 
           setIsCreatingMonitor={setIsCreatingMonitor} 
-          isAssigningMonitor={isAssigningMonitor} // Pasar estado de asignación
-          setIsAssigningMonitor={setIsAssigningMonitor} // Pasar función para actualizar estado
-          monitors={monitors} // Pasar monitores
-          setMonitors={setMonitors} // Pasar función para actualizar monitores
+          isAssigningMonitor={isAssigningMonitor} 
+          setIsAssigningMonitor={setIsAssigningMonitor} 
+          monitors={monitors} 
+          setMonitors={setMonitors} 
+          graphics={graphics} 
+          graphicMonitors={graphicMonitors} // Pasar graphics y graphicMonitors
         />
         <Sidebar 
           onConnectToggle={handleConnectToggle} 

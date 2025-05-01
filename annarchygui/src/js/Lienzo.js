@@ -3,7 +3,7 @@ import './../css/Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -432,6 +432,8 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               monitors={monitors}
               setMonitors={setMonitors} // Pasar setMonitors como prop
               onMonitorVariableChange={handleMonitorVariableChange} // Pasar la función
+              graphics={graphics} // Pasar graphics
+              graphicMonitors={graphicMonitors} // Pasar graphicMonitors
             />
           </div>
         </div>
