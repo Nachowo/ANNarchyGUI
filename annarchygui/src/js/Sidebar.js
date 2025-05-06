@@ -96,7 +96,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['v', 'spike'], // Agregado spike
+      variablesMonitor: ['v', 'spike','raster_plot'], // Agregado spike
     },
     {
       id: 2,
@@ -123,7 +123,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: ''
       },
-      variablesMonitor: ['v','u', 'spike'], // Agregado spike
+      variablesMonitor: ['v','u', 'spike','raster_plot'], // Agregado spike
     },
     {
       id: 3,
@@ -163,7 +163,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['spike','rate'], // Sin cambios
+      variablesMonitor: ['spike','rate','raster_plot'], // Sin cambios
     }
   ];
 

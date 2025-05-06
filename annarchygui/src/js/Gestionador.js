@@ -74,16 +74,19 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   }, [activeTab]);
 
   useEffect(() => {
-    console.log('graphicMonitors:', graphicMonitors);
-    if (activeTab === 'monitor' &&  Array.isArray(graphicMonitors)) {
-      
+    if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
       const monitorIndex = graphicMonitors.indexOf(neuron.id);
       if (monitorIndex !== -1 && graphics[monitorIndex]) {
         const graphicElement = graphics[monitorIndex];
-        const monitorContainer = document.getElementById('monitor-graphic-container');
-        if (monitorContainer) {
-          monitorContainer.innerHTML = ''; // Limpiar contenido previo
-          monitorContainer.appendChild(graphicElement); // Agregar el gráfico correspondiente
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Dibujar la imagen en el canvas
+          };
+          img.src = graphicElement.src; // Usar la fuente del gráfico
         }
       }
     }
@@ -422,11 +425,15 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               </div>
             </div>
           ))}
-          {/* Mostrar gráfico si existen datos en la variable global */}
-          {window.monitorVoltages && window.monitorVoltages.length > 0 && (
+          {graphics.length === 0 || graphicMonitors.indexOf(neuron.id) === -1 ? (
+            <div >
+              <h4>No graphic available for this monitor</h4>
+              <p>Run a simulation to get a graphic</p>
+            </div>
+          ) : (
             <div>
               <h4>Monitor Chart:</h4>
-              <canvas ref={canvasRef} width="600" height="400"></canvas>
+              <canvas ref={canvasRef} width="640" height="480"></canvas>
             </div>
           )}
           <div id="monitor-graphic-container"></div>

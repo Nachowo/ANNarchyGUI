@@ -217,7 +217,8 @@ function createMonitorsCode(monitors, items) {
   return `monitors = [
 ${(monitors || []).map((monitor, index) => {
   const populationName = populationNames[monitor.populationId];
-  return `  Monitor(${populationName}, ${monitor.variables.length > 1 ? `[${monitor.variables.map(v => `'${v}'`).join(', ')}]` : `'${monitor.variables[0]}'`})`;
+  const variables = monitor.variables.map(v => v === 'raster_plot' ? 'spike' : v);
+  return `  Monitor(${populationName}, ${variables.length > 1 ? `[${variables.map(v => `'${v}'`).join(', ')}]` : `'${variables[0]}'`})`;
 }).join(',\n')}
 ]`;
 }
@@ -244,15 +245,14 @@ for i in range(len(monitorsArreglo)):
   variables = monitor['variables']
   results = {}
   graphs = {}
-
   for variable in variables:
     # Extraer los resultados del monitor para cada variable
     try:
       print(f"Obteniendo resultados para monitor {monitorId} y variable {variable}")
-      data = monitors[i].get(variable)  # Obtener los datos del monitor
       if variable == 'spike':
+        print(f"\\nGenerando gráfico de histograma para monitor")
+        data = monitors[i].get(variable)  # Obtener los datos del monitor
         graf = monitors[i].histogram(data)
-
         # Generar gráfico y codificarlo en base64
         plt.figure()
         plt.plot(graf)
@@ -266,6 +266,21 @@ for i in range(len(monitorsArreglo)):
         buffer.close()
         plt.close()
 
+        # Generar gráfico de raster plot
+      if variable == 'raster_plot':
+        data = monitors[i].get('spike')  # Obtener los datos del monitor
+        t, n = monitors[i].raster_plot(data)
+        plt.figure()
+        plt.plot(t, n, 'b.')
+        plt.title(f"Raster plot - Monitor {monitorId}")
+        plt.xlabel("Tiempo")
+        plt.ylabel("Neuronas")
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
+        buffer.close()
+        plt.close()
 
       if hasattr(data, 'tolist'):  # Verificar si es un ndarray
         results[variable] = data.tolist()  # Convertir a lista si es necesario

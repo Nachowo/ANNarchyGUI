@@ -414,3 +414,30 @@ button:hover {
   display: flex;
   justify-content: space-between;
 }
+
+.monitor-placeholder {
+  width: 640px;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+  margin: 20px auto; /* Centrar horizontalmente */
+  position: relative;
+}
+
+.monitor-placeholder::before,
+.monitor-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background-color: black;
+  top: 50%;
+  left: 0;
+  transform: rotate(45deg);
+}
+
+.monitor-placeholder::after {
+  transform: rotate(-45deg);
+}
