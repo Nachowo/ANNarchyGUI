@@ -197,9 +197,9 @@ function App() {
           <div className="output-content">
             <h3>Simulation Output:</h3>
             <button onClick={() => setShowOutputModal(false)}>Cerrar</button>
-            {graphics.length > 0 && (
+            {/*{graphics.length > 0 && (
               <img src={graphics[0].src} alt="Monitor Graph" style={{ maxWidth: '100%' }} />
-            )}
+            )}*/}
           </div>
         </div>
       )}

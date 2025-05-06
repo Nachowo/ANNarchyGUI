@@ -427,7 +427,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           ))}
           {graphics.length === 0 || graphicMonitors.indexOf(neuron.id) === -1 ? (
             <div >
-              <h4>No graphic available for this monitor</h4>
+              <h4 >No graphic available for this monitor</h4>
               <p>Run a simulation to get a graphic</p>
             </div>
           ) : (
