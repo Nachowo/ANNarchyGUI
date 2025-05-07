@@ -310,7 +310,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
       onDrop={handleDrop}
       onClick={handleCanvasClick}
     >
-      <svg className="connections-svg" style={{ zIndex: 1 }}>
+      <svg className="connections-svg" style={{ zIndex: 2 }}>
         <defs>
           {renderArrowMarker()}
         </defs>
@@ -392,7 +392,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           );
         })}
       </svg>
-      <div className="items" style={{ zIndex: 1 }}>
+      <div className="items" >
         {items.map((item, index) => (
           <div
             key={item.id}

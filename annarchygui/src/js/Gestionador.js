@@ -75,10 +75,11 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
   useEffect(() => {
     if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
-      const monitorIndex = graphicMonitors.indexOf(neuron.id);
+      const monitorIndex = graphicMonitors.indexOf(monitorAttributes[0]?.id); // Usar el ID del monitor
       if (monitorIndex !== -1 && graphics[monitorIndex]) {
         const graphicElement = graphics[monitorIndex];
         const canvas = canvasRef.current;
+        console.log('canvas:', canvas);
         if (canvas) {
           const ctx = canvas.getContext('2d');
           const img = new Image();
@@ -90,7 +91,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
         }
       }
     }
-  }, [activeTab, neuron.id, graphicMonitors, graphics]);
+  }, [activeTab, monitorAttributes, graphicMonitors, graphics]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -425,7 +426,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               </div>
             </div>
           ))}
-          {graphics.length === 0 || graphicMonitors.indexOf(neuron.id) === -1 ? (
+          {graphics.length === 0 || graphicMonitors.indexOf(monitorAttributes[0]?.id) === -1 ? (
             <div >
               <h4 >No graphic available for this monitor</h4>
               <p>Run a simulation to get a graphic</p>

@@ -182,7 +182,7 @@ function App() {
       {isLoading && (
         <div className="loading-modal">
           <div className="loading-content">
-            <h3>Simulación en progreso...</h3>
+            <h3>Simulating...</h3>
             <div className="progress-bar-container">
               <div
                 className="progress-bar-fill"
@@ -195,15 +195,15 @@ function App() {
       {showOutputModal && (
         <div className="output-modal">
           <div className="output-content">
-            <h3>Simulation Output:</h3>
-            <button onClick={() => setShowOutputModal(false)}>Cerrar</button>
+            <h3>Simulation completed</h3>
+            <button onClick={() => setShowOutputModal(false)}>Close</button>
             {/*{graphics.length > 0 && (
               <img src={graphics[0].src} alt="Monitor Graph" style={{ maxWidth: '100%' }} />
             )}*/}
           </div>
         </div>
       )}
-      <button onClick={() => alert(`El largo del arreglo de gráficos es: ${graphics.length}`)}>
+      <button onClick={() => alert(`El largo del arreglo de gráficos es: ${graphics.length} y el arreglo de monitores es: ${graphicMonitors}`)}>
         Mostrar Largo de Gráficos
       </button>
     </div>
