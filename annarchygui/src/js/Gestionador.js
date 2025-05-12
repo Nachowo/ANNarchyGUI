@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
+import { generateSpikeGraph, generateVariableGraph } from './GraphGenerator';
 import "./../css/Gestionador.css";
 
-function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors }) { 
+function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors,nextMonitorId,setNextMonitorId, variablesData }) { 
   const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
@@ -18,6 +19,8 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   const [quantity, setQuantity] = useState(neuron.id !== undefined ? neuron.quantity : 1);
   const [monitorAttributes, setMonitorAttributes] = useState([]);
   const canvasRef = React.useRef(null);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(100); // Valor inicial arbitrario
 
   useEffect(() => {
     setName(neuron.name || '');
@@ -46,40 +49,11 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   }, [neuron, monitors]);
 
   useEffect(() => {
-    if (activeTab === 'monitor' && window.monitorVoltages && canvasRef.current) {
-      // Inicializa el gráfico usando los datos globales
-      const ctx = canvasRef.current.getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: window.monitorVoltages.map((_, index) => index),
-          datasets: [
-            {
-              label: 'Voltajes',
-              data: window.monitorVoltages.map(value => value[0]),
-              borderColor: 'blue',
-              borderWidth: 2,
-              fill: false,
-            }
-          ]
-        },
-        options: {
-          scales: {
-            x: { title: { display: true, text: 'Muestra' } },
-            y: { title: { display: true, text: 'Voltaje (mV)' } }
-          }
-        }
-      });
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
     if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
       const monitorIndex = graphicMonitors.indexOf(monitorAttributes[0]?.id); // Usar el ID del monitor
       if (monitorIndex !== -1 && graphics[monitorIndex]) {
         const graphicElement = graphics[monitorIndex];
         const canvas = canvasRef.current;
-        console.log('canvas:', canvas);
         if (canvas) {
           const ctx = canvas.getContext('2d');
           const img = new Image();
@@ -92,6 +66,25 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       }
     }
   }, [activeTab, monitorAttributes, graphicMonitors, graphics]);
+
+  useEffect(() => {
+    if (activeTab === 'monitor' && neuron.hasMonitor) {
+      const spikeData = monitorAttributes.find(attr => attr.variables.includes('spike'))?.data;
+      if (spikeData) {
+        //generateSpikeGraph('spikeGraphCanvas', spikeData);
+      }
+    }
+  }, [activeTab, neuron, monitorAttributes]);
+
+  useEffect(() => {
+    if (activeTab === 'monitor' && neuron.hasMonitor) {
+      const monitorData = variablesData.filter(data => data.monitorId === neuron.id);
+      monitorData.forEach(({ variable, data }) => {
+        console.log('generating graph for variable:', variable, data);
+        generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, startTime, endTime);
+      });
+    }
+  }, [activeTab, neuron, variablesData, startTime, endTime]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -222,8 +215,9 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (isChecked) {
       // Crear monitor si no existe
       if (!neuron.hasMonitor) {
+        console.log(nextMonitorId)
         const newMonitor = {
-          id: monitors.length + 1,
+          id: nextMonitorId,
           target: neuron.name,
           variables: neuron.variablesMonitor.length > 0 ? [neuron.variablesMonitor[0]] : [],
           populationId: neuron.id,
@@ -231,6 +225,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
         };
         setMonitors([...monitors, newMonitor]);
         neuron.hasMonitor = true;
+        setNextMonitorId(nextMonitorId + 1); // Incrementar el ID del siguiente monitor
       }
     } else {
       // Eliminar monitor asociado
@@ -385,6 +380,26 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       )}
       {activeTab === 'monitor' && (
         <div>
+          <div className="time-range-controls">
+            <label>
+              Inicio:
+              <input
+                type="number"
+                value={startTime}
+                onChange={(e) => setStartTime(Number(e.target.value))}
+                min="0"
+              />
+            </label>
+            <label>
+              Fin:
+              <input
+                type="number"
+                value={endTime}
+                onChange={(e) => setEndTime(Number(e.target.value))}
+                min={startTime + 1} // Asegurar que el fin sea mayor que el inicio
+              />
+            </label>
+          </div>
           {monitorAttributes.map((monitor, index) => (
             <div key={index}>
               <div className="row">
@@ -424,6 +439,12 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
                   />
                 )}
               </div>
+              {monitor.variables.map((variable) => (
+                <div key={variable}>
+                  <h4>Graph for Variable: {variable}</h4>
+                  <canvas id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>
+                </div>
+              ))}
             </div>
           ))}
           {graphics.length === 0 || graphicMonitors.indexOf(monitorAttributes[0]?.id) === -1 ? (
@@ -437,6 +458,10 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               <canvas ref={canvasRef} width="640" height="480"></canvas>
             </div>
           )}
+          {/**<div>
+            <h4>Spike Graph (Frontend):</h4>
+            <canvas id="spikeGraphCanvas" width="640" height="480"></canvas>
+          </div>**/}
           <div id="monitor-graphic-container"></div>
         </div>
       )}

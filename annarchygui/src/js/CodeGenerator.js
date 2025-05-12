@@ -77,10 +77,24 @@ export function generateNeuronCode(neurons) {
       { key: 'spike', value: neuron.attributes.spike },
       { key: 'axon_spike', value: neuron.attributes.axon_spike },
       { key: 'reset', value: neuron.attributes.reset },
-      { key: 'axon_reset', value: neuron.attributes.axon_reset },
-      { key: 'refractory', value: neuron.attributes.refractory }
+      //{ key: 'axon_reset', value: neuron.attributes.axon_reset },
     ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="""\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`).join(',\n');
-    return `${formattedName} = Neuron(\n\tequations="""\n${equations}\n\t""",\n\tparameters="""\n${params}\n\t""",\n${attributes}\n)`;
+    const extras = [
+      { key: 'refractory', value: neuron.attributes.refractory },
+      { key: 'axon_reset', value: neuron.attributes.axon_reset },
+      // Agrega más elementos aquí si es necesario
+    ].filter(extra => extra.value !== '').map(extra => `\t${extra.key}=${extra.value}`).join(',\n');
+
+    return `${formattedName} = Neuron(
+  equations="""
+${equations}
+  """,
+  parameters="""
+${params}
+  """,
+${attributes},
+${extras}
+)`;
   }).join('\n\n');
 }
 
@@ -246,57 +260,68 @@ for i in range(len(monitorsArreglo)):
   results = {}
   graphs = {}
   for variable in variables:
-    # Extraer los resultados del monitor para cada variable
-    try:
-      print(f"Obteniendo resultados para monitor {monitorId} y variable {variable}")
-      if variable == 'spike':
-        print(f"\\nGenerando gráfico de histograma para monitor")
-        data = monitors[i].get(variable)  # Obtener los datos del monitor
-        graf = monitors[i].histogram(data)
-        # Generar gráfico y codificarlo en base64
-        plt.figure()
-        plt.plot(graf)
-        plt.title(f"Monitor {monitorId} - Variable {variable}")
-        plt.xlabel("Tiempo")
-        plt.ylabel("Frecuencia")
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
-        buffer.close()
-        plt.close()
+    if variable == 'spike':
+      data = monitors[i].get('spike')
+      graf = monitors[i].histogram(data)
+      plt.figure()
+      plt.plot(graf)
+      plt.title("Number of spikes")
+      plt.xlabel("Time")
+      plt.ylabel("Frequency")
+      buffer = BytesIO()
+      plt.savefig(buffer, format='png')
+      buffer.seek(0)
+      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
+      buffer.close()
+      plt.close()
+      results[variable] = {
+        'data': data.tolist() if hasattr(data, 'tolist') else data,
+        'graph': graf.tolist() if hasattr(graf, 'tolist') else graf
+      }
 
-        # Generar gráfico de raster plot
-      if variable == 'raster_plot':
-        data = monitors[i].get('spike')  # Obtener los datos del monitor
-        t, n = monitors[i].raster_plot(data)
-        plt.figure()
-        plt.plot(t, n, 'b.')
-        plt.title(f"Raster plot - Monitor {monitorId}")
-        plt.xlabel("Tiempo")
-        plt.ylabel("Neuronas")
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
-        buffer.close()
-        plt.close()
+    elif variable == 'raster_plot':
+      data = monitors[i].get('spike')
+      t, n = monitors[i].raster_plot(data)
+      plt.figure()
+      plt.plot(t, n, 'b.')
+      plt.title("Raster plot")
+      plt.xlabel("Time")
+      plt.ylabel("Neurons")
+      buffer = BytesIO()
+      plt.savefig(buffer, format='png')
+      buffer.seek(0)
+      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
+      buffer.close()
+      plt.close()
+      results[variable] = {
+        'data': data.tolist() if hasattr(data, 'tolist') else data,
+        'graph': {'t': t.tolist() if hasattr(t, 'tolist') else t, 'n': n.tolist() if hasattr(n, 'tolist') else n}
+      }
 
-      if hasattr(data, 'tolist'):  # Verificar si es un ndarray
-        results[variable] = data.tolist()  # Convertir a lista si es necesario
-      else:
-        results[variable] = data  # Asignar directamente si no es ndarray
+    else:
+      data = monitors[i].get(variable)
+      plt.figure()
+      plt.plot(data)
+      plt.title(f"Variable {variable}")
+      plt.xlabel("Time")
+      plt.ylabel("Value")
+      buffer = BytesIO()
+      plt.savefig(buffer, format='png')
+      buffer.seek(0)
+      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
+      buffer.close()
+      plt.close()
+      results[variable] = {
+        'data': data.tolist() if hasattr(data, 'tolist') else data,
+        'graph': data.tolist() if hasattr(data, 'tolist') else data
+      }
 
-    except Exception as e:
-      results[variable] = f"Error al obtener resultados: {str(e)}"
-
-  # Guardar los resultados junto con el ID de la población
   monitor_results[populationId] = {
     'monitorId': monitorId,
-    'graphs': graphs  # Incluir gráficos en los resultados
+    'graphs': graphs,
+    'results': results
   }
 
-# Imprimir los resultados finales en pantalla
 print(json.dumps(monitor_results, indent=2))
 `;
 }

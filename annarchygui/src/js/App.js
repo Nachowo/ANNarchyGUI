@@ -6,6 +6,7 @@ import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorR
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
+
 function App() {
   const [isConnecting, setIsConnecting] = useState(false); 
   const [items, setItems] = useState([]); // Estado para los items del lienzo
@@ -22,6 +23,8 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0); // Estado para el progreso de la barra
   const [graphics, setGraphics] = useState([]); // Estado para los gráficos
   const [graphicMonitors, setGraphicMonitors] = useState([]); // Estado para los IDs de los monitores
+  const [variablesData, setVariablesData] = useState([]);
+  const [spikesData, setSpikesData] = useState([]);
 
   useEffect(() => {
     // Actualizar el código ANNarchy cuando simulationTime cambie
@@ -82,20 +85,40 @@ function App() {
   const pollJobStatus = async (jobId) => {
     const pollInterval = 2000; // Intervalo de polling en milisegundos
 
-    const displayFirstGraph = (jsonResponse) => {
+    const renderMonitorGraphs = (jsonResponse) => {
       Object.values(jsonResponse).forEach((monitor) => {
+        // Actualizar gráficos y monitores
         Object.values(monitor.graphs).forEach((graphBase64) => {
-          // Crear un elemento de imagen
           const imgElement = document.createElement('img');
           imgElement.src = `data:image/png;base64,${graphBase64}`;
           imgElement.alt = 'Monitor Graph';
           imgElement.style.maxWidth = '100%';
 
-          // Actualizar el estado con el nuevo gráfico y el ID del monitor
           setGraphics((prevGraphics) => [...prevGraphics, imgElement]);
           setGraphicMonitors((prevMonitors) => [...prevMonitors, monitor.monitorId]);
         });
+
+        // Actualizar variablesData
+        Object.entries(monitor.results).forEach(([variable, result]) => {
+          console.log('Datos del monitor:', monitor.monitorId, variable, result.data);
+          if (result.data) {
+            setVariablesData((prevData) => [
+              ...prevData,
+              { monitorId: monitor.monitorId, variable, data: result.data },
+            ]);
+          }
+        });
+
+        // Actualizar spikesData si corresponde
+        if (monitor.results.spike && monitor.results.spike.data) {
+          setSpikesData((prevData) => [
+            ...prevData,
+            { monitorId: monitor.monitorId, data: monitor.results.spike.data },
+          ]);
+        }
       });
+      console.log('Datos de variables:', variablesData);
+      console.log('Datos de spikes:', spikesData);
     };
 
     const checkStatus = async () => {
@@ -116,7 +139,7 @@ function App() {
           console.log('json:', json);
           setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
-          displayFirstGraph(json); // Mostrar los gráficos recibidos
+          renderMonitorGraphs(json); // Mostrar los gráficos recibidos
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
@@ -168,6 +191,7 @@ function App() {
           setMonitors={setMonitors} 
           graphics={graphics} 
           graphicMonitors={graphicMonitors} // Pasar graphics y graphicMonitors
+          variablesData={variablesData} // Pasar variablesData
         />
         <Sidebar 
           onConnectToggle={handleConnectToggle} 
@@ -197,6 +221,7 @@ function App() {
           <div className="output-content">
             <h3>Simulation completed</h3>
             <button onClick={() => setShowOutputModal(false)}>Close</button>
+            {console.log('variablesData:', variablesData)}
             {/*{graphics.length > 0 && (
               <img src={graphics[0].src} alt="Monitor Graph" style={{ maxWidth: '100%' }} />
             )}*/}

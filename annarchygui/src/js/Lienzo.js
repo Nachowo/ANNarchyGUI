@@ -3,9 +3,10 @@ import './../css/Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors, variablesData }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
+  const [nextMonitorId, setNextMonitorId] = useState(1);
   const [selectedItems, setSelectedItems] = useState([]);
   const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false); // Estado para mostrar/ocultar el Gestionador
@@ -434,6 +435,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               onMonitorVariableChange={handleMonitorVariableChange} // Pasar la función
               graphics={graphics} // Pasar graphics
               graphicMonitors={graphicMonitors} // Pasar graphicMonitors
+              nextMonitorId={nextMonitorId} // Pasar NextMonitorId
+              setNextMonitorId={setNextMonitorId} // Pasar setNextMonitorId como prop
+              variablesData={variablesData} // Pasar variablesData
             />
           </div>
         </div>
