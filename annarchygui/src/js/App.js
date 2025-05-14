@@ -66,18 +66,20 @@ function App() {
 
   // Maneja la simulación
   const handleSimulate = async () => {
+    // Limpiar datos anteriores
+    setGraphics([]);
+    setGraphicMonitors([]);
+    setVariablesData([]);
+    setSpikesData([]);
+
     const itemsList = items;
     const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
-
-    setGraphics([]); // Vaciar el arreglo de gráficos
-    setGraphicMonitors([]); // Vaciar el arreglo de monitores
 
     setLoadingProgress(33); // Primera etapa: Enviando
     setIsLoading(true); // Mostrar el modal de carga
 
     try {
       const jobId = await sendCodeToBackend(code);
-      //console.log('ID del trabajo:', jobId);
       setLoadingProgress(66); // Segunda etapa: Esperando respuesta
       pollJobStatus(jobId);
     } catch (error) {
@@ -107,7 +109,6 @@ function App() {
 
         // Actualizar variablesData
         Object.entries(monitor.results).forEach(([variable, result]) => {
-          console.log('Datos del monitor:', monitor.monitorId, variable, result.data);
           if (result.data) {
             setVariablesData((prevData) => [
               ...prevData,
@@ -143,7 +144,6 @@ function App() {
           setTimeout(checkStatus, pollInterval);
         } else {
           const json = parseBackendResponse(output);
-          console.log('json:', json);
           setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
           renderMonitorGraphs(json); // Mostrar los gráficos recibidos
@@ -229,7 +229,6 @@ function App() {
           <div className="output-content">
             <h3>Simulation completed</h3>
             <button onClick={() => setShowOutputModal(false)}>Close</button>
-            {console.log('variablesData:', variablesData)}
           </div>
         </div>
       )}

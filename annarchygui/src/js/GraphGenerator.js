@@ -10,6 +10,7 @@ import { Chart } from 'chart.js';
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
 export function generateVariableGraph(canvasId, data, variableNames, neuronRange, startTime = 0, endTime = data.length) {
+
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     console.error(`Canvas with ID '${canvasId}' not found.`);
@@ -32,9 +33,10 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     return;
   }
 
-
+  const variableName = variableNames;
   // Generar nombres de variables si variableNames es un string
   if (typeof variableNames === 'string') {
+
     const [startNeuron, endNeuron] = neuronRange;
     variableNames = Array.from(
       { length: endNeuron - startNeuron + 1 },
@@ -93,7 +95,7 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
       plugins: {
         title: {
           display: true,
-          text: `Graph for Neurons: ${startNeuron} to ${endNeuron}`,
+          text: `${variableName} graph for neurons ${startNeuron} to ${endNeuron}`,
         },
       },
       scales: {

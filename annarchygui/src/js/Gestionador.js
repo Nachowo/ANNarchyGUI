@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
 import { generateSpikeGraph, generateVariableGraph } from './GraphGenerator';
-import { Range } from 'react-range';
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
@@ -86,14 +84,13 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   }, [activeTab, neuron, monitorAttributes]);
 
   useEffect(() => {
-    if (activeTab === 'monitor' && neuron.hasMonitor) {
-      const monitorData = variablesData.filter(data => data.monitorId === neuron.id);
+    if (activeTab === 'monitor' && neuron.hasMonitor) {      
+      const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
       monitorData.forEach(({ variable, data }) => {
-        console.log('generating graph for variable:', variable);
         generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable,[Number(rangeStart),Number(rangeEnd)], startTime, endTime);
       });
     }
-  }, [activeTab, neuron, variablesData, startTime, endTime,rangeStart, rangeEnd,selectedOptions]);
+  }, [activeTab, neuron, variablesData, startTime, endTime,rangeStart, rangeEnd]);
 
   useEffect(() => {
     if (activeTab === 'monitor') {
