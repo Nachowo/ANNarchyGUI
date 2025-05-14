@@ -21,6 +21,9 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   const canvasRef = React.useRef(null);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(100); // Valor inicial arbitrario
+  const [rangeStart, setRangeStart] = useState(1); // Estado para el rango de inicio
+  const [rangeEnd, setRangeEnd] = useState(1); // Estado para el rango de fin
+  const [selectedOptions, setSelectedOptions] = useState([]); // Estado para las opciones seleccionadas
 
   useEffect(() => {
     setName(neuron.name || '');
@@ -81,10 +84,10 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       const monitorData = variablesData.filter(data => data.monitorId === neuron.id);
       monitorData.forEach(({ variable, data }) => {
         console.log('generating graph for variable:', variable, data);
-        generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, startTime, endTime);
+        generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable,[Number(rangeStart),Number(rangeEnd)], startTime, endTime);
       });
     }
-  }, [activeTab, neuron, variablesData, startTime, endTime]);
+  }, [activeTab, neuron, variablesData, startTime, endTime,rangeStart, rangeEnd,selectedOptions]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -145,6 +148,19 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       [field]: value
     };
     setMonitorAttributes(newMonitorAttributes);
+  };
+
+  const handleRangeStartChange = (e) => {
+    setRangeStart(e.target.value);
+  };
+
+  const handleRangeEndChange = (e) => {
+    setRangeEnd(e.target.value);
+  };
+
+  const handleOptionChange = (e) => {
+    const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedOptions(selectedValues); // Actualizar el estado con las opciones seleccionadas
   };
 
   const addParameter = () => {
@@ -400,6 +416,23 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               />
             </label>
           </div>
+          <div className="range-inputs">
+            <label htmlFor="rangeStart">Rango Inicio:</label>
+            <input
+              type="number"
+              id="rangeStart"
+              value={rangeStart}
+              onChange={handleRangeStartChange}
+            />
+
+            <label htmlFor="rangeEnd">Rango Fin:</label>
+            <input
+              type="number"
+              id="rangeEnd"
+              value={rangeEnd}
+              onChange={handleRangeEndChange}
+            />
+          </div>
           {monitorAttributes.map((monitor, index) => (
             <div key={index}>
               <div className="row">
@@ -417,11 +450,8 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
                   <select
                     id={`monitor-variables-${index}`}
                     multiple
-                    value={monitor.variables || []}
-                    onChange={(e) => {
-                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                      handleMonitorAttributeChange(index, 'variables', selectedOptions);
-                    }}
+                    value={selectedOptions} // Usar el estado selectedOptions
+                    onChange={handleOptionChange} // Actualizar el estado al cambiar las opciones seleccionadas
                   >
                     {neuron.variablesMonitor.map((varName) => (
                       <option key={varName} value={varName}>{varName}</option>
