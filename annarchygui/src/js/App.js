@@ -25,11 +25,18 @@ function App() {
   const [graphicMonitors, setGraphicMonitors] = useState([]); // Estado para los IDs de los monitores
   const [variablesData, setVariablesData] = useState([]);
   const [spikesData, setSpikesData] = useState([]);
+  const [lastSimTime, setLastSimTime] = useState(0); // Estado para el último tiempo de simulación
 
   useEffect(() => {
     // Actualizar el código ANNarchy cuando simulationTime cambie
     const itemsList = items;
   }, [simulationTime]);
+
+  useEffect(() => {
+    if (showOutputModal) {
+      setLastSimTime(simulationTime); // Actualizar lastSimTime solo cuando showOutputModal sea true
+    }
+  }, [showOutputModal, simulationTime]); // Ejecutar este efecto solo cuando cambien estas dependencias
 
   const parseBackendResponse = (responseString) => {
     try {
@@ -192,6 +199,7 @@ function App() {
           graphics={graphics} 
           graphicMonitors={graphicMonitors} // Pasar graphics y graphicMonitors
           variablesData={variablesData} // Pasar variablesData
+          lastSimTime={lastSimTime} // Pasar lastSimTime
         />
         <Sidebar 
           onConnectToggle={handleConnectToggle} 
@@ -222,9 +230,6 @@ function App() {
             <h3>Simulation completed</h3>
             <button onClick={() => setShowOutputModal(false)}>Close</button>
             {console.log('variablesData:', variablesData)}
-            {/*{graphics.length > 0 && (
-              <img src={graphics[0].src} alt="Monitor Graph" style={{ maxWidth: '100%' }} />
-            )}*/}
           </div>
         </div>
       )}

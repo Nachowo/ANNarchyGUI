@@ -3,7 +3,7 @@ import './../css/Lienzo.css';
 import Gestionador from './Gestionador'; // Importar el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
 
-function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors, variablesData }) {
+function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors, variablesData,lastSimTime }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [nextMonitorId, setNextMonitorId] = useState(1);
@@ -438,6 +438,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
               nextMonitorId={nextMonitorId} // Pasar NextMonitorId
               setNextMonitorId={setNextMonitorId} // Pasar setNextMonitorId como prop
               variablesData={variablesData} // Pasar variablesData
+              lastSimTime={lastSimTime} // Pasar lastSimTime
             />
           </div>
         </div>

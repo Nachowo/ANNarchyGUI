@@ -4,19 +4,60 @@ body {
   padding: 0;
   background-color: #f0f2f5;
 }
+.monitor-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 20px;
+}
+
+.monitor-inputs {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-weight: bold;
+}
+
+.input-group input,
+.input-group select {
+  padding: 6px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.monitor-graphics {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.graph-block canvas {
+  border: 1px solid #ccc;
+}
 
 .neuron-form {
-  border-radius: 8px;
-  padding: 20px;
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
+  padding: 0px 20px 20px 20px;
+  margin-right: 20px;
   background-color: #fff;
   overflow-y: auto;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   z-index: 1000;
+  height: 100%; 
+  width: 95%; 
+  margin-top: 20px; 
 }
 
 .neuron-form .row {
@@ -165,8 +206,11 @@ body {
   display: flex;
   justify-content: space-around;
   background-color: #007bff;
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px;
   margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000; 
 }
 
 .tabs button {
