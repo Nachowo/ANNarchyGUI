@@ -10,12 +10,6 @@ import { Chart } from 'chart.js';
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
 export function generateVariableGraph(canvasId, data, variableNames, neuronRange, startTime = 0, endTime = data.length) {
-
-    console.log(`Variable names: ${variableNames}`);
-    console.log(`Neuron range: ${neuronRange}`);
-    console.log(`Start time: ${startTime}`);
-    console.log(`End time: ${endTime}`);
-
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     console.error(`Canvas with ID '${canvasId}' not found.`);
@@ -42,7 +36,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
   // Generar nombres de variables si variableNames es un string
   if (typeof variableNames === 'string') {
     const [startNeuron, endNeuron] = neuronRange;
-    console.log('neuronRange:', neuronRange);
     variableNames = Array.from(
       { length: endNeuron - startNeuron + 1 },
       (_, i) => `${variableNames}_${startNeuron + i}`
@@ -58,12 +51,9 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
   }
 
   const [startNeuron, endNeuron] = neuronRange;
-  console.log(`Neuron range: [${startNeuron}, ${endNeuron}]`);
   
 
   if (startNeuron < 1 || Number(startNeuron) > Number(endNeuron) || endNeuron > data.length) {
-
-    console.log(data);
     console.error(`Invalid neuron range: [${startNeuron}, ${endNeuron}].`);
     return;
   }
@@ -72,7 +62,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
   const filteredData = data.slice(startTime, endTime);
 
   // Crear datasets para cada neurona en el rango
-  console.log(variableNames)
   const datasets = variableNames.map((variableName, i) => {
     const neuronIndex = startNeuron - 1 + i; // Índice real en los datos
   
@@ -99,7 +88,8 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     },
     options: {
       responsive: true, // Hacer que el gráfico sea dinámico
-      maintainAspectRatio: true, // Permitir que el gráfico se ajuste al tamaño del canvas
+      maintainAspectRatio: false, // Permitir que el gráfico se ajuste al tamaño del canvas
+      
       plugins: {
         title: {
           display: true,

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Chart } from 'chart.js';  // <-- Agregado para solucionar el error "Chart is not defined"
 import { generateSpikeGraph, generateVariableGraph } from './GraphGenerator';
+import { Range } from 'react-range';
+import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
 function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors,nextMonitorId,setNextMonitorId, variablesData,lastSimTime }) { 
@@ -25,7 +27,11 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   const [rangeEnd, setRangeEnd] = useState(1); // Estado para el rango de fin
   const [selectedOptions, setSelectedOptions] = useState([]); // Estado para las opciones seleccionadas
 
-  
+  const handleTimeRangeChange = ([start, end]) => {
+    setStartTime(start);
+    setEndTime(end);
+  };
+
   useEffect(() => {
     setName(neuron.name || '');
     setTipo(neuron.attributes.tipo || 'Spiking neuron');
@@ -39,7 +45,6 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     setRefractory(neuron.attributes.refractory || '');
     setFiringRate(neuron.attributes.firingRate || '');
     setQuantity(neuron.id !== undefined ? neuron.quantity : 1);
-    console.log(lastSimTime);
     if (neuron.id !== undefined) {
       const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
       setMonitorAttributes(neuronMonitors.map(monitor => ({
@@ -84,7 +89,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (activeTab === 'monitor' && neuron.hasMonitor) {
       const monitorData = variablesData.filter(data => data.monitorId === neuron.id);
       monitorData.forEach(({ variable, data }) => {
-        console.log('generating graph for variable:', variable, data);
+        console.log('generating graph for variable:', variable);
         generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable,[Number(rangeStart),Number(rangeEnd)], startTime, endTime);
       });
     }
@@ -167,7 +172,20 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
   const handleOptionChange = (e) => {
     const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+    console.log('Selected values:', selectedValues); // Verificar los valores seleccionados
     setSelectedOptions(selectedValues); // Actualizar el estado con las opciones seleccionadas
+
+    // Actualizar las variables del monitor correspondiente
+    const updatedMonitorAttributes = monitorAttributes.map((monitor, index) => {
+      if (index === 0) { // Suponiendo que el primer monitor es el relevante
+        return {
+          ...monitor,
+          variables: selectedValues,
+        };
+      }
+      return monitor;
+    });
+    setMonitorAttributes(updatedMonitorAttributes);
   };
 
   const addParameter = () => {
@@ -238,7 +256,6 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (isChecked) {
       // Crear monitor si no existe
       if (!neuron.hasMonitor) {
-        console.log(nextMonitorId)
         const newMonitor = {
           id: nextMonitorId,
           target: neuron.name,
@@ -399,49 +416,14 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
             <label htmlFor="functions">Functions:</label>
             <textarea id="functions" value={functions} onChange={handleFunctionChange} />
           </div>
+          
         </>
       )}
 {activeTab === 'monitor' && (
   <div className="monitor-container">
     <div className="monitor-inputs">
-      <div className="input-group">
-        <label>Inicio:
-          <input
-            type="number"
-            value={startTime}
-            onChange={(e) => setStartTime(Number(e.target.value))}
-            min="0"
-          />
-        </label>
-        <label>Fin:
-          <input
-            type="number"
-            value={endTime}
-            onChange={(e) => setEndTime(Number(e.target.value))}
-            min={startTime + 1}
-          />
-        </label>
-      </div>
-
-      <div className="input-group">
-        <label htmlFor="rangeStart">Rango Inicio:</label>
-        <input
-          type="number"
-          id="rangeStart"
-          value={rangeStart}
-          onChange={handleRangeStartChange}
-        />
-
-        <label htmlFor="rangeEnd">Rango Fin:</label>
-        <input
-          type="number"
-          id="rangeEnd"
-          value={rangeEnd}
-          onChange={handleRangeEndChange}
-        />
-      </div>
-
-      {monitorAttributes.map((monitor, index) => (
+      
+    {monitorAttributes.map((monitor, index) => (
         <div key={index} className="input-group">
           <label htmlFor={`monitor-target-${index}`}>Target:</label>
           <input 
@@ -454,10 +436,11 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
           {neuron.variablesMonitor?.length > 0 ? (
             <select
+            multiple
               id={`monitor-variables-${index}`}
-              multiple
               value={selectedOptions}
               onChange={handleOptionChange}
+              
             >
               {neuron.variablesMonitor.map((varName) => (
                 <option key={varName} value={varName}>{varName}</option>
@@ -476,6 +459,27 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           )}
         </div>
       ))}
+
+      <div className="input-group">
+        <label htmlFor="rangeStart">Rango Inicio:</label>
+        <input
+          type="number"
+          id="rangeStart"
+          value={rangeStart}
+          onChange={handleRangeStartChange}
+        />
+        
+      
+        <label htmlFor="rangeEnd">Rango Fin:</label>
+        <input
+          type="number"
+          id="rangeEnd"
+          value={rangeEnd}
+          onChange={handleRangeEndChange}
+        />
+      </div>
+
+      
     </div>
 
     <div className="monitor-graphics">
@@ -486,16 +490,22 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           </div>
         ))
       )}
+      <TimeRangeSlider
+          min={0}
+          max={lastSimTime}
+          step={1}
+          onChange={handleTimeRangeChange}
+        />
       
     </div>
   </div>
 )}
-
-
-
-      <div className="actions">
+<div className="actions">
         <button className="save" onClick={handleSave}>Save</button>
       </div>
+
+
+     
     </div>
   );
 }
