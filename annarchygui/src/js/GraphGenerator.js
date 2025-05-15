@@ -72,6 +72,8 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     const b = Math.floor((i * 60) % 255);
   
     return {
+      //pointHoverRadius: 5,
+      pointRadius: 0,
       label: `Neuron ${startNeuron + i}`,
       data: filteredData.map(point => point[neuronIndex]),
       borderColor: `rgba(${r}, ${g}, ${b}, 1)`,
@@ -115,3 +117,113 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     },
   });
 }
+
+/**
+ * Genera un gráfico de dispersión para visualizar los spikes de un rango de neuronas.
+ * @param {string} canvasId - ID del elemento canvas donde se renderizará el gráfico.
+ * @param {Array} spikeData - Datos de los spikes de las neuronas.
+ * @param {Array} neuronRange - Rango de neuronas a graficar [startNeuron, endNeuron].
+ * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
+ * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
+ */
+export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime = 1000, binSize = 1) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) {
+    console.error(`Canvas with ID '${canvasId}' not found.`);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error(`Unable to get 2D context for canvas with ID '${canvasId}'.`);
+    return;
+  }
+
+  const existingChart = Chart.getChart(canvas);
+  if (existingChart) {
+    existingChart.destroy(); // Destruir el gráfico existente
+  }
+
+  if (!Array.isArray(spikeData)) {
+    console.warn('spikeData no es un arreglo. Intentando convertirlo con Object.values.');
+    spikeData = Object.values(spikeData);
+  }
+
+  // Aplanar todos los spikes
+  const allSpikes = Array.isArray(spikeData[0]) ? spikeData.flat() : Object.values(spikeData).flat();
+
+  // Filtrar dentro del intervalo
+  const filteredSpikes = allSpikes.filter(spike => spike >= startTime && spike <= endTime);
+
+  if (startTime >= endTime) {
+    console.error(`Invalid time range: startTime (${startTime}) must be less than endTime (${endTime}).`);
+    return;
+  }
+
+  if (binSize <= 0) {
+    console.error(`Invalid bin size: binSize (${binSize}) must be greater than 0.`);
+    return;
+  }
+
+  const bins = Math.ceil((endTime - startTime) / binSize);
+  if (bins <= 0) {
+    console.error(`Invalid number of bins: ${bins}. Check startTime, endTime, and binSize.`);
+    return;
+  }
+
+  // Crear los bins
+  const counts = new Array(bins).fill(0);
+
+  filteredSpikes.forEach(spike => {
+    const index = Math.floor((spike - startTime) / binSize);
+    if (index >= 0 && index < bins) {
+      counts[index]++;
+    }
+  });
+
+  // Eje X: centro de cada bin
+  const labels = Array.from({ length: bins }, (_, i) => startTime + i * binSize + binSize / 2);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Spike Rate',
+          data: counts,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.2, // curva suave
+          pointRadius: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Spike Rate Over Time',
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Time (ms)',
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Spike Count',
+          },
+        },
+      },
+    },
+  });
+}
+

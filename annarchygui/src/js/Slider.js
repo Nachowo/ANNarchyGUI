@@ -58,7 +58,7 @@ const Slider = ({ min = 0, max = 1000, step = 1, onChange }) => {
             min={min}
             max={values[1]}
             onChange={(e) => handleChange([Number(e.target.value), values[1]])}
-            style={{ marginLeft: '10px', width: '60px' }}
+            style={{ marginLeft: '10px', width: '90px' }}
           />
         </label>
         <label>
@@ -69,7 +69,7 @@ const Slider = ({ min = 0, max = 1000, step = 1, onChange }) => {
             min={values[0]}
             max={max}
             onChange={(e) => handleChange([values[0], Number(e.target.value)])}
-            style={{ marginLeft: '10px', width: '60px' }}
+            style={{ marginLeft: '10px', width: '90px' }}
           />
         </label>
       </div>

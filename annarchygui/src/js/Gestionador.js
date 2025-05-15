@@ -3,7 +3,7 @@ import { generateSpikeGraph, generateVariableGraph } from './GraphGenerator';
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
-function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors,nextMonitorId,setNextMonitorId, variablesData,lastSimTime }) { 
+function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors, nextMonitorId, setNextMonitorId, variablesData, lastSimTime }) {
   const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
@@ -47,7 +47,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
       setMonitorAttributes(neuronMonitors.map(monitor => ({
         id: monitor.id,
-        target: neuron.name, 
+        target: neuron.name,
         variables: monitor.variables || []
       })));
     } else {
@@ -84,13 +84,30 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   }, [activeTab, neuron, monitorAttributes]);
 
   useEffect(() => {
-    if (activeTab === 'monitor' && neuron.hasMonitor) {      
-      const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-      monitorData.forEach(({ variable, data }) => {
-        generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable,[Number(rangeStart),Number(rangeEnd)], startTime, endTime);
-      });
+    if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
+      console.log("entro a useeffect");
+      console.log(monitorAttributes);
+      console.log(monitorAttributes[0].variables);
+      if (monitorAttributes[0].variables[0] === "spike") {
+        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        monitorData.forEach(({ variable, data }) => {
+          generateSpikeGraph(`spikeGraphCanvas`, data, startTime, endTime);
+        });
+        console.log("entro a spike");
+      } 
+      if (monitorAttributes[0].variables[0] === "raster_plot") {
+        console.log("entro a raster_plot");
+      } 
+      if (monitorAttributes[0].variables.length > 0) {
+        console.log("entro a variables");
+        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        monitorData.forEach(({ variable, data }) => {
+          generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime);
+        });
+      }
+
     }
-  }, [activeTab, neuron, variablesData, startTime, endTime,rangeStart, rangeEnd]);
+  }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions]);
 
   useEffect(() => {
     if (activeTab === 'monitor') {
@@ -206,12 +223,12 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       alert('Los campos Parámetros, Ecuaciones y Spike son requeridos para neuronas Spiking.');
       return;
     }
-  
+
     if (tipo === 'Rate-Coded neuron' && (!parameters.length || !equations || !firingRate)) {
       alert('Los campos Parámetros, Ecuaciones y Firing Rate son requeridos para neuronas Rate-Coded.');
       return;
     }
-  
+
     const updatedNeuron = {
       ...neuron,
       name: name || neuron.name,
@@ -236,19 +253,19 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
         firingRate,
       }
     };
-  
+
     const updatedMonitors = monitorAttributes.map(monitor => ({
       id: monitor.id,
       populationId: neuron.id,
       target: monitor.target,
       variables: monitor.variables
     }));
-  
+
     onSave(updatedNeuron, updatedMonitors);
   };
 
   const handleMonitorToggle = (e) => {
-    const isChecked = e.target.checked;    
+    const isChecked = e.target.checked;
 
     if (isChecked) {
       // Crear monitor si no existe
@@ -276,19 +293,19 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   return (
     <div className="neuron-form">
       <div className="tabs">
-        <button 
-          className={activeTab === 'neuron' ? 'active' : ''} 
+        <button
+          className={activeTab === 'neuron' ? 'active' : ''}
           onClick={() => setActiveTab('neuron')}
         >
           Neuron
         </button>
-        <button 
+        <button
           style={{
             backgroundColor: !neuron.hasMonitor ? '#ccc' : '',
             cursor: !neuron.hasMonitor ? 'not-allowed' : 'pointer'
           }}
-          className={activeTab === 'monitor' ? 'active' : ''} 
-          onClick={() => neuron.hasMonitor && setActiveTab('monitor')} 
+          className={activeTab === 'monitor' ? 'active' : ''}
+          onClick={() => neuron.hasMonitor && setActiveTab('monitor')}
           disabled={!neuron.hasMonitor}
         >
           Monitor
@@ -305,22 +322,22 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               </div>
             </div>
             <div className="column">
-          <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
-              <label htmlFor="has-monitor">Enable Monitor:</label>
-              <input
-                type="checkbox"
-                id="has-monitor"
-                checked={neuron.hasMonitor}
-                onChange={handleMonitorToggle}
-              />
-            </div>
+              <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
+                <label htmlFor="has-monitor">Enable Monitor:</label>
+                <input
+                  type="checkbox"
+                  id="has-monitor"
+                  checked={neuron.hasMonitor}
+                  onChange={handleMonitorToggle}
+                />
+              </div>
             </div>
           </div>
-         
 
-          
-            
-          
+
+
+
+
 
           <div className="row">
             <label htmlFor="neuron-type">Neuron Type:</label>
@@ -408,101 +425,115 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               <textarea id="firing-rate" value={firingRate} onChange={handleFiringRateChange} />
             </div>
           )}
-          
+
           <div className="row">
             <label htmlFor="functions">Functions:</label>
             <textarea id="functions" value={functions} onChange={handleFunctionChange} />
           </div>
-          
+
         </>
       )}
-{activeTab === 'monitor' && (
-  <div className="monitor-container">
-    <div className="monitor-inputs">
-      
-    {monitorAttributes.map((monitor, index) => (
-        <div key={index} className="input-group">
-          <label htmlFor={`monitor-target-${index}`}>Target:</label>
-          <input 
-            type="text" 
-            id={`monitor-target-${index}`} 
-            value={monitor.target || ''} 
-            disabled
-          />
+      {activeTab === 'monitor' && (
+        <div className="monitor-container">
+          <div className="monitor-inputs">
 
-          <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
-          {neuron.variablesMonitor?.length > 0 ? (
-            <select
-            multiple
-              id={`monitor-variables-${index}`}
-              value={selectedOptions}
-              onChange={handleOptionChange}
-              
-            >
-              {neuron.variablesMonitor.map((varName) => (
-                <option key={varName} value={varName}>{varName}</option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              id={`monitor-variables-${index}`}
-              value={(monitor.variables || []).join(', ')}
-              onChange={(e) => {
-                const valueArray = e.target.value.split(',').map(v => v.trim());
-                handleMonitorAttributeChange(index, 'variables', valueArray);
-              }}
-            />
-          )}
-        </div>
-      ))}
+            {monitorAttributes.map((monitor, index) => (
+              <div key={index} className="input-group">
+                <label htmlFor={`monitor-target-${index}`}>Target:</label>
+                <input
+                  type="text"
+                  id={`monitor-target-${index}`}
+                  value={monitor.target || ''}
+                  disabled
+                />
 
-      <div className="input-group">
-        <label htmlFor="rangeStart">Rango Inicio:</label>
-        <input
-          type="number"
-          id="rangeStart"
-          value={rangeStart}
-          onChange={handleRangeStartChange}
-        />
-        
-      
-        <label htmlFor="rangeEnd">Rango Fin:</label>
-        <input
-          type="number"
-          id="rangeEnd"
-          value={rangeEnd}
-          onChange={handleRangeEndChange}
-        />
-      </div>
+                <label htmlFor={`monitor-variables-${index}`}>Variables:</label>
+                {neuron.variablesMonitor?.length > 0 ? (
+                  <select
+                    multiple
+                    id={`monitor-variables-${index}`}
+                    value={selectedOptions}
+                    onChange={handleOptionChange}
 
-      
-    </div>
+                  >
+                    {neuron.variablesMonitor.map((varName) => (
+                      <option key={varName} value={varName}>{varName}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    id={`monitor-variables-${index}`}
+                    value={(monitor.variables || []).join(', ')}
+                    onChange={(e) => {
+                      const valueArray = e.target.value.split(',').map(v => v.trim());
+                      handleMonitorAttributeChange(index, 'variables', valueArray);
+                    }}
+                  />
+                )}
+              </div>
+            ))}
 
-    <div className="monitor-graphics">
-      {monitorAttributes.map((monitor, index) =>
-        monitor.variables.map((variable) => (
-          <div key={variable} className="graph-block">
-            <canvas id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>
+            <div className="input-group">
+              <label htmlFor="rangeStart">Rango Inicio:</label>
+              <input
+                type="number"
+                id="rangeStart"
+                value={rangeStart}
+                onChange={handleRangeStartChange}
+                style={{ width: '80px' }} // Aumentar el tamaño del input
+              />
+
+
+              <label htmlFor="rangeEnd">Rango Fin:</label>
+              <input
+                type="number"
+                id="rangeEnd"
+                value={rangeEnd}
+                onChange={handleRangeEndChange}
+                style={{ width: '80px' }} // Aumentar el tamaño del input
+              />
+            </div>
+
+
           </div>
-        ))
+
+          <div className="monitor-graphics">
+            {monitorAttributes.map((monitor, index) => (
+              
+              <div key={index} className="graph-block">
+                {console.log(monitorAttributes[0].variables[0])}
+                {monitor.variables.map((variable) => {
+                  if (monitorAttributes[0].variables[0] === 'spike') {
+                    return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
+                  } else if (monitorAttributes[0].variables[0] === 'raster_plot') {
+                    return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
+                  } else if (monitorAttributes[0].variables.length > 0) {
+                    return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
+                  }
+                })}
+              </div>
+            ))}
+            <TimeRangeSlider
+              min={0}
+              max={lastSimTime}
+              step={1}
+              onChange={handleTimeRangeChange}
+            />
+            {graphics.length > 0 && (
+              <div className="graph-block">
+                <canvas ref={canvasRef} width="640" height="480"></canvas>
+              </div>
+            )}
+          </div>
+        </div>
       )}
-      <TimeRangeSlider
-          min={0}
-          max={lastSimTime}
-          step={1}
-          onChange={handleTimeRangeChange}
-        />
-      
-    </div>
-  </div>
-)}
-<div className="actions">
+      <div className="actions">
         <button className="save" onClick={handleSave}>Save</button>
       </div>
 
 
-     
+
     </div>
   );
 }
