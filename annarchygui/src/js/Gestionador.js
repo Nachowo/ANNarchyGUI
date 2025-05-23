@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { generateSpikeGraph, generateVariableGraph } from './GraphGenerator';
+import { generateSpikeGraph, generateVariableGraph, generateRasterPlot } from './GraphGenerator';
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
@@ -85,21 +85,19 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
   useEffect(() => {
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
-      console.log("entro a useeffect");
-      console.log(monitorAttributes);
-      console.log(monitorAttributes[0].variables);
       if (monitorAttributes[0].variables[0] === "spike") {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
         monitorData.forEach(({ variable, data }) => {
           generateSpikeGraph(`spikeGraphCanvas`, data, startTime, endTime);
         });
-        console.log("entro a spike");
       } 
       if (monitorAttributes[0].variables[0] === "raster_plot") {
-        console.log("entro a raster_plot");
+        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        monitorData.forEach(({ variable, data }) => {
+          generateRasterPlot(`rasterPlotCanvas`, data, startTime, endTime);
+        });
       } 
       if (monitorAttributes[0].variables.length > 0) {
-        console.log("entro a variables");
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
         monitorData.forEach(({ variable, data }) => {
           generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime);

@@ -194,8 +194,7 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
           data: counts,
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          fill: true,
-          tension: 0.2, // curva suave
+          fill: false,
           pointRadius: 0,
         },
       ],
@@ -220,6 +219,90 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
           title: {
             display: true,
             text: 'Spike Count',
+          },
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Genera un gráfico de tipo raster plot para visualizar los spikes de múltiples neuronas.
+ * @param {string} canvasId - ID del elemento canvas donde se renderizará el gráfico.
+ * @param {Array} spikeData - Datos de los spikes de las neuronas.
+ * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
+ * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
+ */
+export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime = 1000) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) {
+    console.error(`Canvas with ID '${canvasId}' not found.`);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error(`Unable to get 2D context for canvas with ID '${canvasId}'.`);
+    return;
+  }
+
+  const existingChart = Chart.getChart(canvas);
+  if (existingChart) {
+    existingChart.destroy(); // Destruir el gráfico existente
+  }
+
+  if (!Array.isArray(spikeData)) {
+    console.warn('spikeData no es un arreglo. Intentando convertirlo con Object.values.');
+    spikeData = Object.values(spikeData);
+  }
+
+  // Asegurarse de que spikeData sea un arreglo de arreglos
+  const allSpikes = Array.isArray(spikeData[0]) ? spikeData : Object.values(spikeData);
+
+  // Filtrar los spikes dentro del rango de tiempo especificado
+  const filteredSpikes = allSpikes.map((spikes, neuronIndex) => 
+    spikes.filter(spikeTime => spikeTime >= startTime && spikeTime <= endTime)
+  );
+
+  // Crear datasets para cada neurona dentro del rango de tiempo
+  const datasets = filteredSpikes.map((spikes, neuronIndex) => {
+    return {
+      label: `Neuron ${neuronIndex + 1}`,
+      data: spikes.map(spikeTime => ({ x: spikeTime, y: neuronIndex + 1 })),
+      pointBackgroundColor: 'rgba(0, 0, 255, 1)',
+      pointRadius: 2,
+      showLine: false,
+    };
+  });
+
+  new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Raster Plot',
+        },
+        legend: {
+          display: false, // Ocultar los nombres de las neuronas en la leyenda
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Time',
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Neuron ID',
           },
         },
       },
