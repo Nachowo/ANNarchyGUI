@@ -24,3 +24,10 @@ annarchygui/yarn-error.log*
 
 # Ignore the ann directory in Backend
 Backend/annarchy/
+
+node_modules/
+.env
+build/
+dist/
+*.log
+__pycache__/
