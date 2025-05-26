@@ -50,7 +50,8 @@ export function getItemsFromLienzo(items) {
  * @returns {string} - Nombre procesado.
  */
 export function formatName(name) {
-  return name ? name.replace(/\s+/g, '_') : ''; // Verificar que name no sea undefined o null
+  // Reemplaza espacios y guiones por guion bajo
+  return name ? name.replace(/[\s-]+/g, '_') : ''; // Verificar que name no sea undefined o null
 }
 
 /**
@@ -70,32 +71,49 @@ export function generateNeuronCode(neurons) {
   });
 
   return uniqueNeurons.map(neuron => {
+    // Si es una neurona de Poisson, no generar modelo ANNarchy, solo retornar string vacío
+    if (
+      neuron.name.toLowerCase().includes('poisson') ||
+      (neuron.attributes.tipo && neuron.attributes.tipo.toLowerCase().includes('poisson'))
+    ) {
+      // El modelo Poisson se define en la generación de poblaciones
+      return '';
+    }
+    let prevCode = '';
+    // Si existe un campo prev en attributes y es un array, concatenar su contenido antes de la definición de la neurona
+    if (Array.isArray(neuron.attributes.prev)) {
+      prevCode = neuron.attributes.prev.join('\n') + '\n';
+    } else if (neuron.attributes.extra && typeof neuron.attributes.extra === 'string') {
+      // Si existe un campo extra como string, también lo ponemos antes
+      prevCode = neuron.attributes.extra + '\n';
+    }
     const formattedName = formatName(neuron.name);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
     const equations = `\t\t${neuron.equation}`;
-    const attributes = [
+    const attributesArr = [
       { key: 'spike', value: neuron.attributes.spike },
       { key: 'axon_spike', value: neuron.attributes.axon_spike },
       { key: 'reset', value: neuron.attributes.reset },
       //{ key: 'axon_reset', value: neuron.attributes.axon_reset },
-    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="""\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`).join(',\n');
-    const extras = [
+    ].filter(attr => attr.value !== '');
+    const attributes = attributesArr.map(attr => `\t${attr.key}="""\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`).join(',\n');
+    const extrasArr = [
       { key: 'refractory', value: neuron.attributes.refractory },
       { key: 'axon_reset', value: neuron.attributes.axon_reset },
       // Agrega más elementos aquí si es necesario
-    ].filter(extra => extra.value !== '').map(extra => `\t${extra.key}=${extra.value}`).join(',\n');
+    ].filter(extra => extra.value !== '');
+    const extras = extrasArr.map(extra => `\t${extra.key}=${extra.value}`).join(',\n');
 
-    return `${formattedName} = Neuron(
-  equations="""
-${equations}
-  """,
-  parameters="""
-${params}
-  """,
-${attributes},
-${extras}
-)`;
-  }).join('\n\n');
+    // Construcción de argumentos, evitando comas extra
+    let args = [];
+    args.push(`equations="""\n${equations}\n  """`);
+    args.push(`parameters="""\n${params}\n  """`);
+    if (attributes) args.push(attributes);
+    if (extras) args.push(extras);
+
+    // El prevCode debe ir ANTES de la definición de la neurona, fuera del bloque Neuron
+    return `${prevCode}${formattedName} = Neuron(\n  ${args.join(',\n  ')}\n)`;
+  }).filter(Boolean).join('\n\n');
 }
 
 /**
@@ -142,6 +160,16 @@ export function generatePopulationCode(items) {
     const count = populationNames[baseName] || 0;
     populationNames[baseName] = count + 1;
     const populationName = `${baseName}${count + 1}`;
+    // Si es una población de Poisson, usar PoissonPopulation
+    if (
+      item.name.toLowerCase().includes('poisson') ||
+      (item.attributes && item.attributes.tipo && item.attributes.tipo.toLowerCase().includes('poisson'))
+    ) {
+      // Buscar parámetros relevantes
+      const quantity = item.quantity || 100;
+      const rate = (item.attributes && item.attributes.parameters && item.attributes.parameters.rate) ? item.attributes.parameters.rate : 30.0;
+      return `${populationName} = PoissonPopulation(${quantity}, rates=${rate})`;
+    }
     return `${populationName} = Population(name='${populationName}', geometry=${item.quantity}, neuron=${baseName})`;
   }).join('\n\n');
 }
@@ -246,10 +274,6 @@ ${(monitors || []).map((monitor, index) => {
 function generateMonitorHandlingCode(monitors, jobId) {
   return `
 import json
-import base64
-import matplotlib.pyplot as plt
-from io import BytesIO
-
 monitor_results = {}
 
 for i in range(len(monitorsArreglo)):
@@ -258,67 +282,31 @@ for i in range(len(monitorsArreglo)):
   populationId = monitor['populationId']
   variables = monitor['variables']
   results = {}
-  graphs = {}
   for variable in variables:
     if variable == 'spike':
       data = monitors[i].get('spike')
       graf = monitors[i].histogram(data)
-      plt.figure()
-      plt.plot(graf)
-      plt.title("Number of spikes")
-      plt.xlabel("Time")
-      plt.ylabel("Frequency")
-      buffer = BytesIO()
-      plt.savefig(buffer, format='png')
-      buffer.seek(0)
-      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
-      buffer.close()
-      plt.close()
       results[variable] = {
         'data': data.tolist() if hasattr(data, 'tolist') else data,
-        'graph': graf.tolist() if hasattr(graf, 'tolist') else graf
+        'histogram': graf.tolist() if hasattr(graf, 'tolist') else graf
       }
-
     elif variable == 'raster_plot':
       data = monitors[i].get('spike')
       t, n = monitors[i].raster_plot(data)
-      plt.figure()
-      plt.plot(t, n, 'b.')
-      plt.title("Raster plot")
-      plt.xlabel("Time")
-      plt.ylabel("Neurons")
-      buffer = BytesIO()
-      plt.savefig(buffer, format='png')
-      buffer.seek(0)
-      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
-      buffer.close()
-      plt.close()
       results[variable] = {
         'data': data.tolist() if hasattr(data, 'tolist') else data,
-        'graph': {'t': t.tolist() if hasattr(t, 'tolist') else t, 'n': n.tolist() if hasattr(n, 'tolist') else n}
+        'raster': {
+          't': t.tolist() if hasattr(t, 'tolist') else t,
+          'n': n.tolist() if hasattr(n, 'tolist') else n
+        }
       }
-
     else:
       data = monitors[i].get(variable)
-      plt.figure()
-      plt.plot(data)
-      plt.title(f"Variable {variable}")
-      plt.xlabel("Time")
-      plt.ylabel("Value")
-      buffer = BytesIO()
-      plt.savefig(buffer, format='png')
-      buffer.seek(0)
-      graphs[variable] = base64.b64encode(buffer.read()).decode('utf-8')
-      buffer.close()
-      plt.close()
       results[variable] = {
-        'data': data.tolist() if hasattr(data, 'tolist') else data,
-        'graph': data.tolist() if hasattr(data, 'tolist') else data
+        'data': data.tolist() if hasattr(data, 'tolist') else data
       }
-
   monitor_results[populationId] = {
     'monitorId': monitorId,
-    'graphs': graphs,
     'results': results
   }
 
@@ -392,7 +380,6 @@ export async function sendCodeToBackend(code) {
     }
 
     const result = await response.json();
-    console.log('Respuesta del backend:', result);
     return result.job_id; // Ahora es una cadena UUID
   } catch (error) {
     console.error('Error al enviar el código al backend:', error);

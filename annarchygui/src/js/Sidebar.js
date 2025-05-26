@@ -133,17 +133,28 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
       hasMonitor: false,
       attributes: {
         tipo: 'Spiking neuron',
-        parameters: { g_na: 120, g_k: 36, g_l: 0.3, v_na: 50, v_k: -77, v_l: -54.4, C: 1 },
-        equations:  'dv: dv/dt = (I - (g_na*m^3*h*(v - v_na) + g_k*n^4*(v - v_k) + g_l*(v - v_l)) / C) : 1' ,
+        parameters: {
+          C: 1.0,
+          VL: -59.387,
+          VK: -82.0,
+          VNa: 45.0,
+          gK: 36.0,
+          gNa: 120.0,
+          gL: 0.3,
+          vt: 30.0,
+          I: 0.0
+        },
+        equations: `# Previous membrane potential\nprev_V = V\n\n# Voltage-dependency parameters\nan = 0.01 * (V + 60.0) / (1.0 - exp(-0.1* (V + 60.0) ) )\nam = 0.1 * (V + 45.0) / (1.0 - exp (- 0.1 * ( V + 45.0 )))\nah = 0.07 * exp(- 0.05 * ( V + 70.0 ))\n\nbn = 0.125 * exp (- 0.0125 * (V + 70.0))\nbm = 4.0 *  exp (- (V + 70.0) / 80.0)\nbh = 1.0/(1.0 + exp (- 0.1 * ( V + 40.0 )) )\n\n# Alpha/Beta functions\ndn/dt = an * (1.0 - n) - bn * n : init = 0.3, midpoint\ndm/dt = am * (1.0 - m) - bm * m : init = 0.0, midpoint\ndh/dt = ah * (1.0 - h) - bh * h : init = 0.6, midpoint\n\n# Membrane equation\nC * dV/dt = gL * (VL - V ) + gK * n**4 * (VK - V) + gNa * m**3 * h * (VNa - V) + I : midpoint\n`,
         functions: {},
-        variables: { v: -65, m: 0.0529, h: 0.5961, n: 0.3177 },
-        spike: '',
+        variables: { V: -65, m: 0.0, h: 0.6, n: 0.3 },
+        spike: '(V > vt) and (prev_V <= vt)',
         axon_spike: '',
         reset: '',
         axon_reset: '',
         refractory: '',
+        prev: ["dt=0.01", "setup(dt=dt)"]
       },
-      variablesMonitor: ['v','m','h','n'], // Sin cambios
+      variablesMonitor: ['V','m','h','n'],
     },
     {
       id: 4,

@@ -26,6 +26,8 @@ function App() {
   const [variablesData, setVariablesData] = useState([]);
   const [spikesData, setSpikesData] = useState([]);
   const [lastSimTime, setLastSimTime] = useState(0); // Estado para el último tiempo de simulación
+  const [elapsedTime, setElapsedTime] = useState(0); // Tiempo transcurrido en ms
+  const [timerInterval, setTimerInterval] = useState(null);
 
   useEffect(() => {
     // Actualizar el código ANNarchy cuando simulationTime cambie
@@ -40,6 +42,7 @@ function App() {
 
   const parseBackendResponse = (responseString) => {
     try {
+      console.log('Respuesta del backend:', responseString);
       // Saltar hasta el primer "{" en el string
       const jsonString = responseString.substring(responseString.indexOf('{'));
 
@@ -72,61 +75,58 @@ function App() {
     setVariablesData([]);
     setSpikesData([]);
 
+    setElapsedTime(0);
+    if (timerInterval) clearInterval(timerInterval);
+    const interval = setInterval(() => {
+      setElapsedTime((prev) => prev + 10);
+    }, 10);
+    setTimerInterval(interval);
+
     const itemsList = items;
     const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
 
-    setLoadingProgress(33); // Primera etapa: Enviando
+    setLoadingStage('sending');
+    setLoadingProgress(20); // Primera etapa: Enviando
     setIsLoading(true); // Mostrar el modal de carga
 
     try {
       const jobId = await sendCodeToBackend(code);
-      setLoadingProgress(66); // Segunda etapa: Esperando respuesta
-      pollJobStatus(jobId);
+      setLoadingStage('simulating');
+      setLoadingProgress(50); // Segunda etapa: Simulando
+      pollJobStatus(jobId, interval);
     } catch (error) {
       console.error('Error al enviar el código al backend:', error);
       setSimulationOutput('Error al ejecutar la simulación.');
       setShowOutputModal(true); // Mostrar el modal de resultado
       setIsLoading(false); // Ocultar el modal de carga
       setLoadingProgress(0); // Reiniciar progreso
+      setLoadingStage('');
+      clearInterval(interval);
+      setTimerInterval(null);
     }
   };
 
-  const pollJobStatus = async (jobId) => {
+  const pollJobStatus = async (jobId, interval) => {
     const pollInterval = 2000; // Intervalo de polling en milisegundos
 
     const renderMonitorGraphs = (jsonResponse) => {
       Object.values(jsonResponse).forEach((monitor) => {
-        // Actualizar gráficos y monitores
-        Object.values(monitor.graphs).forEach((graphBase64) => {
-          const imgElement = document.createElement('img');
-          imgElement.src = `data:image/png;base64,${graphBase64}`;
-          imgElement.alt = 'Monitor Graph';
-          imgElement.style.maxWidth = '100%';
-
-          setGraphics((prevGraphics) => [...prevGraphics, imgElement]);
-          setGraphicMonitors((prevMonitors) => [...prevMonitors, monitor.monitorId]);
-        });
-
-        // Actualizar variablesData
+        // Solo procesar datos crudos
         Object.entries(monitor.results).forEach(([variable, result]) => {
           if (result.data) {
             setVariablesData((prevData) => [
               ...prevData,
-              { monitorId: monitor.monitorId, variable, data: result.data },
+              {
+                monitorId: monitor.monitorId,
+                variable,
+                data: result.data,
+                histogram: result.histogram || null,
+                raster: result.raster || null,
+              },
             ]);
           }
         });
-
-        // Actualizar spikesData si corresponde
-        if (monitor.results.spike && monitor.results.spike.data) {
-          setSpikesData((prevData) => [
-            ...prevData,
-            { monitorId: monitor.monitorId, data: monitor.results.spike.data },
-          ]);
-        }
       });
-      console.log('Datos de variables:', variablesData);
-      console.log('Datos de spikes:', spikesData);
     };
 
     const checkStatus = async () => {
@@ -140,17 +140,24 @@ function App() {
         
 
         if (status === 'En progreso' || status === 'En espera' || error) {
-          // Continuar con el polling
+          setLoadingStage('simulating');
+          setLoadingProgress(50);
           setTimeout(checkStatus, pollInterval);
         } else {
+          setLoadingStage('analyzing');
+          setLoadingProgress(80); // Tercera etapa: Analizando resultados
           const json = parseBackendResponse(output);
-          setLoadingProgress(100); // Tercera etapa: Analizando resultados
           let finalOutput = output || error || status || 'Simulación completada.';
           renderMonitorGraphs(json); // Mostrar los gráficos recibidos
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
           setIsLoading(false);
-          setTimeout(() => setLoadingProgress(0), 500); // Reiniciar progreso tras un breve retraso
+          setTimeout(() => {
+            setLoadingProgress(0);
+            setLoadingStage('');
+          }, 500);
+          clearInterval(interval);
+          setTimerInterval(null);
         }
       } catch (e) {
         if (e.message.includes('404')) {
@@ -158,9 +165,14 @@ function App() {
           setShowOutputModal(true);
           setIsLoading(false);
           setLoadingProgress(0); // Reiniciar progreso
+          setLoadingStage('');
+          clearInterval(interval);
+          setTimerInterval(null);
           return;
         }
         // Error de red o similar, seguir intentando
+        setLoadingStage('simulating');
+        setLoadingProgress(50);
         setTimeout(checkStatus, pollInterval);
       }
     };
@@ -213,8 +225,17 @@ function App() {
       </div>
       {isLoading && (
         <div className="loading-modal">
-          <div className="loading-content">
-            <h3>Simulating...</h3>
+          <div className="loading-content" style={{ width: '500px' }}>
+            <h3>Simulation</h3>
+            <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+              {loadingStage === 'sending' && 'Sending simulation...'}
+              {loadingStage === 'simulating' && 'Simulating...'}
+              {loadingStage === 'analyzing' && 'Analyzing results...'}
+              {!loadingStage && 'Preparing...'}
+            </div>
+            <div style={{ marginBottom: '10px', fontSize: '1.1em' }}>
+              Time elapsed: {Math.floor(elapsedTime / 1000)}.{String(elapsedTime % 1000).padStart(3, '0')} s
+            </div>
             <div className="progress-bar-container">
               <div
                 className="progress-bar-fill"
@@ -228,6 +249,17 @@ function App() {
         <div className="output-modal">
           <div className="output-content">
             <h3>Simulation completed</h3>
+            <div style={{ margin: '16px 0', color: simulationOutput.includes('Error') ? 'red' : 'inherit' }}>
+              {simulationOutput.includes('Error')
+                ? simulationOutput
+                : <>
+                    
+                    <div style={{ marginTop: '10px', fontWeight: 'bold', color: '#333' }}>
+                      Total time: {Math.floor(elapsedTime / 1000)}.{String(elapsedTime % 1000).padStart(3, '0')} s
+                    </div>
+                  </>
+              }
+            </div>
             <button onClick={() => setShowOutputModal(false)}>Close</button>
           </div>
         </div>

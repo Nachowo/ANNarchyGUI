@@ -87,21 +87,27 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
       if (monitorAttributes[0].variables[0] === "spike") {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        if(monitorData[0].variable === "spike") {
         monitorData.forEach(({ variable, data }) => {
           generateSpikeGraph(`spikeGraphCanvas`, data, startTime, endTime);
         });
+      }
       } 
       if (monitorAttributes[0].variables[0] === "raster_plot") {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        console.log("Monitor Data for Raster Plot:", monitorData);
+        if(monitorData[0].variable === "spike") {
         monitorData.forEach(({ variable, data }) => {
           generateRasterPlot(`rasterPlotCanvas`, data, startTime, endTime);
         });
+      }
       } 
       if (monitorAttributes[0].variables.length > 0) {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
+        if(monitorData[0].variable === monitorAttributes[0].variables[0]) {
         monitorData.forEach(({ variable, data }) => {
           generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime);
-        });
+        });}
       }
 
     }
@@ -112,6 +118,30 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       setEndTime(lastSimTime); // Actualizar endTime con el valor de lastSimTime cuando se muestre el gráfico
     }
   }, [activeTab, lastSimTime]); // Ejecutar este efecto cuando activeTab o lastSimTime cambien
+
+  // Limpiar gráficos cuando cambia la variable seleccionada
+  useEffect(() => {
+    if (activeTab === 'monitor') {
+      // Limpiar todos los canvas de gráficos
+      const canvasIds = ['spikeGraphCanvas', 'rasterPlotCanvas'];
+      if (neuron.variablesMonitor) {
+        neuron.variablesMonitor.forEach(variable => {
+          const canvas = document.getElementById(`variableGraphCanvas-${variable}`);
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        });
+      }
+      canvasIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      });
+    }
+  }, [selectedOptions, activeTab, neuron.variablesMonitor]);
 
   const handleNameChange = (e) => {
     setName(e.target.value);
@@ -217,6 +247,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   };
 
   const handleSave = () => {
+    /** 
     if (tipo === 'Spiking neuron' && (!parameters.length || !equations || !spike)) {
       alert('Los campos Parámetros, Ecuaciones y Spike son requeridos para neuronas Spiking.');
       return;
@@ -226,7 +257,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
       alert('Los campos Parámetros, Ecuaciones y Firing Rate son requeridos para neuronas Rate-Coded.');
       return;
     }
-
+*/
     const updatedNeuron = {
       ...neuron,
       name: name || neuron.name,
@@ -287,6 +318,15 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
     setMonitorAttributes([]); // Actualizar el estado local si es necesario
   };
+
+  useEffect(() => {
+    if (activeTab === 'monitor' && neuron.hasMonitor) {
+      // Si hay una selección previa de variables para este monitor, restaurarla
+      if (monitorAttributes.length > 0 && monitorAttributes[0].variables && monitorAttributes[0].variables.length > 0) {
+        setSelectedOptions(monitorAttributes[0].variables);
+      }
+    }
+  }, [activeTab, neuron, monitorAttributes]);
 
   return (
     <div className="neuron-form">
@@ -498,18 +538,37 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
           <div className="monitor-graphics">
             {monitorAttributes.map((monitor, index) => (
-              
-              <div key={index} className="graph-block">
-                {console.log(monitorAttributes[0].variables[0])}
-                {monitor.variables.map((variable) => {
-                  if (monitorAttributes[0].variables[0] === 'spike') {
+              <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
+                {selectedOptions.length === 1 && monitor.variables.includes(selectedOptions[0]) && (() => {
+                  const variable = selectedOptions[0];
+                  const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+                  if (!hasData) {
+                    // Mostrar recuadro de aviso si no hay datos para la variable seleccionada
+                    return (
+                      <div style={{
+                        width: 640,
+                        height: 480,
+                        background: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.5rem',
+                        color: '#333',
+                        border: '2px dashed #aaa',
+                        zIndex: 2
+                      }}>
+                        No hay datos para la variable seleccionada
+                      </div>
+                    );
+                  }
+                  if (variable === 'spike') {
                     return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
-                  } else if (monitorAttributes[0].variables[0] === 'raster_plot') {
+                  } else if (variable === 'raster_plot') {
                     return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
-                  } else if (monitorAttributes[0].variables.length > 0) {
+                  } else {
                     return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
                   }
-                })}
+                })()}
               </div>
             ))}
             <TimeRangeSlider
@@ -518,6 +577,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               step={1}
               onChange={handleTimeRangeChange}
             />
+            {/* El canvasRef y graphics legacy se mantienen por compatibilidad, pero no se usan para monitorización */}
             {graphics.length > 0 && (
               <div className="graph-block">
                 <canvas ref={canvasRef} width="640" height="480"></canvas>
