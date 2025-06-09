@@ -4,7 +4,7 @@ import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
 function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors, nextMonitorId, setNextMonitorId, variablesData, lastSimTime }) {
-  const [activeTab, setActiveTab] = useState('neuron'); // Pestaña predeterminada
+  const [activeTab, setActiveTab] = useState('neuron'); 
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
   const [equations, setEquations] = useState(neuron.attributes.equations || '');
@@ -24,6 +24,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   const [rangeStart, setRangeStart] = useState(1); // Estado para el rango de inicio
   const [rangeEnd, setRangeEnd] = useState(1); // Estado para el rango de fin
   const [selectedOptions, setSelectedOptions] = useState([]); // Estado para las opciones seleccionadas
+  const [showLabels, setShowLabels] = useState(true); // Estado para mostrar/ocultar etiquetas
 
   const handleTimeRangeChange = ([start, end]) => {
     setStartTime(start);
@@ -87,31 +88,37 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
       if (monitorAttributes[0].variables[0] === "spike") {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        if(monitorData[0].variable === "spike") {
+        if(monitorData[0] && monitorData[0].variable === "spike") {
         monitorData.forEach(({ variable, data }) => {
-          generateSpikeGraph(`spikeGraphCanvas`, data, startTime, endTime);
+          generateSpikeGraph('spikeGraphCanvas', data, startTime, endTime, 1, showLabels);
         });
       }
       } 
       if (monitorAttributes[0].variables[0] === "raster_plot") {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        console.log("Monitor Data for Raster Plot:", monitorData);
-        if(monitorData[0].variable === "spike") {
+        if(monitorData[0] && monitorData[0].variable === "spike") {
         monitorData.forEach(({ variable, data }) => {
-          generateRasterPlot(`rasterPlotCanvas`, data, startTime, endTime);
+          generateRasterPlot('rasterPlotCanvas', data, startTime, endTime, showLabels);
         });
       }
       } 
       if (monitorAttributes[0].variables.length > 0) {
         const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        if(monitorData[0].variable === monitorAttributes[0].variables[0]) {
-        monitorData.forEach(({ variable, data }) => {
-          generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime);
-        });}
+        if(monitorData[0] && monitorData[0].variable === monitorAttributes[0].variables[0]) {
+          monitorData.forEach(({ variable, data }) => {
+            if (variable === 'spike') {
+              generateSpikeGraph('spikeGraphCanvas', data, startTime, endTime, 1, showLabels);
+            } else if (variable === 'raster_plot') {
+              generateRasterPlot('rasterPlotCanvas', data, startTime, endTime, showLabels);
+            } else {
+              generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime, showLabels);
+            }
+          });
+        }
       }
 
     }
-  }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions]);
+  }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions, showLabels]);
 
   useEffect(() => {
     if (activeTab === 'monitor') {
@@ -236,10 +243,6 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
   const removeParameter = (index) => {
     setParameters(parameters.filter((_, i) => i !== index));
-  };
-
-  const addFunction = () => {
-    setFunctions([...functions, { name: '', value: '' }]);
   };
 
   const removeFunction = (index) => {
@@ -537,6 +540,13 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           </div>
 
           <div className="monitor-graphics">
+            <button
+              className="toggle-labels"
+              onClick={() => setShowLabels((prev) => !prev)}
+              style={{ marginBottom: '10px' }}
+            >
+              {showLabels ? 'Ocultar etiquetas' : 'Mostrar etiquetas'}
+            </button>
             {monitorAttributes.map((monitor, index) => (
               <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
                 {selectedOptions.length === 1 && monitor.variables.includes(selectedOptions[0]) && (() => {

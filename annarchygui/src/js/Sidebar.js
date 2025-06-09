@@ -154,7 +154,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         refractory: '',
         prev: ["dt=0.01", "setup(dt=dt)"]
       },
-      variablesMonitor: ['V','m','h','n'],
+      variablesMonitor: ['V','m','h','n', 'spike','raster_plot'], 
     },
     {
       id: 4,
@@ -163,7 +163,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
       quantity: 1,
       hasMonitor: false,
       attributes: {
-        tipo: 'Rate-Coded neuron',
+        tipo: 'Spiking neuron',
         parameters: { rate: 10.0 },
         equations:  'spike: spike = 1.0 * (rand() < rate * dt) : boolean' ,
         functions: {},
@@ -174,7 +174,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['spike','rate','raster_plot'], // Sin cambios
+      variablesMonitor: ['spike','raster_plot'], 
     }
   ];
 

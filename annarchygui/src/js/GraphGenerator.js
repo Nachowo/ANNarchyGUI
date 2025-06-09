@@ -9,7 +9,7 @@ import { Chart } from 'chart.js';
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
-export function generateVariableGraph(canvasId, data, variableNames, neuronRange, startTime = 0, endTime = data.length) {
+export function generateVariableGraph(canvasId, data, variableNames, neuronRange, startTime = 0, endTime = data.length, showLabels = true) {
 
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
@@ -74,7 +74,7 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     return {
       //pointHoverRadius: 5,
       pointRadius: 0,
-      label: `Neuron ${startNeuron + i}`,
+      label: showLabels ? `Neuron ${startNeuron + i}` : undefined,
       data: filteredData.map(point => point[neuronIndex]),
       borderColor: `rgba(${r}, ${g}, ${b}, 1)`,
       borderWidth: 2,
@@ -97,7 +97,10 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
       plugins: {
         title: {
           display: true,
-          text: `${variableName} graph for neurons ${startNeuron} to ${endNeuron}`,
+          text: showLabels ? `${variableName} graph for neurons ${startNeuron} to ${endNeuron}` : '',
+        },
+        legend: {
+          display: showLabels,
         },
       },
       scales: {
@@ -126,7 +129,7 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
-export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime = 1000, binSize = 1) {
+export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime = 1000, binSize = 1, showLabels = true) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     console.error(`Canvas with ID '${canvasId}' not found.`);
@@ -190,7 +193,7 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
       labels: labels,
       datasets: [
         {
-          label: 'Spike Rate',
+          label: showLabels ? 'Spike Rate' : undefined,
           data: counts,
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -205,7 +208,10 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
       plugins: {
         title: {
           display: true,
-          text: 'Spike Rate Over Time',
+          text: showLabels ? 'Spike Rate Over Time' : '',
+        },
+        legend: {
+          display: showLabels,
         },
       },
       scales: {
@@ -233,7 +239,7 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
-export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime = 1000) {
+export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime = 1000, showLabels = true) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     console.error(`Canvas with ID '${canvasId}' not found.`);
@@ -267,7 +273,7 @@ export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime =
   // Crear datasets para cada neurona dentro del rango de tiempo
   const datasets = filteredSpikes.map((spikes, neuronIndex) => {
     return {
-      label: `Neuron ${neuronIndex + 1}`,
+      label: showLabels ? `Neuron ${neuronIndex + 1}` : undefined,
       data: spikes.map(spikeTime => ({ x: spikeTime, y: neuronIndex + 1 })),
       pointBackgroundColor: 'rgba(0, 0, 255, 1)',
       pointRadius: 2,
@@ -286,10 +292,10 @@ export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime =
       plugins: {
         title: {
           display: true,
-          text: 'Raster Plot',
+          text: showLabels ? 'Raster Plot' : '',
         },
         legend: {
-          display: false, // Ocultar los nombres de las neuronas en la leyenda
+          display: showLabels,
         },
       },
       scales: {
