@@ -452,7 +452,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
-      <button className="debug-button" onClick={debugear}>Debug</button>
     </div>
     
   );

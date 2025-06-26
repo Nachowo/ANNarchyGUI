@@ -15,7 +15,7 @@ function App() {
   const [simulationOutput, setSimulationOutput] = useState(''); // Estado para el resultado de la simulación
   const [isLoading, setIsLoading] = useState(false); // Estado para mostrar/ocultar el modal de carga
   const [showOutputModal, setShowOutputModal] = useState(false); // Estado para mostrar/ocultar el modal de resultado
-  const [simulationTime, setSimulationTime] = useState(10); // Estado para el tiempo de simulación
+  const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Estado para la asignación de monitores
   const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
@@ -265,9 +265,6 @@ function App() {
           </div>
         </div>
       )}
-      <button onClick={() => alert(`El largo del arreglo de gráficos es: ${graphics.length} y el arreglo de monitores es: ${graphicMonitors}`)}>
-        Mostrar Largo de Gráficos
-      </button>
     </div>
   );
 }

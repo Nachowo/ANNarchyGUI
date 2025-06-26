@@ -31,6 +31,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     setEndTime(end);
   };
 
+  // Solo reinicializa los valores del formulario cuando cambia el id de la neurona
   useEffect(() => {
     setName(neuron.name || '');
     setTipo(neuron.attributes.tipo || 'Spiking neuron');
@@ -44,6 +45,10 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     setRefractory(neuron.attributes.refractory || '');
     setFiringRate(neuron.attributes.firingRate || '');
     setQuantity(neuron.id !== undefined ? neuron.quantity : 1);
+  }, [neuron.id]);
+
+  // Sincroniza solo los monitores cuando cambian
+  useEffect(() => {
     if (neuron.id !== undefined) {
       const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
       setMonitorAttributes(neuronMonitors.map(monitor => ({
@@ -54,7 +59,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     } else {
       setMonitorAttributes([]);
     }
-  }, [neuron]);
+  }, [neuron.id, monitors]);
 
   useEffect(() => {
     if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
@@ -564,7 +569,17 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
                         if (hasData) {
                           const canvas = document.getElementById(canvasId);
                           if (canvas) {
-                            const url = canvas.toDataURL('image/png');
+                            // Crear un canvas temporal más grande con fondo blanco y margen
+                            const margin = 32; // margen en píxeles
+                            const tempCanvas = document.createElement('canvas');
+                            tempCanvas.width = canvas.width + margin * 2;
+                            tempCanvas.height = canvas.height + margin * 2;
+                            const ctx = tempCanvas.getContext('2d');
+                            ctx.fillStyle = '#fff';
+                            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                            // Dibujar el gráfico original centrado con margen
+                            ctx.drawImage(canvas, margin, margin);
+                            const url = tempCanvas.toDataURL('image/png');
                             const a = document.createElement('a');
                             a.href = url;
                             a.download = `${variable}_graph.png`;
@@ -593,37 +608,54 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
               } else {
                 canvasId = `variableGraphCanvas-${variable}`;
               }
+              // Mostrar el recuadro aunque no haya variable seleccionada
               return (
                 <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
-                  {/* Renderizado original del gráfico */}
-                  {selectedOptions.length === 1 && monitor.variables.includes(variable) && (() => {
-                    const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
-                    if (!hasData) {
-                      return (
-                        <div style={{
-                          width: 640,
-                          height: 480,
-                          background: '#fff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '1.5rem',
-                          color: '#333',
-                          border: '2px dashed #aaa',
-                          zIndex: 2
-                        }}>
-                          Run a simulation first to see the graph
-                        </div>
-                      );
-                    }
-                    if (variable === 'spike') {
-                      return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
-                    } else if (variable === 'raster_plot') {
-                      return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
-                    } else {
-                      return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
-                    }
-                  })()}
+                  {selectedOptions.length === 1 && monitor.variables.includes(variable) ? (
+                    (() => {
+                      const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+                      if (!hasData) {
+                        return (
+                          <div style={{
+                            width: 640,
+                            height: 480,
+                            background: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.5rem',
+                            color: '#333',
+                            border: '2px dashed #aaa',
+                            zIndex: 2
+                          }}>
+                            Run a simulation first to see the graph
+                          </div>
+                        );
+                      }
+                      if (variable === 'spike') {
+                        return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
+                      } else if (variable === 'raster_plot') {
+                        return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
+                      } else {
+                        return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
+                      }
+                    })()
+                  ) : (
+                    <div style={{
+                      width: 640,
+                      height: 480,
+                      background: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.5rem',
+                      color: '#333',
+                      border: '2px dashed #aaa',
+                      zIndex: 2
+                    }}>
+                      Select a variable to display its graph
+                    </div>
+                  )}
                 </div>
               );
             })}

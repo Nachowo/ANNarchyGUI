@@ -330,9 +330,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
             </div>
             <button onClick={() => setShowSynapseGestionador(true)}>Create Synapse</button>
             <div>
-          </div>
-            <button onClick={handleAssignMonitorClick}>Assign Monitor</button> {/* Nuevo botón */}
-            <div>
+          
           </div>
           </div>
         )}
