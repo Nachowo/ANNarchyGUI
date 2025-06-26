@@ -331,6 +331,14 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
 
           const isNeuronConnection = origenItem.type === 'Población neuronal' && destinoItem.type === 'Población neuronal';
 
+          // Determinar color según el tipo de conexión (exc/inhib)
+          let color = 'black';
+          if (connection.connections && connection.connections.target === 'exc') {
+            color = '#1e88e5'; // Azul para excitatoria (ahora)
+          } else if (connection.connections && connection.connections.target === 'inh') {
+            color = '#e53935'; // Rojo para inhibitoria (ahora)
+          }
+
           return (
             <React.Fragment key={index}>
               <line
@@ -355,13 +363,31 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke="black"
+                stroke={color}
                 strokeWidth="2"
                 markerEnd="url(#arrowhead)"
                 pointerEvents="none"
                 onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
-                onMouseLeave={(e) => e.target.setAttribute('stroke', 'black')}
+                onMouseLeave={(e) => e.target.setAttribute('stroke', color)}
               />
+              {/* Etiqueta sobre la flecha indicando el tipo de conexión con simbología */}
+              {connection.connections && connection.connections.rule && (
+                <text
+                  x={(x1 + x2) / 2}
+                  y={(y1 + y2) / 2 - 8}
+                  textAnchor="middle"
+                  fontSize="13"
+                  fill={color}
+                  fontWeight="bold"
+                  style={{ pointerEvents: 'none', userSelect: 'none' }}
+                >
+                  {connection.connections.rule === 'all_to_all'
+                    ? 'n:n'
+                    : connection.connections.rule === 'one_to_one'
+                    ? '1:1'
+                    : connection.connections.rule}
+                </text>
+              )}
             </React.Fragment>
           );
         })}
