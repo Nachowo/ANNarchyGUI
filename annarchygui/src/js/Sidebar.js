@@ -4,7 +4,7 @@ import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
 import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
 
-function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime }) {
+function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime, stepTime }) {
   const [activeTab, setActiveTab] = useState('Opciones');
   const [customModels, setCustomModels] = useState([]);
   const [showGestionador, setShowGestionador] = useState(false);
@@ -152,7 +152,6 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         reset: '',
         axon_reset: '',
         refractory: '',
-        prev: ["dt=0.01", "setup(dt=dt)"]
       },
       variablesMonitor: ['V','m','h','n', 'spike','raster_plot'], 
     },
@@ -228,7 +227,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   };
 
   const handleGenerateNetworkCode = () => {
-    const code = generateANNarchyCode(items, connections, monitors, simulationTime);
+    const code = generateANNarchyCode(items, connections, monitors, simulationTime, stepTime);
     setNetworkCode(code);
   };
 
@@ -240,7 +239,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   useEffect(() => {
 
     handleGenerateNetworkCode();
-  }, [items, connections, monitors]);
+  }, [items, connections, monitors,stepTime]);
 
   useEffect(() => {
     handleGenerateNetworkCode();

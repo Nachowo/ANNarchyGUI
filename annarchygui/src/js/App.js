@@ -4,6 +4,8 @@ import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
 import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
 import { Chart, registerables } from 'chart.js';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { TextField, Tooltip, IconButton, InputAdornment } from '@mui/material';
 Chart.register(...registerables);
 
 
@@ -16,6 +18,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false); // Estado para mostrar/ocultar el modal de carga
   const [showOutputModal, setShowOutputModal] = useState(false); // Estado para mostrar/ocultar el modal de resultado
   const [simulationTime, setSimulationTime] = useState(1000); // Estado para el tiempo de simulación
+  const [timeStep, setTimeStep] = useState(0.1); // Estado para el tamaño de paso temporal
   const [isCreatingMonitor, setIsCreatingMonitor] = useState(false); // Estado para la creación de monitores
   const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Estado para la asignación de monitores
   const [monitors, setMonitors] = useState([]); // Estado para los monitores creados
@@ -32,7 +35,7 @@ function App() {
   useEffect(() => {
     // Actualizar el código ANNarchy cuando simulationTime cambie
     const itemsList = items;
-  }, [simulationTime]);
+  }, [simulationTime, timeStep]);
 
   useEffect(() => {
     if (showOutputModal) {
@@ -83,7 +86,7 @@ function App() {
     setTimerInterval(interval);
 
     const itemsList = items;
-    const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime);
+    const code = generateANNarchyCode(itemsList, connections, monitors, simulationTime, timeStep);
 
     setLoadingStage('sending');
     setLoadingProgress(20); // Primera etapa: Enviando
@@ -185,13 +188,39 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div className="simulation-controls">
-          <label htmlFor="simulation-time" className="simulateLabel">Simulation Time:</label>
-          <input
-            type="number"
-            id="simulation-time"
-            value={simulationTime}
-            onChange={(e) => setSimulationTime(e.target.value)}
-          />
+          <label htmlFor="simulation-time" className="simulateLabel" style={{ marginRight: '4px', display: 'inline-flex', alignItems: 'center' }}>
+            Simulation Time
+          </label>
+          <Tooltip
+            title="Total simulation time in milliseconds. For example, 1000 means 1 second."
+            placement="bottom"
+            arrow
+          >
+            <input
+              type="number"
+              id="simulation-time"
+              value={simulationTime}
+              onChange={(e) => setSimulationTime(e.target.value)}
+              min={1}
+              style={{ width: '120px', marginRight: '16px', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 8px', fontSize: '14px' }}
+            />
+          </Tooltip>
+          <label htmlFor="dt" className="simulateLabel" style={{ marginRight: '4px', display: 'inline-flex', alignItems: 'center' }}>
+            Time Step
+          </label>
+          <Tooltip
+            title="The time step (dt) determines how much the simulation advances in each iteration. Smaller values provide higher precision and stability but make the simulation slower; larger values speed it up but may cause numerical errors."
+            placement="bottom"
+            arrow
+          >
+            <input
+              type="number"
+              id="dt"
+              value={timeStep}
+              onChange={e => setTimeStep(Number(e.target.value))}
+              style={{ width: '120px', marginRight: '16px', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 8px', fontSize: '14px' }}
+            />
+          </Tooltip>
           <button className="buttonHeader" onClick={handleSimulate}>Simulate</button>
         </div>
       </header>
@@ -222,6 +251,7 @@ function App() {
           onAssignMonitor={setIsAssigningMonitor} 
           monitors={monitors} 
           simulationTime={simulationTime} // Pasar simulationTime como propiedad
+          stepTime={timeStep} // Pasar timeStep como propiedad
         />
       </div>
       {isLoading && (

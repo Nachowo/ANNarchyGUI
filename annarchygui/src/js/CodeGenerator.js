@@ -196,9 +196,9 @@ export function generateProjectionCode(connections, items) {
     const projectionName = `proj${index + 1}`;
     const synapseModel = formatName(connection.attributes.name);
     const connectFunction = connection.connections.rule === 'one_to_one' ? 'connect_one_to_one' : 'connect_all_to_all';
-    //return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, synapse=${synapseModel}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
+    return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, synapse=${synapseModel}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
 
-    return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
+    //return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
   }).join('\n\n');
 }
 
@@ -322,14 +322,14 @@ print(json.dumps(monitor_results, indent=2))
  * @param {number} simTime - Tiempo de simulación.
  * @returns {string} - Código ANNarchy generado.
  */
-export function generateANNarchyCode(items, connections, monitors, simTime ) {
+export function generateANNarchyCode(items, connections, monitors, simTime, stepTime ) {
   simulationTime = simTime; // Actualizar el tiempo de simulación
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
   const monitorList = getMonitorsFromLienzo(monitors);
 
   const neuronCode = generateNeuronCode(neurons);
-  //const synapseCode = generateSynapseCode(synapses);
+  const synapseCode = generateSynapseCode(synapses);
   const populationCode = generatePopulationCode(items);
   const projectionCode = generateProjectionCode(connections, items);
   const monitorCode = writeMonitors(monitorList, items);
@@ -338,8 +338,14 @@ export function generateANNarchyCode(items, connections, monitors, simTime ) {
 
   code = `from ANNarchy import *
 
+dt = ${stepTime} 
+setup(dt=dt)
+
 #Neuronal models
 ${neuronCode}
+
+#Synaptic models
+${synapseCode}
 
 #Populations
 ${populationCode}
@@ -359,6 +365,47 @@ ${monitorHandlingCode}
   return code;
 }
 
+
+export function generateANNarchyCodeUser(items, connections, monitors, simTime, stepTime ) {
+  simulationTime = simTime; // Actualizar el tiempo de simulación
+  const neurons = getNeurons(items);
+  const synapses = getSynapses(connections);
+  const monitorList = getMonitorsFromLienzo(monitors);
+
+  const neuronCode = generateNeuronCode(neurons);
+  const synapseCode = generateSynapseCode(synapses);
+  const populationCode = generatePopulationCode(items);
+  const projectionCode = generateProjectionCode(connections, items);
+  const monitorCode = writeMonitors(monitorList, items);
+  const monitorsCreated  = createMonitorsCode(monitors, items);
+
+  code = `from ANNarchy import *
+
+dt = ${stepTime}  
+setup(dt=dt)
+
+#Neuronal models
+${neuronCode}
+
+#Synaptic models
+${synapseCode}
+
+#Populations
+${populationCode}
+
+#Projections
+${projectionCode}
+
+#Monitors
+${monitorCode}
+${monitorsCreated}
+
+compile()
+simulate(${simulationTime})
+
+`;
+  return code;
+}
 /**
  * Envía el código al backend y recibe los resultados.
  * @param {string} code - Código a enviar al backend.
