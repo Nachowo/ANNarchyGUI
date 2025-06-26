@@ -344,6 +344,16 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         <div className="Sidebar-Content">
           <h3>Generated Network Code:</h3>
           <pre>{networkCode}</pre>
+          <button
+            onClick={() => {
+              import('./CodeGenerator').then(({ downloadCodeAsFile }) => {
+                downloadCodeAsFile(networkCode);
+              });
+            }}
+            style={{ marginTop: '10px' }}
+          >
+            Download Code
+          </button>
         </div>
       )}
 

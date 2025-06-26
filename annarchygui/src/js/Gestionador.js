@@ -24,7 +24,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   const [rangeStart, setRangeStart] = useState(1); // Estado para el rango de inicio
   const [rangeEnd, setRangeEnd] = useState(1); // Estado para el rango de fin
   const [selectedOptions, setSelectedOptions] = useState([]); // Estado para las opciones seleccionadas
-  const [showLabels, setShowLabels] = useState(true); // Estado para mostrar/ocultar etiquetas
+  const [showLabels, setShowLabels] = useState(false); // Por defecto oculto
 
   const handleTimeRangeChange = ([start, end]) => {
     setStartTime(start);
@@ -534,47 +534,99 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
           </div>
 
           <div className="monitor-graphics">
-            <button
-              className="toggle-labels"
-              onClick={() => setShowLabels((prev) => !prev)}
-              style={{ marginBottom: '10px' }}
-            >
-              {showLabels ? 'Ocultar etiquetas' : 'Mostrar etiquetas'}
-            </button>
-            {monitorAttributes.map((monitor, index) => (
-              <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
-                {selectedOptions.length === 1 && monitor.variables.includes(selectedOptions[0]) && (() => {
-                  const variable = selectedOptions[0];
-                  const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
-                  if (!hasData) {
-                    // Mostrar recuadro de aviso si no hay datos para la variable seleccionada
-                    return (
-                      <div style={{
-                        width: 640,
-                        height: 480,
-                        background: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.5rem',
-                        color: '#333',
-                        border: '2px dashed #aaa',
-                        zIndex: 2
-                      }}>
-                        No hay datos para la variable seleccionada
-                      </div>
-                    );
-                  }
-                  if (variable === 'spike') {
-                    return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
-                  } else if (variable === 'raster_plot') {
-                    return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
-                  } else {
-                    return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
-                  }
-                })()}
-              </div>
-            ))}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+              <button
+                className="toggle-labels"
+                onClick={() => setShowLabels((prev) => !prev)}
+              >
+                {showLabels ? 'Hide labels' : 'Show labels'}
+              </button>
+              {/* Botón de descarga global, solo si hay un gráfico visible y datos */}
+              {monitorAttributes.some((monitor) => {
+                const variable = selectedOptions[0];
+                return selectedOptions.length === 1 && monitor.variables.includes(variable) && variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+              }) && (
+                <button
+                  onClick={() => {
+                    // Buscar el primer canvas visible con datos
+                    for (const monitor of monitorAttributes) {
+                      const variable = selectedOptions[0];
+                      if (selectedOptions.length === 1 && monitor.variables.includes(variable)) {
+                        let canvasId = '';
+                        if (variable === 'spike') {
+                          canvasId = 'spikeGraphCanvas';
+                        } else if (variable === 'raster_plot') {
+                          canvasId = 'rasterPlotCanvas';
+                        } else {
+                          canvasId = `variableGraphCanvas-${variable}`;
+                        }
+                        const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+                        if (hasData) {
+                          const canvas = document.getElementById(canvasId);
+                          if (canvas) {
+                            const url = canvas.toDataURL('image/png');
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${variable}_graph.png`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }
+                          break;
+                        }
+                      }
+                    }
+                  }}
+                >
+                  Download graph
+                </button>
+              )}
+            </div>
+            {monitorAttributes.map((monitor, index) => {
+              const variable = selectedOptions[0];
+              const hasData = selectedOptions.length === 1 && monitor.variables.includes(variable) && variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+              let canvasId = '';
+              if (variable === 'spike') {
+                canvasId = 'spikeGraphCanvas';
+              } else if (variable === 'raster_plot') {
+                canvasId = 'rasterPlotCanvas';
+              } else {
+                canvasId = `variableGraphCanvas-${variable}`;
+              }
+              return (
+                <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
+                  {/* Renderizado original del gráfico */}
+                  {selectedOptions.length === 1 && monitor.variables.includes(variable) && (() => {
+                    const hasData = variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+                    if (!hasData) {
+                      return (
+                        <div style={{
+                          width: 640,
+                          height: 480,
+                          background: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.5rem',
+                          color: '#333',
+                          border: '2px dashed #aaa',
+                          zIndex: 2
+                        }}>
+                          Run a simulation first to see the graph
+                        </div>
+                      );
+                    }
+                    if (variable === 'spike') {
+                      return <canvas key={variable} id="spikeGraphCanvas" width="640" height="480"></canvas>;
+                    } else if (variable === 'raster_plot') {
+                      return <canvas key={variable} id="rasterPlotCanvas" width="640" height="480"></canvas>;
+                    } else {
+                      return <canvas key={variable} id={`variableGraphCanvas-${variable}`} width="640" height="480"></canvas>;
+                    }
+                  })()}
+                </div>
+              );
+            })}
             <TimeRangeSlider
               min={0}
               max={lastSimTime}
