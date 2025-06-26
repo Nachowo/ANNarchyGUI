@@ -86,39 +86,33 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
   useEffect(() => {
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
-      if (monitorAttributes[0].variables[0] === "spike") {
-        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        if(monitorData[0] && monitorData[0].variable === "spike") {
-        monitorData.forEach(({ variable, data }) => {
-          generateSpikeGraph('spikeGraphCanvas', data, startTime, endTime, 1, showLabels);
-        });
-      }
-      } 
-      if (monitorAttributes[0].variables[0] === "raster_plot") {
-        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        if(monitorData[0] && monitorData[0].variable === "spike") {
-        monitorData.forEach(({ variable, data }) => {
-          generateRasterPlot('rasterPlotCanvas', data, startTime, endTime, showLabels);
-        });
-      }
-      } 
-      if (monitorAttributes[0].variables.length > 0) {
-        const monitorData = variablesData.filter(data => data.monitorId === monitorAttributes[0].id);
-        if(monitorData[0] && monitorData[0].variable === monitorAttributes[0].variables[0]) {
-          monitorData.forEach(({ variable, data }) => {
-            if (variable === 'spike') {
-              generateSpikeGraph('spikeGraphCanvas', data, startTime, endTime, 1, showLabels);
-            } else if (variable === 'raster_plot') {
-              generateRasterPlot('rasterPlotCanvas', data, startTime, endTime, showLabels);
-            } else {
-              generateVariableGraph(`variableGraphCanvas-${variable}`, data, variable, [Number(rangeStart), Number(rangeEnd)], startTime, endTime, showLabels);
-            }
-          });
+      const monitorId = monitorAttributes[0]?.id;
+      const variable = selectedOptions[0]; // la variable seleccionada en el select
+
+      if (monitorId && variable) {
+        const monitorDatum = variablesData.find(
+          data => data.monitorId === monitorId && data.variable === variable
+        );
+        if (monitorDatum) {
+          if (variable === 'spike') {
+            generateSpikeGraph('spikeGraphCanvas', monitorDatum.data, startTime, endTime, 1, showLabels);
+          } else if (variable === 'raster_plot') {
+            generateRasterPlot('rasterPlotCanvas', monitorDatum.data, startTime, endTime, showLabels);
+          } else {
+            generateVariableGraph(
+              `variableGraphCanvas-${variable}`,
+              monitorDatum.data,
+              variable,
+              [Number(rangeStart), Number(rangeEnd)],
+              startTime,
+              endTime,
+              showLabels
+            );
+          }
         }
       }
-
     }
-  }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions, showLabels]);
+  }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions, showLabels, monitorAttributes]);
 
   useEffect(() => {
     if (activeTab === 'monitor') {
