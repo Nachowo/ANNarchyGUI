@@ -444,6 +444,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
+      
       {showSynapseGestionador && selectedSynapseItem && (
         <div className="gestionador-container" onClick={() => setShowSynapseGestionador(false)}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
@@ -452,7 +453,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           </div>
         </div>
       )}
+      
     </div>
+    
     
   );
 }

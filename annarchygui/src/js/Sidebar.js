@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './../css/Sidebar.css';
 import Gestionador from './Gestionador'; // Importa el componente Gestionador
 import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
-import CodeGenerator, { generateANNarchyCode } from './CodeGenerator'; // Importa el componente CodeGenerator
+import CodeGenerator, { generateANNarchyCodeUser } from './CodeGenerator'; // Importa el componente CodeGenerator
 
 function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime, stepTime }) {
   const [activeTab, setActiveTab] = useState('Opciones');
@@ -227,7 +227,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
   };
 
   const handleGenerateNetworkCode = () => {
-    const code = generateANNarchyCode(items, connections, monitors, simulationTime, stepTime);
+    const code = generateANNarchyCodeUser(items, connections, monitors, simulationTime, stepTime);
     setNetworkCode(code);
   };
 

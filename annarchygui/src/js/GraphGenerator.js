@@ -240,6 +240,8 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
  */
 export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime = 1000, showLabels = true) {
+  console.log(`Generating raster plot for canvas ID: ${canvasId}, startTime: ${startTime}, endTime: ${endTime}`);
+  console.log(`Spike data:`, spikeData);
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     console.error(`Canvas with ID '${canvasId}' not found.`);

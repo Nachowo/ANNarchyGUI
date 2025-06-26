@@ -93,11 +93,23 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
       const monitorId = monitorAttributes[0]?.id;
       const variable = selectedOptions[0]; // la variable seleccionada en el select
-
       if (monitorId && variable) {
-        const monitorDatum = variablesData.find(
-          data => data.monitorId === monitorId && data.variable === variable
-        );
+        let monitorDatum = null;
+        if (variable === 'raster_plot') {
+          // Si hay spikes, usar spikes; si no, buscar raster_plot
+          monitorDatum = variablesData.find(
+            data => data.monitorId === monitorId && data.variable === 'spike'
+          );
+          if (!monitorDatum) {
+            monitorDatum = variablesData.find(
+              data => data.monitorId === monitorId && data.variable === 'raster_plot'
+            );
+          }
+        } else {
+          monitorDatum = variablesData.find(
+            data => data.monitorId === monitorId && data.variable === variable
+          );
+        }
         if (monitorDatum) {
           if (variable === 'spike') {
             generateSpikeGraph('spikeGraphCanvas', monitorDatum.data, startTime, endTime, 1, showLabels);

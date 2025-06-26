@@ -116,7 +116,6 @@ function App() {
       Object.values(jsonResponse).forEach((monitor) => {
         // Solo procesar datos crudos
         Object.entries(monitor.results).forEach(([variable, result]) => {
-          console.log('Procesando variable:', variable, 'con resultado:', result);
           if (result.data) {
             setVariablesData((prevData) => [
               ...prevData,
