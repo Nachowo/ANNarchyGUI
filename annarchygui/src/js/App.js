@@ -42,11 +42,11 @@ function App() {
 
   const parseBackendResponse = (responseString) => {
     try {
-      console.log('Respuesta del backend:', responseString);
       // Saltar hasta el primer "{" en el string
       const jsonString = responseString.substring(responseString.indexOf('{'));
 
       const jsonResponse = JSON.parse(jsonString);
+      console.log('Respuesta convertida a JSON:', jsonResponse);
       return jsonResponse;
     } catch (error) {
       console.error('Error al convertir la respuesta del backend a JSON:', error);
@@ -113,6 +113,7 @@ function App() {
       Object.values(jsonResponse).forEach((monitor) => {
         // Solo procesar datos crudos
         Object.entries(monitor.results).forEach(([variable, result]) => {
+          console.log('Procesando variable:', variable, 'con resultado:', result);
           if (result.data) {
             setVariablesData((prevData) => [
               ...prevData,

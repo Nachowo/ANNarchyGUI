@@ -261,6 +261,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     console.log('Current connections:', connections);
     console.log('Current items:', items);
     console.log('Current monitors:', monitors);
+    console.log('variablesData:', variablesData);
   };
 
   const renderArrowMarker = () => {

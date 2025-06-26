@@ -54,7 +54,7 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
     } else {
       setMonitorAttributes([]);
     }
-  }, [neuron, monitors]);
+  }, [neuron]);
 
   useEffect(() => {
     if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
