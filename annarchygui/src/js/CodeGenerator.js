@@ -96,7 +96,15 @@ export function generateNeuronCode(neurons) {
       { key: 'reset', value: neuron.attributes.reset },
       //{ key: 'axon_reset', value: neuron.attributes.axon_reset },
     ].filter(attr => attr.value !== '');
-    const attributes = attributesArr.map(attr => `\t${attr.key}="""\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`).join(',\n');
+    // spike y axon_spike como string Python, el resto igual
+    const attributes = attributesArr.map(attr => {
+      if (attr.key === 'spike' || attr.key === 'axon_spike') {
+        // Generar como string Python: spike = "contenido"
+        return `\t${attr.key} = \"${attr.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}\"`;
+      } else {
+        return `\t${attr.key} = """\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`;
+      }
+    }).join(',\n');
     const extrasArr = [
       { key: 'refractory', value: neuron.attributes.refractory },
       { key: 'axon_reset', value: neuron.attributes.axon_reset },
@@ -414,9 +422,8 @@ simulate(${simulationTime})
 export async function sendCodeToBackend(code) {
   try {
     const backendHost = window.location.hostname;
-    const backendURL = `http://${backendHost}:5000/simulate`;
 
-    const response = await fetch(backendURL, {
+    const response = await fetch(`http://${backendHost}:5000/simulate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

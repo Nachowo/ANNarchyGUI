@@ -3,7 +3,7 @@ import "./../css/Gestionador.css";
 
 function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
   const [activeTab, setActiveTab] = useState(synapse.id ? 'connection' : 'synapse'); // Mostrar pestaña correcta según si se está creando o editando
-  const [name, setName] = useState(synapse.name || '');
+  const [name, setName] = useState(synapse.attributes?.name || synapse.name || '');
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
   const [parameters, setParameters] = useState(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
   const [equations, setEquations] = useState(synapse.attributes.equations || '');
@@ -20,17 +20,21 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   const [delays, setDelays] = useState(synapse.connections?.delays || '');
 
   useEffect(() => {
-    setName(synapse.attributes.name || '');
-    setTipo(synapse.attributes.tipo || 'spiking');
-    setParameters(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
-    setEquations(synapse.attributes.equations || '');
-    setPsp(synapse.attributes.psp || '');
-    setOperation(synapse.attributes.operation || 'sum');
-    setPreSpike(synapse.attributes.pre_spike || '');
-    setPostSpike(synapse.attributes.post_spike || '');
-    setPreAxonSpike(synapse.attributes.pre_axon_spike || '');
-    setFunctions(synapse.attributes.functions || '');
-    setVariables(Object.entries(synapse.attributes.variables || {}).map(([name, value]) => ({ name, value })));
+    setName(synapse.attributes?.name || synapse.name || '');
+    setTipo(synapse.attributes?.tipo || 'spiking');
+    setParameters(Object.entries(synapse.attributes?.parameters || {}).map(([name, value]) => ({ name, value })));
+    setEquations(synapse.attributes?.equations || '');
+    setPsp(synapse.attributes?.psp || '');
+    setOperation(synapse.attributes?.operation || 'sum');
+    setPreSpike(synapse.attributes?.pre_spike || '');
+    setPostSpike(synapse.attributes?.post_spike || '');
+    setPreAxonSpike(synapse.attributes?.pre_axon_spike || '');
+    setFunctions(synapse.attributes?.functions || '');
+    setVariables(Object.entries(synapse.attributes?.variables || {}).map(([name, value]) => ({ name, value })));
+    setTarget(synapse.connections?.target || 'exc');
+    setRule(synapse.connections?.rule || 'all_to_all');
+    setWeights(synapse.connections?.weights || '');
+    setDelays(synapse.connections?.delays || '');
   }, [synapse]);
 
   const handleParameterChange = (index, field, value) => {
@@ -62,30 +66,33 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   };
 
   const handleSave = () => {
-  
-
+    // Construir el objeto attributes asegurando que el nombre se guarda correctamente
+    const updatedAttributes = {
+      ...synapse.attributes,
+      name: name,
+      tipo,
+      parameters: parameters.reduce((acc, param) => {
+        if (param.name) acc[param.name] = param.value;
+        return acc;
+      }, {}),
+      equations,
+      psp,
+      operation,
+      pre_spike: preSpike,
+      post_spike: postSpike,
+      pre_axon_spike: preAxonSpike,
+      functions,
+      variables: variables.reduce((acc, variable) => {
+        if (variable.name) acc[variable.name] = variable.value;
+        return acc;
+      }, {})
+    };
     const updatedSynapse = {
       ...synapse,
-      name: name || synapse.name,
-      attributes: {
-        tipo,
-        parameters: parameters.reduce((acc, param) => {
-          acc[param.name] = param.value;
-          return acc;
-        }, {}),
-        equations,
-        psp,
-        operation,
-        pre_spike: preSpike,
-        post_spike: postSpike,
-        pre_axon_spike: preAxonSpike,
-        functions,
-        variables: variables.reduce((acc, variable) => {
-          acc[variable.name] = variable.value;
-          return acc;
-        }, {})
-      },
+      name: name,
+      attributes: updatedAttributes,
       connections: {
+        ...synapse.connections,
         target,
         rule,
         weights,

@@ -351,18 +351,20 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
         >
           Neuron
         </button>
-        <button
-          style={{
-            backgroundColor: !neuron.hasMonitor ? '#ccc' : '',
-            cursor: !neuron.hasMonitor ? 'not-allowed' : 'pointer'
-          }}
-          className={activeTab === 'monitor' ? 'active' : ''}
-          onClick={() => neuron.hasMonitor && setActiveTab('monitor')}
-          disabled={!neuron.hasMonitor}
-        >
-          Monitor
-        </button>
-
+        {/* Eliminar pestaña Monitor al crear una neurona nueva (sin id) */}
+        {neuron.id !== undefined && (
+          <button
+            style={{
+              backgroundColor: !neuron.hasMonitor ? '#ccc' : '',
+              cursor: !neuron.hasMonitor ? 'not-allowed' : 'pointer'
+            }}
+            className={activeTab === 'monitor' ? 'active' : ''}
+            onClick={() => neuron.hasMonitor && setActiveTab('monitor')}
+            disabled={!neuron.hasMonitor}
+          >
+            Monitor
+          </button>
+        )}
       </div>
       {activeTab === 'neuron' && (
         <>
@@ -373,17 +375,20 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
                 <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
               </div>
             </div>
-            <div className="column">
-              <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
-                <label htmlFor="has-monitor">Enable Monitor:</label>
-                <input
-                  type="checkbox"
-                  id="has-monitor"
-                  checked={neuron.hasMonitor}
-                  onChange={handleMonitorToggle}
-                />
+            {/* Eliminar Enable Monitor al crear una neurona nueva (sin id) */}
+            {neuron.id !== undefined && (
+              <div className="column">
+                <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
+                  <label htmlFor="has-monitor">Enable Monitor:</label>
+                  <input
+                    type="checkbox"
+                    id="has-monitor"
+                    checked={neuron.hasMonitor}
+                    onChange={handleMonitorToggle}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
 

@@ -135,13 +135,24 @@ function App() {
       try {
         const result = await getJobStatus(jobId);
         const { status, error, output } = result;
-        //console.log('resultado:', result);
+        console.log('resultado:', result);
         //console.log('output:', output);
         //console.log('status:', status);
-        //console.log('error:', error);
-        
+        console.log('error:', error);
 
-        if (status === 'En progreso' || status === 'En espera' || error) {
+        // Si el backend devuelve un error, mostrarlo y detener el polling
+        if (error || (output && output.toLowerCase().includes('error'))) {
+          setSimulationOutput(error || output);
+          setShowOutputModal(true);
+          setIsLoading(false);
+          setLoadingProgress(0);
+          setLoadingStage('');
+          clearInterval(interval);
+          setTimerInterval(null);
+          return;
+        }
+
+        if (status === 'En progreso' || status === 'En espera') {
           setLoadingStage('simulating');
           setLoadingProgress(50);
           setTimeout(checkStatus, pollInterval);
@@ -149,7 +160,7 @@ function App() {
           setLoadingStage('analyzing');
           setLoadingProgress(80); // Tercera etapa: Analizando resultados
           const json = parseBackendResponse(output);
-          let finalOutput = output || error || status || 'Simulación completada.';
+          let finalOutput = output || status || 'Simulación completada.';
           renderMonitorGraphs(json); // Mostrar los gráficos recibidos
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
@@ -162,7 +173,8 @@ function App() {
           setTimerInterval(null);
         }
       } catch (e) {
-        if (e.message.includes('404')) {
+        if (e.message && e.message.includes('404')) {
+          console.log(e);
           setSimulationOutput('Error 404 al ejecutar la simulación.');
           setShowOutputModal(true);
           setIsLoading(false);
@@ -277,19 +289,36 @@ function App() {
       {showOutputModal && (
         <div className="output-modal">
           <div className="output-content">
-            <h3>Simulation completed</h3>
-            <div style={{ margin: '16px 0', color: simulationOutput.includes('Error') ? 'red' : 'inherit' }}>
-              {simulationOutput.includes('Error')
-                ? simulationOutput
-                : <>
-                    
-                    <div style={{ marginTop: '10px', fontWeight: 'bold', color: '#333' }}>
-                      Total time: {Math.floor(elapsedTime / 1000)}.{String(elapsedTime % 1000).padStart(3, '0')} s
-                    </div>
-                  </>
-              }
-            </div>
-            <button onClick={() => setShowOutputModal(false)}>Close</button>
+            {simulationOutput && simulationOutput.toLowerCase().includes('error') ? (
+              <>
+                <h3>Simulation error</h3>
+                <div style={{ margin: '16px 0', color: 'red' }}>
+                  {/* Mostrar solo la última línea no vacía del mensaje de error */}
+                  {(() => {
+                    const lines = simulationOutput.split(/\r?\n/).filter(line => line.trim() !== '');
+                    const lastLine = lines.length > 0 ? lines[lines.length - 1] : simulationOutput;
+                    return (
+                      <>
+                        <div style={{ fontWeight: 'bold', color: 'red', marginBottom: '10px' }}>Error en la simulación:</div>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{lastLine.trim()}</div>
+                      </>
+                    );
+                  })()}
+                </div>
+                <button onClick={() => setShowOutputModal(false)}>Close</button>
+              </>
+            ) : (
+              <>
+                <h3>Simulation completed</h3>
+                <div style={{ margin: '16px 0' }}>
+                  <div style={{ fontWeight: 'bold', color: '#333', marginBottom: '10px' }}></div>
+                  <div style={{ marginTop: '10px', fontWeight: 'bold', color: '#333' }}>
+                    Total time: {Math.floor(elapsedTime / 1000)}.{String(elapsedTime % 1000).padStart(3, '0')} s
+                  </div>
+                </div>
+                <button onClick={() => setShowOutputModal(false)}>Close</button>
+              </>
+            )}
           </div>
         </div>
       )}
