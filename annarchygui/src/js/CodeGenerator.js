@@ -413,7 +413,10 @@ simulate(${simulationTime})
  */
 export async function sendCodeToBackend(code) {
   try {
-    const response = await fetch('http://localhost:5000/simulate', {
+    const backendHost = window.location.hostname;
+    const backendURL = `http://${backendHost}:5000/simulate`;
+
+    const response = await fetch(backendURL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -434,6 +437,7 @@ export async function sendCodeToBackend(code) {
   }
 }
 
+
 /**
  * Obtiene el estado del trabajo desde el backend.
  * @param {string} jobId - ID del trabajo (UUID).
@@ -441,7 +445,8 @@ export async function sendCodeToBackend(code) {
  */
 export async function getJobStatus(jobId) {
   try {
-    const response = await fetch(`http://localhost:5000/status/${jobId}`, {
+    const backendHost = window.location.hostname;
+    const response = await fetch(`http://${backendHost}:5000/status/${jobId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -4,7 +4,6 @@ import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
 import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
 import { Chart, registerables } from 'chart.js';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { TextField, Tooltip, IconButton, InputAdornment } from '@mui/material';
 Chart.register(...registerables);
 
