@@ -60,66 +60,73 @@ export function formatName(name) {
  * @returns {string} - Código ANNarchy para las neuronas.
  */
 export function generateNeuronCode(neurons) {
-  const uniqueNeurons = [];
-  const uniqueNeuronNames = new Set();
+  // Agrupar por tipo y parámetros/equations únicos
+  const neuronDefs = [];
+  const neuronHashes = new Set();
 
   neurons.forEach(neuron => {
-    if (!uniqueNeuronNames.has(neuron.name)) {
-      uniqueNeurons.push(neuron);
-      uniqueNeuronNames.add(neuron.name);
+    // Crear un hash único por tipo, equations, parámetros y funciones
+    const hash = JSON.stringify({
+      tipo: neuron.attributes.tipo,
+      equations: neuron.equation,
+      parameters: neuron.parameters,
+      functions: neuron.attributes.functions,
+      spike: neuron.attributes.spike,
+      axon_spike: neuron.attributes.axon_spike,
+      reset: neuron.attributes.reset,
+      axon_reset: neuron.attributes.axon_reset,
+      refractory: neuron.attributes.refractory,
+      firingRate: neuron.attributes.firingRate
+    });
+    if (!neuronHashes.has(hash)) {
+      neuronDefs.push({ ...neuron, hash });
+      neuronHashes.add(hash);
     }
   });
 
-  return uniqueNeurons.map(neuron => {
+  // Genera el string de definiciones de neuronas únicas
+  return neuronDefs.map((neuron, idx) => {
     // Si es una neurona de Poisson, no generar modelo ANNarchy, solo retornar string vacío
     if (
       neuron.name.toLowerCase().includes('poisson') ||
       (neuron.attributes.tipo && neuron.attributes.tipo.toLowerCase().includes('poisson'))
     ) {
-      // El modelo Poisson se define en la generación de poblaciones
       return '';
     }
     let prevCode = '';
-    // Si existe un campo prev en attributes y es un array, concatenar su contenido antes de la definición de la neurona
     if (Array.isArray(neuron.attributes.prev)) {
       prevCode = neuron.attributes.prev.join('\n') + '\n';
     } else if (neuron.attributes.extra && typeof neuron.attributes.extra === 'string') {
-      // Si existe un campo extra como string, también lo ponemos antes
       prevCode = neuron.attributes.extra + '\n';
     }
-    const formattedName = formatName(neuron.name);
+    // Nombre único para cada definición
+    const formattedName = formatName(neuron.name) + '_def' + (idx + 1);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
     const equations = `\t\t${neuron.equation}`;
     const attributesArr = [
       { key: 'spike', value: neuron.attributes.spike },
       { key: 'axon_spike', value: neuron.attributes.axon_spike },
       { key: 'reset', value: neuron.attributes.reset },
-      //{ key: 'axon_reset', value: neuron.attributes.axon_reset },
     ].filter(attr => attr.value !== '');
-    // spike y axon_spike como string Python, el resto igual
     const attributes = attributesArr.map(attr => {
       if (attr.key === 'spike' || attr.key === 'axon_spike') {
-        // Generar como string Python: spike = "contenido"
         return `\t${attr.key} = \"${attr.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}\"`;
       } else {
-        return `\t${attr.key} = """\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t"""`;
+        return `\t${attr.key} = \"\"\"\n\t\t${attr.value.replace(/\n/g, '\n\t\t')}\n\t\"\"\"`;
       }
     }).join(',\n');
     const extrasArr = [
       { key: 'refractory', value: neuron.attributes.refractory },
       { key: 'axon_reset', value: neuron.attributes.axon_reset },
-      // Agrega más elementos aquí si es necesario
     ].filter(extra => extra.value !== '');
     const extras = extrasArr.map(extra => `\t${extra.key}=${extra.value}`).join(',\n');
 
-    // Construcción de argumentos, evitando comas extra
     let args = [];
-    args.push(`equations="""\n${equations}\n  """`);
-    args.push(`parameters="""\n${params}\n  """`);
+    args.push(`equations=\"\"\"\n${equations}\n  \"\"\"`);
+    args.push(`parameters=\"\"\"\n${params}\n  \"\"\"`);
     if (attributes) args.push(attributes);
     if (extras) args.push(extras);
 
-    // El prevCode debe ir ANTES de la definición de la neurona, fuera del bloque Neuron
     return `${prevCode}${formattedName} = Neuron(\n  ${args.join(',\n  ')}\n)`;
   }).filter(Boolean).join('\n\n');
 }
@@ -162,8 +169,30 @@ export function generateSynapseCode(synapses) {
  * @returns {string} - Código ANNarchy para las poblaciones.
  */
 export function generatePopulationCode(items) {
+  // Mapear poblaciones a la definición de neurona correspondiente
   const populationNames = {};
-  return items.map(item => {
+  // Crear hashes de definiciones de neurona
+  const neuronDefs = [];
+  const neuronHashes = [];
+  items.forEach(item => {
+    if (item.type === 'Población neuronal') {
+      const hash = JSON.stringify({
+        tipo: item.attributes.tipo,
+        equations: item.attributes.equations,
+        parameters: item.attributes.parameters,
+        functions: item.attributes.functions,
+        spike: item.attributes.spike,
+        axon_spike: item.attributes.axon_spike,
+        reset: item.attributes.reset,
+        axon_reset: item.attributes.axon_reset,
+        refractory: item.attributes.refractory,
+        firingRate: item.attributes.firingRate
+      });
+      neuronHashes.push(hash);
+      neuronDefs.push({ hash, name: item.name });
+    }
+  });
+  return items.map((item, idx) => {
     const baseName = formatName(item.name);
     const count = populationNames[baseName] || 0;
     populationNames[baseName] = count + 1;
@@ -173,12 +202,26 @@ export function generatePopulationCode(items) {
       item.name.toLowerCase().includes('poisson') ||
       (item.attributes && item.attributes.tipo && item.attributes.tipo.toLowerCase().includes('poisson'))
     ) {
-      // Buscar parámetros relevantes
       const quantity = item.quantity || 100;
       const rate = (item.attributes && item.attributes.parameters && item.attributes.parameters.rate) ? item.attributes.parameters.rate : 30.0;
       return `${populationName} = PoissonPopulation(${quantity}, rates=${rate})`;
     }
-    return `${populationName} = Population(name='${populationName}', geometry=${item.quantity}, neuron=${baseName})`;
+    // Buscar el índice de la definición de neurona correspondiente
+    const hash = JSON.stringify({
+      tipo: item.attributes.tipo,
+      equations: item.attributes.equations,
+      parameters: item.attributes.parameters,
+      functions: item.attributes.functions,
+      spike: item.attributes.spike,
+      axon_spike: item.attributes.axon_spike,
+      reset: item.attributes.reset,
+      axon_reset: item.attributes.axon_reset,
+      refractory: item.attributes.refractory,
+      firingRate: item.attributes.firingRate
+    });
+    const defIdx = neuronHashes.findIndex(h => h === hash);
+    const neuronDefName = `${baseName}_def${defIdx + 1}`;
+    return `${populationName} = Population(name='${populationName}', geometry=${item.quantity}, neuron=${neuronDefName})`;
   }).join('\n\n');
 }
 
@@ -518,45 +561,4 @@ export function downloadMonitorResults(monitors) {
   URL.revokeObjectURL(url);
 }
 
-const CodeGenerator = ({ items, connections, monitors, simulationTime }) => {
-  const [simulationOutput, setSimulationOutput] = useState('');
-
-
-
-  const pollJobStatus = async (jobId) => {
-    const pollInterval = 2000;
-    const checkStatus = async () => {
-      try {
-        const result = await getJobStatus(jobId);
-        const { status, error, output, monitors } = result;
-
-        // Si está en progreso, en espera o hay error, seguir intentando
-        if (status === 'En progreso' || status === 'En espera' || error) {
-          setTimeout(checkStatus, pollInterval);
-        } else if (status === '404 (NOT FOUND)') {
-          setSimulationOutput('Error al ejecutar la simulación.');
-        } else {
-          // Mostrar resultado final
-          let finalOutput = output || error || status || 'Simulación completada.';
-          if (monitors) {
-            finalOutput += '\\n\\n' + processMonitorResults(monitors);
-            downloadMonitorResults(monitors); // Descargar resultados de los monitores
-          }
-          setSimulationOutput(finalOutput);
-        }
-      } catch (e) {
-        if (e.message.includes('404')) {
-          setSimulationOutput('Error 404 al ejecutar la simulación.');
-          return;
-        }
-        // Si hubo error de conexión, seguir intentando
-        setTimeout(checkStatus, pollInterval);
-      }
-    };
-    checkStatus();
-  };
-
-  return ;
-};
-
-export default CodeGenerator;
+// Eliminado export default CodeGenerator y el componente, solo exportaciones nombradas

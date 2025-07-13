@@ -485,7 +485,24 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
 
           <div className="row">
             <label htmlFor="functions">Functions:</label>
-            <textarea id="functions" value={functions} onChange={handleFunctionChange} />
+            {/* Ajuste para edición de funciones como lista de pares nombre/valor */}
+            {functions.map((func, index) => (
+              <div key={index} className="row">
+                <input
+                  type="text"
+                  placeholder="Function name"
+                  value={func.name}
+                  onChange={e => handleFunctionChange(index, "name", e.target.value)}
+                />
+                <textarea
+                  placeholder="Function value"
+                  value={func.value}
+                  onChange={e => handleFunctionChange(index, "value", e.target.value)}
+                />
+                <button className="delete" onClick={() => removeFunction(index)}>Delete</button>
+              </div>
+            ))}
+            <button className="add" onClick={() => setFunctions([...functions, { name: '', value: '' }])}>Add function</button>
           </div>
 
         </>
@@ -511,7 +528,8 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
                     id={`monitor-variables-${index}`}
                     value={selectedOptions}
                     onChange={handleOptionChange}
-
+                    size={neuron.variablesMonitor.length > 4 ? neuron.variablesMonitor.length : 4}
+                    style={{ minHeight: '80px', maxHeight: '200px', width: '220px' }}
                   >
                     {neuron.variablesMonitor.map((varName) => (
                       <option key={varName} value={varName}>{varName}</option>
