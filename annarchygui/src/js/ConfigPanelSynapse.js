@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./../css/Gestionador.css";
 
-function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
+function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
   const [activeTab, setActiveTab] = useState(synapse.id ? 'connection' : 'synapse'); // Mostrar pestaña correcta según si se está creando o editando
   const [name, setName] = useState(synapse.attributes?.name || synapse.name || '');
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
@@ -256,4 +256,4 @@ function SynapseGestionador({ synapse, onSave, onDelete, setShowSynapseGestionad
   );
 }
 
-export default SynapseGestionador;
+export default ConfigPanelSynapse;

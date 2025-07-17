@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './../css/Lienzo.css';
-import Gestionador from './Gestionador'; // Importar el componente Gestionador
-import SynapseGestionador from './SynapseGestionador'; // Importar el componente SynapseGestionador
+import ConfigPanelNeuron from './ConfigPanelNeuron'; // Importar el componente Gestionador
+import ConfigPanelSynapse from './ConfigPanelSynapse'; // Importar el componente SynapseGestionador
 
 function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors, variablesData,lastSimTime }) {
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
@@ -454,7 +454,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         <div className="gestionador-container" onClick={handleCloseGestionador}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-            <Gestionador
+            <ConfigPanelNeuron
               neuron={selectedNeuron}
               onSave={handleSaveNeuron}
               monitors={monitors}
@@ -475,7 +475,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
         <div className="gestionador-container" onClick={() => setShowSynapseGestionador(false)}>
           <div className="gestionador-content" onClick={(e) => e.stopPropagation()}>
             <span className="close" onClick={() => setShowSynapseGestionador(false)}>&times;</span>
-            <SynapseGestionador synapse={selectedSynapseItem} onSave={handleSaveSynapse} onDelete={handleDeleteConnection} setShowSynapseGestionador={setShowSynapseGestionador} />
+            <ConfigPanelSynapse synapse={selectedSynapseItem} onSave={handleSaveSynapse} onDelete={handleDeleteConnection} setShowSynapseGestionador={setShowSynapseGestionador} />
           </div>
         </div>
       )}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './../css/Sidebar.css';
-import Gestionador from './Gestionador'; // Importa el componente Gestionador
-import SynapseGestionador from './SynapseGestionador'; // Importa el componente SynapseGestionador
+import ConfigPanelNeuron from './ConfigPanelNeuron'; // Importa el componente Gestionador
 import CodeGenerator, { generateANNarchyCodeUser } from './CodeGenerator'; // Importa el componente CodeGenerator
+import ConfigPanelSynapse from './ConfigPanelSynapse';
 
 function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime, stepTime }) {
   const [activeTab, setActiveTab] = useState('Opciones');
@@ -359,7 +359,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         <div className="gestionador-container">
           <div className="gestionador-content">
             <span className="close" onClick={() => setShowGestionador(false)}>&times;</span>
-            <Gestionador neuron={newModel} onSave={handleSaveModel} />
+            <ConfigPanelNeuron neuron={newModel} onSave={handleSaveModel} />
           </div>
         </div>
       )}
@@ -367,7 +367,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         <div className="gestionador-container">
           <div className="gestionador-content">
             <span className="close" onClick={() => setShowSynapseGestionador(false)}>&times;</span>
-            <SynapseGestionador synapse={newSynapse} onSave={handleSaveSynapse} />
+            <ConfigPanelSynapse synapse={newSynapse} onSave={handleSaveSynapse} />
           </div>
         </div>
       )}

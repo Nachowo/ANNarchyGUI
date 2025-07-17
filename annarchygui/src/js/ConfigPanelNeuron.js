@@ -3,7 +3,7 @@ import { generateSpikeGraph, generateVariableGraph, generateRasterPlot } from '.
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
-function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors, nextMonitorId, setNextMonitorId, variablesData, lastSimTime }) {
+function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors, nextMonitorId, setNextMonitorId, variablesData, lastSimTime }) {
   const [activeTab, setActiveTab] = useState('neuron'); 
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
@@ -719,4 +719,4 @@ function Gestionador({ neuron, onSave, monitors, setMonitors, graphics, graphicM
   );
 }
 
-export default Gestionador;
+export default ConfigPanelNeuron;
