@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './../css/App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
-import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from './CodeGenerator';
+import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from '../SubModulos/CodeGenerator';
 import { Chart, registerables } from 'chart.js';
 import { TextField, Tooltip, IconButton, InputAdornment } from '@mui/material';
 Chart.register(...registerables);

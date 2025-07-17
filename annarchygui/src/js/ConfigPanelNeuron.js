@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { generateSpikeGraph, generateVariableGraph, generateRasterPlot } from './GraphGenerator';
+import { generateSpikeGraph, generateVariableGraph, generateRasterPlot } from '../SubModulos/GraphGenerator';
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 

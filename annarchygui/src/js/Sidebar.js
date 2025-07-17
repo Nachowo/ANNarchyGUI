@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './../css/Sidebar.css';
 import ConfigPanelNeuron from './ConfigPanelNeuron'; // Importa el componente Gestionador
-import CodeGenerator, { generateANNarchyCodeUser } from './CodeGenerator'; // Importa el componente CodeGenerator
+import CodeGenerator, { generateANNarchyCodeUser } from '../SubModulos/CodeGenerator'; // Importa el componente CodeGenerator
 import ConfigPanelSynapse from './ConfigPanelSynapse';
 
 function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime, stepTime }) {
@@ -343,7 +343,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
           <pre>{networkCode}</pre>
           <button
             onClick={() => {
-              import('./CodeGenerator').then(({ downloadCodeAsFile }) => {
+              import('../SubModulos/CodeGenerator').then(({ downloadCodeAsFile }) => {
                 downloadCodeAsFile(networkCode);
               });
             }}
