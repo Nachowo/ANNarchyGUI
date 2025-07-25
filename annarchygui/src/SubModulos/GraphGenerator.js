@@ -1,25 +1,25 @@
 import { Chart } from 'chart.js';
 
 /**
- * Genera un gráfico para un rango de neuronas específicas en el frontend.
+ * Genera un gráfico de líneas para visualizar variables de un rango de neuronas.
+ * Utiliza Chart.js para renderizar los datos en el canvas especificado.
  * @param {string} canvasId - ID del elemento canvas donde se renderizará el gráfico.
  * @param {Array} data - Datos de las variables obtenidos del monitor.
  * @param {Array|string} variableNames - Nombres de las variables o prefijo para generarlos.
  * @param {Array} neuronRange - Rango de neuronas a graficar [startNeuron, endNeuron].
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
+ * @param {boolean} showLabels - Si se muestran etiquetas y leyenda.
  */
 export function generateVariableGraph(canvasId, data, variableNames, neuronRange, startTime = 0, endTime = data.length, showLabels = true) {
 
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
-    console.error(`Canvas with ID '${canvasId}' not found.`);
     return;
   }
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    console.error(`Unable to get 2D context for canvas with ID '${canvasId}'.`);
     return;
   }
 
@@ -29,7 +29,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
   }
 
   if (!Array.isArray(data) || data.length === 0) {
-    console.error(`Invalid or empty data provided.`);
     return;
   }
 
@@ -43,7 +42,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
       (_, i) => `${variableNames}_${startNeuron + i}`
     );
   } else if (!Array.isArray(variableNames)) {
-    console.error(`Invalid variableNames. Expected an array or string but got:`, variableNames);
     return;
   }
 
@@ -56,7 +54,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
   
 
   if (startNeuron < 1 || Number(startNeuron) > Number(endNeuron) || endNeuron > data.length) {
-    console.error(`Invalid neuron range: [${startNeuron}, ${endNeuron}].`);
     return;
   }
 
@@ -72,7 +69,6 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
     const b = Math.floor((i * 60) % 255);
   
     return {
-      //pointHoverRadius: 5,
       pointRadius: 0,
       label: showLabels ? `Neuron ${startNeuron + i}` : undefined,
       data: filteredData.map(point => point[neuronIndex]),
@@ -91,7 +87,7 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
       datasets: datasets,
     },
     options: {
-      responsive: true, // Hacer que el gráfico sea dinámico
+      responsive: true, 
       maintainAspectRatio: false, // Permitir que el gráfico se ajuste al tamaño del canvas
       
       plugins: {
@@ -122,59 +118,52 @@ export function generateVariableGraph(canvasId, data, variableNames, neuronRange
 }
 
 /**
- * Genera un gráfico de dispersión para visualizar los spikes de un rango de neuronas.
+ * Genera un gráfico de tasa de spikes (spike rate) para un rango de tiempo y datos de spikes.
+ * Utiliza Chart.js para mostrar la cantidad de spikes por bin temporal.
  * @param {string} canvasId - ID del elemento canvas donde se renderizará el gráfico.
  * @param {Array} spikeData - Datos de los spikes de las neuronas.
- * @param {Array} neuronRange - Rango de neuronas a graficar [startNeuron, endNeuron].
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
+ * @param {number} binSize - Tamaño del bin temporal para agrupar spikes.
+ * @param {boolean} showLabels - Si se muestran etiquetas y leyenda.
  */
 export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime = 1000, binSize = 1, showLabels = true) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
-    console.error(`Canvas with ID '${canvasId}' not found.`);
     return;
   }
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    console.error(`Unable to get 2D context for canvas with ID '${canvasId}'.`);
     return;
   }
 
   const existingChart = Chart.getChart(canvas);
   if (existingChart) {
-    existingChart.destroy(); // Destruir el gráfico existente
+    existingChart.destroy(); 
   }
 
   if (!Array.isArray(spikeData)) {
-    console.warn('spikeData no es un arreglo. Intentando convertirlo con Object.values.');
     spikeData = Object.values(spikeData);
   }
 
-  // Aplanar todos los spikes
   const allSpikes = Array.isArray(spikeData[0]) ? spikeData.flat() : Object.values(spikeData).flat();
 
-  // Filtrar dentro del intervalo
   const filteredSpikes = allSpikes.filter(spike => spike >= startTime && spike <= endTime);
 
   if (startTime >= endTime) {
-    console.error(`Invalid time range: startTime (${startTime}) must be less than endTime (${endTime}).`);
     return;
   }
 
   if (binSize <= 0) {
-    console.error(`Invalid bin size: binSize (${binSize}) must be greater than 0.`);
     return;
   }
 
   const bins = Math.ceil((endTime - startTime) / binSize);
   if (bins <= 0) {
-    console.error(`Invalid number of bins: ${bins}. Check startTime, endTime, and binSize.`);
     return;
   }
 
-  // Crear los bins
   const counts = new Array(bins).fill(0);
 
   filteredSpikes.forEach(spike => {
@@ -184,7 +173,6 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
     }
   });
 
-  // Eje X: centro de cada bin
   const labels = Array.from({ length: bins }, (_, i) => startTime + i * binSize + binSize / 2);
 
   new Chart(ctx, {
@@ -233,24 +221,24 @@ export function generateSpikeGraph(canvasId, spikeData, startTime = 0, endTime =
 }
 
 /**
- * Genera un gráfico de tipo raster plot para visualizar los spikes de múltiples neuronas.
+ * Genera un gráfico tipo raster plot para visualizar los spikes de múltiples neuronas en el tiempo.
+ * Cada punto representa un spike de una neurona en un instante dado.
+ * Utiliza Chart.js en modo scatter.
  * @param {string} canvasId - ID del elemento canvas donde se renderizará el gráfico.
  * @param {Array} spikeData - Datos de los spikes de las neuronas.
  * @param {number} startTime - Tiempo inicial del intervalo a mostrar en el gráfico.
  * @param {number} endTime - Tiempo final del intervalo a mostrar en el gráfico.
+ * @param {boolean} showLabels - Si se muestran etiquetas y leyenda.
  */
 export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime = 1000, showLabels = true) {
-  console.log(`Generating raster plot for canvas ID: ${canvasId}, startTime: ${startTime}, endTime: ${endTime}`);
-  console.log(`Spike data:`, spikeData);
+
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
-    console.error(`Canvas with ID '${canvasId}' not found.`);
     return;
   }
 
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    console.error(`Unable to get 2D context for canvas with ID '${canvasId}'.`);
     return;
   }
 
@@ -260,19 +248,15 @@ export function generateRasterPlot(canvasId, spikeData, startTime = 0, endTime =
   }
 
   if (!Array.isArray(spikeData)) {
-    console.warn('spikeData no es un arreglo. Intentando convertirlo con Object.values.');
     spikeData = Object.values(spikeData);
   }
 
-  // Asegurarse de que spikeData sea un arreglo de arreglos
   const allSpikes = Array.isArray(spikeData[0]) ? spikeData : Object.values(spikeData);
 
-  // Filtrar los spikes dentro del rango de tiempo especificado
   const filteredSpikes = allSpikes.map((spikes, neuronIndex) => 
     spikes.filter(spikeTime => spikeTime >= startTime && spikeTime <= endTime)
   );
 
-  // Crear datasets para cada neurona dentro del rango de tiempo
   const datasets = filteredSpikes.map((spikes, neuronIndex) => {
     return {
       label: showLabels ? `Neuron ${neuronIndex + 1}` : undefined,

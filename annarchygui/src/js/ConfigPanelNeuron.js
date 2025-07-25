@@ -3,13 +3,16 @@ import { generateSpikeGraph, generateVariableGraph, generateRasterPlot } from '.
 import TimeRangeSlider from './Slider';
 import "./../css/Gestionador.css";
 
+/**
+ * Panel de configuración para editar una población neuronal y sus monitores.
+ * Permite modificar parámetros, ecuaciones, tipo, cantidad y gestionar la monitorización y visualización de gráficos.
+ */
 function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, graphicMonitors, nextMonitorId, setNextMonitorId, variablesData, lastSimTime }) {
   const [activeTab, setActiveTab] = useState('neuron'); 
   const [name, setName] = useState(neuron.name || '');
   const [tipo, setTipo] = useState(neuron.attributes.tipo || '');
   const [equations, setEquations] = useState(neuron.attributes.equations || '');
   const [parameters, setParameters] = useState(Object.entries(neuron.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
-  const [functions, setFunctions] = useState(Object.entries(neuron.attributes.functions || {}).map(([name, value]) => ({ name, value })));
   const [spike, setSpike] = useState(neuron.attributes.spike || '');
   const [axonSpike, setAxonSpike] = useState(neuron.attributes.axon_spike || '');
   const [reset, setReset] = useState(neuron.attributes.reset || '');
@@ -26,18 +29,22 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
   const [selectedOptions, setSelectedOptions] = useState([]); // Estado para las opciones seleccionadas
   const [showLabels, setShowLabels] = useState(false); // Por defecto oculto
 
+  /**
+   * Actualiza el rango de tiempo seleccionado para los gráficos.
+   */
   const handleTimeRangeChange = ([start, end]) => {
     setStartTime(start);
     setEndTime(end);
   };
 
-  // Solo reinicializa los valores del formulario cuando cambia el id de la neurona
+  /**
+   * Sincroniza los campos del formulario con los datos de la neurona seleccionada.
+   */
   useEffect(() => {
     setName(neuron.name || '');
     setTipo(neuron.attributes.tipo || 'Spiking neuron');
     setEquations(neuron.attributes.equations || '');
     setParameters(Object.entries(neuron.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
-    setFunctions(Object.entries(neuron.attributes.functions || {}).map(([name, value]) => ({ name, value })));
     setSpike(neuron.attributes.spike || '');
     setAxonSpike(neuron.attributes.axon_spike || '');
     setReset(neuron.attributes.reset || '');
@@ -47,7 +54,9 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     setQuantity(neuron.id !== undefined ? neuron.quantity : 1);
   }, [neuron.id]);
 
-  // Sincroniza solo los monitores cuando cambian
+  /**
+   * Sincroniza los monitores asociados a la neurona seleccionada.
+   */
   useEffect(() => {
     if (neuron.id !== undefined) {
       const neuronMonitors = monitors.filter(m => m.populationId === neuron.id);
@@ -61,6 +70,9 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     }
   }, [neuron.id, monitors]);
 
+  /**
+   * Renderiza la imagen del gráfico legacy si corresponde.
+   */
   useEffect(() => {
     if (activeTab === 'monitor' && Array.isArray(graphicMonitors)) {
       const monitorIndex = graphicMonitors.indexOf(monitorAttributes[0]?.id); // Usar el ID del monitor
@@ -80,6 +92,9 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     }
   }, [activeTab, monitorAttributes, graphicMonitors, graphics]);
 
+  /**
+   * (Legacy) Llama a generateSpikeGraph si hay datos de spikes y la pestaña monitor está activa.
+   */
   useEffect(() => {
     if (activeTab === 'monitor' && neuron.hasMonitor) {
       const spikeData = monitorAttributes.find(attr => attr.variables.includes('spike'))?.data;
@@ -89,10 +104,13 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     }
   }, [activeTab, neuron, monitorAttributes]);
 
+  /**
+   * Genera y actualiza los gráficos de monitorización según la variable seleccionada y el rango de tiempo.
+   */
   useEffect(() => {
     if (activeTab === 'monitor' && neuron.hasMonitor && variablesData.length > 0) {
       const monitorId = monitorAttributes[0]?.id;
-      const variable = selectedOptions[0]; // la variable seleccionada en el select
+      const variable = selectedOptions[0]; 
       if (monitorId && variable) {
         let monitorDatum = null;
         if (variable === 'raster_plot') {
@@ -131,16 +149,20 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     }
   }, [activeTab, neuron, variablesData, startTime, endTime, rangeStart, rangeEnd, selectedOptions, showLabels, monitorAttributes]);
 
+  /**
+   * Actualiza el tiempo final del slider cuando se activa la pestaña monitor.
+   */
   useEffect(() => {
     if (activeTab === 'monitor') {
       setEndTime(lastSimTime); // Actualizar endTime con el valor de lastSimTime cuando se muestre el gráfico
     }
   }, [activeTab, lastSimTime]); // Ejecutar este efecto cuando activeTab o lastSimTime cambien
 
-  // Limpiar gráficos cuando cambia la variable seleccionada
+  /**
+   * Limpia los gráficos cuando cambia la variable seleccionada o la pestaña activa.
+   */
   useEffect(() => {
     if (activeTab === 'monitor') {
-      // Limpiar todos los canvas de gráficos
       const canvasIds = ['spikeGraphCanvas', 'rasterPlotCanvas'];
       if (neuron.variablesMonitor) {
         neuron.variablesMonitor.forEach(variable => {
@@ -161,58 +183,66 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     }
   }, [selectedOptions, activeTab, neuron.variablesMonitor]);
 
+  /** Maneja el cambio del nombre de la población neuronal. */
   const handleNameChange = (e) => {
     setName(e.target.value);
   };
 
+  /** Maneja el cambio del tipo de neurona. */
   const handleTipoChange = (e) => {
     setTipo(e.target.value);
   };
 
+  /** Maneja el cambio de la ecuación de la neurona. */
   const handleEquationChange = (e) => {
     setEquations(e.target.value);
   };
 
+  /** Maneja el cambio de los parámetros de la neurona. */
   const handleParameterChange = (index, field, value) => {
     const newParameters = [...parameters];
     newParameters[index][field] = value;
     setParameters(newParameters);
   };
 
-  const handleFunctionChange = (index, field, value) => {
-    const newFunctions = [...functions];
-    newFunctions[index][field] = value;
-    setFunctions(newFunctions);
-  };
+  // Eliminado handleFunctionChange
 
+  /** Maneja el cambio del campo spike. */
   const handleSpikeChange = (e) => {
     setSpike(e.target.value);
   };
 
+  /** Maneja el cambio del campo axon_spike. */
   const handleAxonSpikeChange = (e) => {
     setAxonSpike(e.target.value);
   };
 
+  /** Maneja el cambio del campo reset. */
   const handleResetChange = (e) => {
     setReset(e.target.value);
   };
 
+  /** Maneja el cambio del campo axon_reset. */
   const handleAxonResetChange = (e) => {
     setAxonReset(e.target.value);
   };
 
+  /** Maneja el cambio del campo refractory. */
   const handleRefractoryChange = (e) => {
     setRefractory(e.target.value);
   };
 
+  /** Maneja el cambio del campo firingRate. */
   const handleFiringRateChange = (e) => {
     setFiringRate(e.target.value);
   };
 
+  /** Maneja el cambio de la cantidad de neuronas. */
   const handleQuantityChange = (e) => {
     setQuantity(e.target.value);
   };
 
+  /** Maneja el cambio de los atributos de los monitores. */
   const handleMonitorAttributeChange = (index, field, value) => {
     const newMonitorAttributes = [...monitorAttributes];
     newMonitorAttributes[index] = {
@@ -222,22 +252,23 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     setMonitorAttributes(newMonitorAttributes);
   };
 
+  /** Maneja el cambio del rango inicial de neuronas para el gráfico. */
   const handleRangeStartChange = (e) => {
     setRangeStart(e.target.value);
   };
 
+  /** Maneja el cambio del rango final de neuronas para el gráfico. */
   const handleRangeEndChange = (e) => {
     setRangeEnd(e.target.value);
   };
 
+  /** Maneja el cambio de la(s) variable(s) seleccionada(s) para monitorización. */
   const handleOptionChange = (e) => {
     const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
-    console.log('Selected values:', selectedValues); // Verificar los valores seleccionados
     setSelectedOptions(selectedValues); // Actualizar el estado con las opciones seleccionadas
 
-    // Actualizar las variables del monitor correspondiente
     const updatedMonitorAttributes = monitorAttributes.map((monitor, index) => {
-      if (index === 0) { // Suponiendo que el primer monitor es el relevante
+      if (index === 0) { 
         return {
           ...monitor,
           variables: selectedValues,
@@ -248,30 +279,25 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     setMonitorAttributes(updatedMonitorAttributes);
   };
 
+  /** Agrega un nuevo parámetro a la lista de parámetros. */
   const addParameter = () => {
     setParameters([...parameters, { name: '', value: '' }]);
   };
 
+  /** Elimina un parámetro de la lista de parámetros. */
   const removeParameter = (index) => {
     setParameters(parameters.filter((_, i) => i !== index));
   };
 
-  const removeFunction = (index) => {
-    setFunctions(functions.filter((_, i) => i !== index));
-  };
 
+  /**
+   * Guarda los cambios realizados en la población neuronal y sus monitores.
+   * Filtra parámetros vacíos y actualiza el estado global.
+   */
   const handleSave = () => {
-    /** 
-    if (tipo === 'Spiking neuron' && (!parameters.length || !equations || !spike)) {
-      alert('Los campos Parámetros, Ecuaciones y Spike son requeridos para neuronas Spiking.');
-      return;
-    }
-
-    if (tipo === 'Rate-Coded neuron' && (!parameters.length || !equations || !firingRate)) {
-      alert('Los campos Parámetros, Ecuaciones y Firing Rate son requeridos para neuronas Rate-Coded.');
-      return;
-    }
-*/
+    
+    // Filtrar parámetros vacíos antes de guardar
+    const filteredParameters = parameters.filter(param => param.name && param.name.trim() !== "");
     const updatedNeuron = {
       ...neuron,
       name: name || neuron.name,
@@ -280,12 +306,8 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
         ...neuron.attributes,
         tipo,
         equations,
-        parameters: parameters.reduce((acc, param) => {
+        parameters: filteredParameters.reduce((acc, param) => {
           acc[param.name] = param.value;
-          return acc;
-        }, {}),
-        functions: functions.reduce((acc, func) => {
-          acc[func.name] = func.value;
           return acc;
         }, {}),
         spike,
@@ -296,7 +318,8 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
         firingRate,
       }
     };
-
+    setParameters(filteredParameters); 
+    
     const updatedMonitors = monitorAttributes.map(monitor => ({
       id: monitor.id,
       populationId: neuron.id,
@@ -307,6 +330,10 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
     onSave(updatedNeuron, updatedMonitors);
   };
 
+  /**
+   * Activa o desactiva el monitor para la población neuronal.
+   * Si se activa, crea un monitor; si se desactiva, lo elimina.
+   */
   const handleMonitorToggle = (e) => {
     const isChecked = e.target.checked;
 
@@ -335,7 +362,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
 
   useEffect(() => {
     if (activeTab === 'monitor' && neuron.hasMonitor) {
-      // Si hay una selección previa de variables para este monitor, restaurarla
       if (monitorAttributes.length > 0 && monitorAttributes[0].variables && monitorAttributes[0].variables.length > 0) {
         setSelectedOptions(monitorAttributes[0].variables);
       }
@@ -351,7 +377,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
         >
           Neuron
         </button>
-        {/* Eliminar pestaña Monitor al crear una neurona nueva (sin id) */}
         {neuron.id !== undefined && (
           <button
             style={{
@@ -375,7 +400,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                 <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
               </div>
             </div>
-            {/* Eliminar Enable Monitor al crear una neurona nueva (sin id) */}
             {neuron.id !== undefined && (
               <div className="column">
                 <div className="row" style={{ display: 'flex', alignItems: 'left' }}>
@@ -483,27 +507,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
             </div>
           )}
 
-          <div className="row">
-            <label htmlFor="functions">Functions:</label>
-            {/* Ajuste para edición de funciones como lista de pares nombre/valor */}
-            {functions.map((func, index) => (
-              <div key={index} className="row">
-                <input
-                  type="text"
-                  placeholder="Function name"
-                  value={func.name}
-                  onChange={e => handleFunctionChange(index, "name", e.target.value)}
-                />
-                <textarea
-                  placeholder="Function value"
-                  value={func.value}
-                  onChange={e => handleFunctionChange(index, "value", e.target.value)}
-                />
-                <button className="delete" onClick={() => removeFunction(index)}>Delete</button>
-              </div>
-            ))}
-            <button className="add" onClick={() => setFunctions([...functions, { name: '', value: '' }])}>Add function</button>
-          </div>
 
         </>
       )}
@@ -548,47 +551,53 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                 )}
               </div>
             ))}
-
-            <div className="input-group">
-              <label htmlFor="rangeStart">Rango Inicio:</label>
-              <input
-                type="number"
-                id="rangeStart"
-                value={rangeStart}
-                onChange={handleRangeStartChange}
-                style={{ width: '80px' }} // Aumentar el tamaño del input
-              />
-
-
-              <label htmlFor="rangeEnd">Rango Fin:</label>
-              <input
-                type="number"
-                id="rangeEnd"
-                value={rangeEnd}
-                onChange={handleRangeEndChange}
-                style={{ width: '80px' }} // Aumentar el tamaño del input
-              />
-            </div>
-
-
+            {/* Mostrar las casillas de rango solo si hay gráfico visible y datos*/}
+            {monitorAttributes.some((monitor) => {
+              const variable = selectedOptions[0];
+              return selectedOptions.length === 1 && monitor.variables.includes(variable) && variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+            }) && (
+              <div className="input-group">
+                <label htmlFor="rangeStart">Range Start:</label>
+                <input
+                  type="number"
+                  id="rangeStart"
+                  value={rangeStart}
+                  onChange={handleRangeStartChange}
+                  style={{ width: '80px' }}
+                />
+                <label htmlFor="rangeEnd">Range End:</label>
+                <input
+                  type="number"
+                  id="rangeEnd"
+                  value={rangeEnd}
+                  onChange={handleRangeEndChange}
+                  style={{ width: '80px' }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="monitor-graphics">
             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-              <button
-                className="toggle-labels"
-                onClick={() => setShowLabels((prev) => !prev)}
-              >
-                {showLabels ? 'Hide labels' : 'Show labels'}
-              </button>
-              {/* Botón de descarga global, solo si hay un gráfico visible y datos */}
+              {/* Mostrar el botón de show labels solo si hay gráfico visible y datos*/}
+              {monitorAttributes.some((monitor) => {
+                const variable = selectedOptions[0];
+                return selectedOptions.length === 1 && monitor.variables.includes(variable) && variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
+              }) && (
+                <button
+                  className="toggle-labels"
+                  onClick={() => setShowLabels((prev) => !prev)}
+                >
+                  {showLabels ? 'Hide labels' : 'Show labels'}
+                </button>
+              )}
+              {/* Botón de descarga , solo si hay un gráfico visible y datos */}
               {monitorAttributes.some((monitor) => {
                 const variable = selectedOptions[0];
                 return selectedOptions.length === 1 && monitor.variables.includes(variable) && variablesData.some(data => data.monitorId === monitor.id && data.variable === variable);
               }) && (
                 <button
                   onClick={() => {
-                    // Buscar el primer canvas visible con datos
                     for (const monitor of monitorAttributes) {
                       const variable = selectedOptions[0];
                       if (selectedOptions.length === 1 && monitor.variables.includes(variable)) {
@@ -604,7 +613,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                         if (hasData) {
                           const canvas = document.getElementById(canvasId);
                           if (canvas) {
-                            // Crear un canvas temporal más grande con fondo blanco y margen
                             const margin = 32; // margen en píxeles
                             const tempCanvas = document.createElement('canvas');
                             tempCanvas.width = canvas.width + margin * 2;
@@ -612,7 +620,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                             const ctx = tempCanvas.getContext('2d');
                             ctx.fillStyle = '#fff';
                             ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                            // Dibujar el gráfico original centrado con margen
                             ctx.drawImage(canvas, margin, margin);
                             const url = tempCanvas.toDataURL('image/png');
                             const a = document.createElement('a');
@@ -643,7 +650,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
               } else {
                 canvasId = `variableGraphCanvas-${variable}`;
               }
-              // Mostrar el recuadro aunque no haya variable seleccionada
               return (
                 <div key={index} className="graph-block" style={{position: 'relative', width: 640, height: 480}}>
                   {selectedOptions.length === 1 && monitor.variables.includes(variable) ? (
@@ -700,7 +706,6 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
               step={1}
               onChange={handleTimeRangeChange}
             />
-            {/* El canvasRef y graphics legacy se mantienen por compatibilidad, pero no se usan para monitorización */}
             {graphics.length > 0 && (
               <div className="graph-block">
                 <canvas ref={canvasRef} width="640" height="480"></canvas>

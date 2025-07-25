@@ -3,28 +3,34 @@ import './../css/Lienzo.css';
 import ConfigPanelNeuron from './ConfigPanelNeuron'; // Importar el componente Gestionador
 import ConfigPanelSynapse from './ConfigPanelSynapse'; // Importar el componente SynapseGestionador
 
+/**
+ * Componente principal del lienzo de ANNarchyGUI.
+ * Permite arrastrar, soltar, conectar y editar poblaciones neuronales, sinapsis, monitores y estímulos.
+ * Gestiona el estado visual y funcional del canvas, así como la interacción con los paneles de configuración.
+ */
 function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems, selectedSynapse, connections, setConnections, isAssigningMonitor, setIsAssigningMonitor, monitors, setMonitors, graphics, graphicMonitors, variablesData,lastSimTime }) {
-  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
-  const [nextId, setNextId] = useState(1);
-  const [nextMonitorId, setNextMonitorId] = useState(1);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]);
-  const [showGestionador, setShowGestionador] = useState(false); // Estado para mostrar/ocultar el Gestionador
-  const [selectedNeuron, setSelectedNeuron] = useState(null); // Estado para la neurona seleccionada
-  const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
-  const [selectedSynapseItem, setSelectedSynapseItem] = useState(null);
-  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null); // Índice del elemento que se está arrastrando
+  const [nextId, setNextId] = useState(1); // Siguiente ID disponible para nuevos elementos
+  const [nextMonitorId, setNextMonitorId] = useState(1); // Siguiente ID disponible para monitores
+  const [selectedItems, setSelectedItems] = useState([]); // Elementos seleccionados para conexión
+  const [stimulusMonitorConnections, setStimulusMonitorConnections] = useState([]); // Conexiones de estímulos y monitores
+  const [showGestionador, setShowGestionador] = useState(false); // Mostrar/ocultar el panel de gestión de neuronas
+  const [selectedNeuron, setSelectedNeuron] = useState(null); // Neurona seleccionada para edición
+  const [showSynapseGestionador, setShowSynapseGestionador] = useState(false); // Mostrar/ocultar el panel de gestión de sinapsis
+  const [selectedSynapseItem, setSelectedSynapseItem] = useState(null); // Sinapsis seleccionada para edición
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth, height: window.innerHeight }); // Tamaño actual del lienzo
 
-  // Recalcula las posiciones de los elementos cuando cambia el tamaño de la ventana
-  useEffect(() => {
+  /**
+   * UseEffect para disponer items en el lienzo
+   */  useEffect(() => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
 
       setItems((prevItems) =>
         prevItems.map((item) => {
-          const adjustedX = Math.min(Math.max((item.x / canvasSize.width) * newWidth, 0), newWidth - 100); // Limitar dentro del lienzo
-          const adjustedY = Math.min(Math.max((item.y / canvasSize.height) * newHeight, 0), newHeight - 50); // Limitar dentro del lienzo
+          const adjustedX = Math.min(Math.max((item.x / canvasSize.width) * newWidth, 0), newWidth - 100); 
+          const adjustedY = Math.min(Math.max((item.y / canvasSize.height) * newHeight, 0), newHeight - 50); 
           return {
             ...item,
             x: adjustedX,
@@ -42,12 +48,16 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     };
   }, [canvasSize, setItems]);
 
-  //Funcion para manejar el drag de un elemento NUEVO
+  /**
+   * Permite el arrastre sobre el lienzo (necesario para el drop).
+   */
   const handleDragOver = (event) => {
     event.preventDefault();
   };
 
-  //Funcion para manejar el drop de un elemento
+  /**
+   * Maneja el evento de soltar un elemento en el lienzo (nuevo o reposicionado).
+   */
   const handleDrop = (event) => {
     event.preventDefault();
     const data = event.dataTransfer.getData('application/json');
@@ -88,25 +98,33 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
-  // Función para eliminar todas las conexiones que involucren un elemento
+  /**
+   * Elimina todas las conexiones (sinápticas o de estímulo/monitor) asociadas a un elemento.
+   */
   const removeConnections = (itemId) => {
     setConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
     setStimulusMonitorConnections(prevConnections => prevConnections.filter(connection => connection.origen !== itemId && connection.destino !== itemId));
   };
 
-  // Función para eliminar los monitores asociados a una población
+  /**
+   * Elimina todos los monitores asociados a una población neuronal.
+   */
   const removeMonitors = (populationId) => {
     setMonitors(prevMonitors => prevMonitors.filter(monitor => monitor.populationId !== populationId));
   };
 
-  // Funcion para eliminar un elemento y sus conexiones y monitores
+  /**
+   * Elimina un elemento del lienzo junto con sus conexiones y monitores asociados.
+   */
   const handleDeleteItem = (itemId) => {
     setItems(items.filter(item => item.id !== itemId));
     removeConnections(itemId);
     removeMonitors(itemId); // Eliminar monitores asociados
   };
 
-  //Funcion para manejar las conexiones entre elementos
+  /**
+   * Maneja el clic sobre un elemento para iniciar o continuar una conexión.
+   */
   const handleItemClick = (item, event) => {
     event.stopPropagation();
     if (isConnecting) {
@@ -120,7 +138,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
-  // Función para manejar el clic en una población cuando está en modo de asignación
+  /**
+   * Maneja el clic sobre una población neuronal. Si está en modo de asignar monitor, lo asigna; si no, inicia conexión.
+   */
   const handlePopulationClick = (item, event) => {
     event.stopPropagation();
     if (isAssigningMonitor) {
@@ -143,15 +163,24 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
-  //Funcion para mostrar el Gestionador al hacer clic derecho sobre una población neuronal
+  /**
+   * Muestra el panel de gestión (Gestionador) al hacer clic derecho sobre una población neuronal.
+   */
   const handleNeuronContextMenu = (event, item) => {
     event.preventDefault();
     setSelectedNeuron(item);
     setShowGestionador(true);
   };
 
+  /**
+   * Guarda los cambios realizados en una población neuronal y sus monitores desde el Gestionador.
+   */
   const handleSaveNeuron = (updatedNeuron, updatedMonitors) => {
-    setItems(items.map(item => item.id === updatedNeuron.id ? { ...updatedNeuron, name: updatedNeuron.name } : item));
+    setItems(items.map(item =>
+      item.id === updatedNeuron.id
+        ? { ...item, ...updatedNeuron, attributes: { ...item.attributes, ...updatedNeuron.attributes } }
+        : item
+    ));
     setMonitors(monitors.map(monitor => {
       const updatedMonitor = updatedMonitors.find(m => m.id === monitor.id);
       return updatedMonitor ? { ...monitor, ...updatedMonitor } : monitor;
@@ -159,20 +188,32 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setShowGestionador(false);
   };
 
+  /**
+   * Actualiza las variables monitorizadas de un monitor específico.
+   */
   const handleMonitorVariableChange = (monitorId, newVariables) => {
     setMonitors(monitors.map(monitor =>
       monitor.id === monitorId ? { ...monitor, variables: newVariables } : monitor
     ));
   };
 
+  /**
+   * Cierra el panel de gestión de neuronas (Gestionador).
+   */
   const handleCloseGestionador = () => {
     setShowGestionador(false);
   };
 
+  /**
+   * Elimina una conexión sináptica específica.
+   */
   const handleDeleteConnection = (connectionId) => {
     setConnections(connections.filter(connection => connection.id !== connectionId));
   };
 
+  /**
+   * Guarda los cambios realizados en una sinapsis desde el panel de gestión de sinapsis.
+   */
   const handleSaveSynapse = (updatedSynapse) => {
     setConnections(connections.map(connection =>
       connection.id === updatedSynapse.id ? { ...connection, attributes: updatedSynapse.attributes, connections: updatedSynapse.connections } : connection
@@ -180,12 +221,18 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     setShowSynapseGestionador(false);
   };
 
+  /**
+   * Muestra el panel de gestión de sinapsis al hacer clic derecho sobre una conexión entre poblaciones neuronales.
+   */
   const handleSynapseClick = (event, connection) => {
     event.preventDefault();
     setSelectedSynapseItem(connection);
     setShowSynapseGestionador(true);
   };
 
+  /**
+   * Efecto para guardar una nueva conexión cuando hay dos elementos seleccionados.
+   */
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -248,7 +295,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   }, [selectedItems, setIsConnecting, selectedSynapse, setConnections]);
 
-  //Funcion para quitar el modo de conexion si se hace click en el lienzo
+  /**
+   * Quita el modo de conexión si se hace clic en el lienzo vacío.
+   */
   const handleCanvasClick = () => {
     if (isConnecting) {
       setIsConnecting(false);
@@ -257,6 +306,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
+  /**
+   * Función auxiliar para imprimir en consola el estado actual de conexiones, items y monitores.
+   */
   const debugear = () => {
     console.log('Current connections:', connections);
     console.log('Current items:', items);
@@ -264,6 +316,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     console.log('variablesData:', variablesData);
   };
 
+  /**
+   * Renderiza el marcador SVG de flecha para las conexiones.
+   */
   const renderArrowMarker = () => {
     const refX = 50;
     return (
@@ -281,6 +336,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     );
   };
 
+  /**
+   * Devuelve la clase CSS correspondiente a la forma del elemento según su tipo.
+   */
   const getShapeClass = (type) => {
     switch (type) {
       case 'Población neuronal':
@@ -290,7 +348,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
     }
   };
 
-  // Maneja el evento de arrastrar fuera del lienzo
+  /**
+   * Maneja el evento de soltar un elemento fuera del lienzo (por ejemplo, sobre el sidebar para eliminarlo).
+   */
   const handleDragEnd = (event, index) => {
     const sidebar = document.getElementById('sidebar');
     const rect = sidebar.getBoundingClientRect();
@@ -321,7 +381,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           const destinoItem = items.find(item => item.id === connection.destino);
 
           if (!origenItem || !destinoItem) {
-            return null; // Si no se encuentra el elemento, no renderizar la conexión
+            return null;
           }
 
           const x1 = origenItem.x + 50;
@@ -334,9 +394,9 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           // Determinar color según el tipo de conexión (exc/inhib)
           let color = 'black';
           if (connection.connections && connection.connections.target === 'exc') {
-            color = '#1e88e5'; // Azul para excitatoria (ahora)
+            color = '#1e88e5'; // Azul para excitatoria 
           } else if (connection.connections && connection.connections.target === 'inh') {
-            color = '#e53935'; // Rojo para inhibitoria (ahora)
+            color = '#e53935'; // Rojo para inhibitoria 
           }
 
           return (
@@ -370,7 +430,6 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
                 onMouseEnter={(e) => e.target.setAttribute('stroke', 'red')}
                 onMouseLeave={(e) => e.target.setAttribute('stroke', color)}
               />
-              {/* Etiqueta sobre la flecha indicando el tipo de conexión con simbología */}
               {connection.connections && connection.connections.rule && (
                 <text
                   x={(x1 + x2) / 2}
@@ -396,7 +455,7 @@ function Lienzo({ isConnecting: [isConnecting, setIsConnecting], items, setItems
           const destinoItem = items.find(item => item.id === connection.destino);
 
           if (!origenItem || !destinoItem) {
-            return null; // Si no se encuentra el elemento, no renderizar la conexión
+            return null; 
           }
 
           const x1 = origenItem.x + 50;

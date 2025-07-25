@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './../css/App.css';
 import Lienzo from './Lienzo';
 import Sidebar from './Sidebar';
-import { generateANNarchyCode, sendCodeToBackend, getJobStatus, downloadMonitorResults } from '../SubModulos/CodeGenerator';
+import { generateANNarchyCode, sendCodeToBackend, getJobStatus } from '../SubModulos/CodeGenerator';
 import { Chart, registerables } from 'chart.js';
-import { TextField, Tooltip, IconButton, InputAdornment } from '@mui/material';
+import { Tooltip  } from '@mui/material';
 Chart.register(...registerables);
 
 
@@ -48,7 +48,6 @@ function App() {
       const jsonString = responseString.substring(responseString.indexOf('{'));
 
       const jsonResponse = JSON.parse(jsonString);
-      console.log('Respuesta convertida a JSON:', jsonResponse);
       return jsonResponse;
     } catch (error) {
       console.error('Error al convertir la respuesta del backend a JSON:', error);
@@ -135,10 +134,7 @@ function App() {
       try {
         const result = await getJobStatus(jobId);
         const { status, error, output } = result;
-        console.log('resultado:', result);
-        //console.log('output:', output);
-        //console.log('status:', status);
-        console.log('error:', error);
+
 
         // Si el backend devuelve un error, mostrarlo y detener el polling
         if (error || (output && output.toLowerCase().includes('error'))) {
@@ -174,7 +170,6 @@ function App() {
         }
       } catch (e) {
         if (e.message && e.message.includes('404')) {
-          console.log(e);
           setSimulationOutput('Error 404 al ejecutar la simulación.');
           setShowOutputModal(true);
           setIsLoading(false);
@@ -293,13 +288,12 @@ function App() {
               <>
                 <h3>Simulation error</h3>
                 <div style={{ margin: '16px 0', color: 'red' }}>
-                  {/* Mostrar solo la última línea no vacía del mensaje de error */}
                   {(() => {
                     const lines = simulationOutput.split(/\r?\n/).filter(line => line.trim() !== '');
                     const lastLine = lines.length > 0 ? lines[lines.length - 1] : simulationOutput;
                     return (
                       <>
-                        <div style={{ fontWeight: 'bold', color: 'red', marginBottom: '10px' }}>Error en la simulación:</div>
+                        <div style={{ fontWeight: 'bold', color: 'red', marginBottom: '10px' }}>Error message:</div>
                         <div style={{ whiteSpace: 'pre-wrap' }}>{lastLine.trim()}</div>
                       </>
                     );

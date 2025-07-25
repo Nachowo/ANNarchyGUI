@@ -1,14 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './../css/Sidebar.css';
 import ConfigPanelNeuron from './ConfigPanelNeuron'; // Importa el componente Gestionador
-import CodeGenerator, { generateANNarchyCodeUser } from '../SubModulos/CodeGenerator'; // Importa el componente CodeGenerator
+import { generateANNarchyCodeUser } from '../SubModulos/CodeGenerator'; // Importa el componente CodeGenerator
 import ConfigPanelSynapse from './ConfigPanelSynapse';
 
+/**
+ * Componente Sidebar para la gestión de modelos neuronales, sinápticos y generación de código ANNarchy.
+ * @param {function} onConnectToggle - Función para activar el modo de conexión de sinapsis.
+ * @param {Array} items - Elementos actuales en el lienzo.
+ * @param {Array} connections - Conexiones actuales en el lienzo.
+ * @param {function} onMonitorToggle - Función para activar/desactivar monitores.
+ * @param {function} onAssignMonitor - Función para activar el modo de asignación de monitores.
+ * @param {Array} monitors - Lista de monitores actuales.
+ * @param {number} simulationTime - Tiempo de simulación.
+ * @param {number} stepTime - Paso temporal de simulación.
+ */
 function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssignMonitor, monitors, simulationTime, stepTime }) {
+  /**
+   * Pestaña activa del sidebar ('Opciones' o 'Código').
+   */
   const [activeTab, setActiveTab] = useState('Opciones');
+  /**
+   * Modelos neuronales personalizados creados por el usuario.
+   */
   const [customModels, setCustomModels] = useState([]);
+  /**
+   * Estado para mostrar/ocultar el panel de creación de neuronas personalizadas.
+   */
   const [showGestionador, setShowGestionador] = useState(false);
+  /**
+   * Estado para mostrar/ocultar el submenú de modelos neuronales.
+   */
   const [showNeuronModels, setShowNeuronModels] = useState(false);
+  /**
+   * Estado temporal para la creación de un nuevo modelo neuronal personalizado.
+   */
   const [newModel, setNewModel] = useState({
     name: '',
     quantity: '',
@@ -31,20 +57,50 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     }
   });
 
+  /**
+   * Estado para mostrar/ocultar el submenú de modelos de sinapsis.
+   */
   const [showSynapseModels, setShowSynapseModels] = useState(false);
+  /**
+   * Sinapsis personalizadas creadas por el usuario.
+   */
   const [customSynapses, setCustomSynapses] = useState([]);
+  /**
+   * Estado temporal para la creación de una nueva sinapsis personalizada.
+   */
   const [newSynapse, setNewSynapse] = useState({
     name: '',
     attributes: { weight: '', delay: '' },
   });
+  /**
+   * Estado para mostrar/ocultar el panel de creación de sinapsis personalizadas.
+   */
   const [showSynapseGestionador, setShowSynapseGestionador] = useState(false);
+  /**
+   * Código ANNarchy generado para la red actual.
+   */
   const [networkCode, setNetworkCode] = useState('');
-  const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); // Nuevo estado para modo de asignación
+  /**
+   * Estado para indicar si está activo el modo de asignación de monitores.
+   */
+  const [isAssigningMonitor, setIsAssigningMonitor] = useState(false); 
 
+  /**
+   * Ancho actual del sidebar (en píxeles).
+   */
   const [sidebarWidth, setSidebarWidth] = useState(250);
+  /**
+   * Posición X inicial para el redimensionamiento del sidebar.
+   */
   const [startX, setStartX] = useState(0);
+  /**
+   * Ancho inicial del sidebar antes de comenzar a redimensionar.
+   */
   const [initialWidth, setInitialWidth] = useState(sidebarWidth);
-  const resizeHandleRef = useRef(null); // Referencia al div de Sidebar-resize-handle
+  /**
+   * Referencia al handle de redimensionamiento del sidebar.
+   */
+  const resizeHandleRef = useRef(null); 
 
   useEffect(() => {
     if (resizeHandleRef.current) {
@@ -53,6 +109,10 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     }
   }, []); // Ejecutar solo una vez al montar el componente
 
+  /**
+   * Maneja el movimiento del mouse durante el redimensionamiento del sidebar.
+   * @param {MouseEvent} e - Evento de movimiento del mouse.
+   */
   const handleMouseMove = (e) => {
     const delta = e.clientX - startX;
     const newWidth = initialWidth - delta;
@@ -60,6 +120,9 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     setSidebarWidth(newWidth);
   };
 
+  /**
+   * Finaliza el redimensionamiento del sidebar y restaura la selección de texto.
+   */
   const handleMouseUp = () => {
       document.body.style.userSelect = 'auto'; // Restaurar selección de texto
       window.removeEventListener('mousemove', handleMouseMove);
@@ -67,6 +130,10 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     
   };
 
+  /**
+   * Inicia el proceso de redimensionamiento del sidebar.
+   * @param {MouseEvent} e - Evento de mouse down.
+   */
   const startResize = (e) => {
     e.preventDefault(); // Evitar comportamientos por defecto
     const rect = resizeHandleRef.current.getBoundingClientRect();
@@ -77,6 +144,9 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  /**
+   * Estado de modelos neuronales predefinidos en sidebar
+   */
   const predefinedModels = [
     {
       id: 1,
@@ -96,7 +166,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: '',
       },
-      variablesMonitor: ['v', 'spike','raster_plot'], // Agregado spike
+      variablesMonitor: ['v', 'spike','raster_plot'],
     },
     {
       id: 2,
@@ -123,7 +193,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
         axon_reset: '',
         refractory: ''
       },
-      variablesMonitor: ['v','u', 'spike','raster_plot'], // Agregado spike
+      variablesMonitor: ['v','u', 'spike','raster_plot'], 
     },
     {
       id: 3,
@@ -177,6 +247,9 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     }
   ];
 
+  /**
+   * Estado de modelos de sinapsis predefinidos en sidebar
+   */
   const predefinedSynapses = [
     {
       id: 1,
@@ -195,52 +268,68 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
     }
   ];
 
-  const predefinedMonitors = [
-    {
-      id: 1,
-      type: 'Monitor',
-      name: 'Monitor',
-      attributes: {
-        target: '1',
-        variables: ["xd"]
-      }
-    }
-  ];
 
+  /**
+   * Maneja el inicio del drag de un modelo neuronal o sináptico.
+   * @param {DragEvent} event - Evento de drag.
+   * @param {Object} model - Modelo a arrastrar.
+   */
   const handleDragStart = (event, model) => {
     event.dataTransfer.setData('application/json', JSON.stringify(model));
   };
 
+  /**
+   * Guarda un nuevo modelo neuronal personalizado en la lista.
+   * @param {Object} updatedModel - Modelo neuronal actualizado.
+   */
   const handleSaveModel = (updatedModel) => {
     setCustomModels([...customModels, { ...updatedModel, id: customModels.length + 1, type: 'Población neuronal' }]);
     setShowGestionador(false);
   };
 
+  /**
+   * Guarda una nueva sinapsis personalizada en la lista.
+   * @param {Object} updatedSynapse - Sinapsis actualizada.
+   */
   const handleSaveSynapse = (updatedSynapse) => {
     const newCustomSynapses = [...customSynapses, { ...updatedSynapse, id: customSynapses.length + 1, type: 'Sinapsis', name: updatedSynapse.name }];
     setCustomSynapses(newCustomSynapses);
     setShowSynapseGestionador(false);
   };
 
+  /**
+   * Activa el modo de conexión para una sinapsis seleccionada.
+   * @param {Object} synapse - Sinapsis seleccionada.
+   */
   const handleSynapseClick = (synapse) => {
     onConnectToggle(synapse);
   };
 
+  /**
+   * Genera el código ANNarchy de la red actual y lo almacena en el estado.
+   */
   const handleGenerateNetworkCode = () => {
     const code = generateANNarchyCodeUser(items, connections, monitors, simulationTime, stepTime);
     setNetworkCode(code);
   };
 
+  /**
+   * Activa el modo de asignación de monitores.
+   */
   const handleAssignMonitorClick = () => {
     setIsAssigningMonitor(true);
     onAssignMonitor(true); // Notificar al Lienzo que está en modo de asignación
   };
-
+  /**
+   * UseEffect para generar el código ante cambios en el liezno
+   */
   useEffect(() => {
-
     handleGenerateNetworkCode();
   }, [items, connections, monitors,stepTime]);
 
+  /**
+   * Estado para cambiar el tiempo de simulacion
+   */
   useEffect(() => {
     handleGenerateNetworkCode();
   }, [simulationTime]);
@@ -373,7 +462,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
       )}
       <div
         className="Sidebar-resize-handle"
-        ref={resizeHandleRef} // Asignar la referencia al div
+        ref={resizeHandleRef} 
         onMouseDown={startResize}
       ></div>
     </div>

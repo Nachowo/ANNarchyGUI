@@ -1,24 +1,47 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./../css/Gestionador.css";
 
+/**
+ * Panel de configuración para editar una sinapsis y su proyección.
+ * Permite modificar parámetros, ecuaciones, tipo, variables y la configuración de la conexión.
+ */
 function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionador }) {
-  const [activeTab, setActiveTab] = useState(synapse.id ? 'connection' : 'synapse'); // Mostrar pestaña correcta según si se está creando o editando
+  // Pestaña activa ("connection" o "synapse")
+  const [activeTab, setActiveTab] = useState(synapse.id ? 'connection' : 'synapse');
+  // Nombre de la sinapsis
   const [name, setName] = useState(synapse.attributes?.name || synapse.name || '');
+  // Tipo de sinapsis (spiking o rate-coded)
   const [tipo, setTipo] = useState(synapse.attributes.tipo || 'spiking');
+  // Lista de parámetros de la sinapsis
   const [parameters, setParameters] = useState(Object.entries(synapse.attributes.parameters || {}).map(([name, value]) => ({ name, value })));
+  // Ecuaciones de la sinapsis
   const [equations, setEquations] = useState(synapse.attributes.equations || '');
+  // PSP (solo spiking)
   const [psp, setPsp] = useState(synapse.attributes.psp || '');
+  // Operación de la sinapsis (sum, mean, etc.)
   const [operation, setOperation] = useState(synapse.attributes.operation || 'sum');
+  // Código pre-spike
   const [preSpike, setPreSpike] = useState(synapse.attributes.pre_spike || '');
+  // Código post-spike
   const [postSpike, setPostSpike] = useState(synapse.attributes.post_spike || '');
+  // Código pre-axon-spike
   const [preAxonSpike, setPreAxonSpike] = useState(synapse.attributes.pre_axon_spike || '');
+  // Funciones (solo rate-coded)
   const [functions, setFunctions] = useState(synapse.attributes.functions || '');
+  // Variables de la sinapsis
   const [variables, setVariables] = useState(Object.entries(synapse.attributes.variables || {}).map(([name, value]) => ({ name, value })));
+  // Target de la proyección (exc/inh)
   const [target, setTarget] = useState(synapse.connections?.target || 'exc');
+  // Regla de conexión (all_to_all, one_to_one)
   const [rule, setRule] = useState(synapse.connections?.rule || 'all_to_all');
+  // Pesos de la conexión
   const [weights, setWeights] = useState(synapse.connections?.weights || '');
+  // Retardos de la conexión
   const [delays, setDelays] = useState(synapse.connections?.delays || '');
 
+  /**
+   * Sincroniza los estados locales con los datos de la sinapsis seleccionada.
+   */
   useEffect(() => {
     setName(synapse.attributes?.name || synapse.name || '');
     setTipo(synapse.attributes?.tipo || 'spiking');
@@ -37,36 +60,45 @@ function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionad
     setDelays(synapse.connections?.delays || '');
   }, [synapse]);
 
+  /** Maneja el cambio de los parámetros de la sinapsis. */
   const handleParameterChange = (index, field, value) => {
     const newParameters = [...parameters];
     newParameters[index][field] = value;
     setParameters(newParameters);
   };
 
+  /** Maneja el cambio de las variables de la sinapsis. */
   const handleVariableChange = (index, field, value) => {
     const newVariables = [...variables];
     newVariables[index][field] = value;
     setVariables(newVariables);
   };
 
+  /** Agrega un nuevo parámetro a la lista de parámetros. */
   const addParameter = () => {
     setParameters([...parameters, { name: '', value: '' }]);
   };
 
+  /** Elimina un parámetro de la lista de parámetros. */
   const removeParameter = (index) => {
     setParameters(parameters.filter((_, i) => i !== index));
   };
 
+  /** Agrega una nueva variable a la lista de variables. */
   const addVariable = () => {
     setVariables([...variables, { name: '', value: '' }]);
   };
 
+  /** Elimina una variable de la lista de variables. */
   const removeVariable = (index) => {
     setVariables(variables.filter((_, i) => i !== index));
   };
 
+  /**
+   * Guarda los cambios realizados en la sinapsis y su proyección.
+   * Actualiza los atributos y la configuración de la conexión.
+   */
   const handleSave = () => {
-    // Construir el objeto attributes asegurando que el nombre se guarda correctamente
     const updatedAttributes = {
       ...synapse.attributes,
       name: name,
@@ -102,6 +134,9 @@ function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionad
     onSave(updatedSynapse);
   };
 
+  /**
+   * Elimina la sinapsis actual y cierra el panel de gestión.
+   */
   const handleDelete = () => {
     onDelete(synapse.id);
     setShowSynapseGestionador(false); // Close the manager after deleting the synapse
@@ -156,29 +191,6 @@ function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionad
               </div>
             </div>
 
-            <div className="group variables">
-              <h3>Variables</h3>
-              <div className="table">
-                {variables.map((variable, index) => (
-                  <div className="row" key={index}>
-                    <input
-                      type="text"
-                      placeholder="Variable name"
-                      value={variable.name}
-                      onChange={(e) => handleVariableChange(index, "name", e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Variable value"
-                      value={variable.value}
-                      onChange={(e) => handleVariableChange(index, "value", e.target.value)}
-                    />
-                    <button className="delete" onClick={() => removeVariable(index)}>Delete</button>
-                  </div>
-                ))}
-                <button className="add" onClick={addVariable}>Add variable</button>
-              </div>
-            </div>
           </div>
           
           {tipo === 'spiking' && (
@@ -226,7 +238,6 @@ function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionad
             <select id="target" value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="exc">Excitatory</option>
               <option value="inh">Inhibitory</option>
-              {/* Other options */}
             </select>
           </div>
           <h3>Connection Configuration</h3>
@@ -235,7 +246,6 @@ function ConfigPanelSynapse({ synapse, onSave, onDelete, setShowSynapseGestionad
             <select id="rule" value={rule} onChange={(e) => setRule(e.target.value)}>
               <option value="all_to_all">all_to_all</option>
               <option value="one_to_one">one_to_one</option>
-              {/* Other options */}
             </select>
           </div>
           <div className="row">

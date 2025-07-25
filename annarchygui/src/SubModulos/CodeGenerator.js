@@ -1,6 +1,3 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-
 let code = '';
 let simulationTime = 100; // Valor predeterminado
 
@@ -62,7 +59,7 @@ export function formatName(name) {
 export function generateNeuronCode(neurons) {
   // Agrupar por tipo y parámetros/equations únicos
   const neuronDefs = [];
-  const neuronHashes = new Set();
+  const neuronHashes = [];
 
   neurons.forEach(neuron => {
     // Crear un hash único por tipo, equations, parámetros y funciones
@@ -70,7 +67,6 @@ export function generateNeuronCode(neurons) {
       tipo: neuron.attributes.tipo,
       equations: neuron.equation,
       parameters: neuron.parameters,
-      functions: neuron.attributes.functions,
       spike: neuron.attributes.spike,
       axon_spike: neuron.attributes.axon_spike,
       reset: neuron.attributes.reset,
@@ -78,9 +74,9 @@ export function generateNeuronCode(neurons) {
       refractory: neuron.attributes.refractory,
       firingRate: neuron.attributes.firingRate
     });
-    if (!neuronHashes.has(hash)) {
+    if (!neuronHashes.includes(hash)) {
       neuronDefs.push({ ...neuron, hash });
-      neuronHashes.add(hash);
+      neuronHashes.push(hash);
     }
   });
 
@@ -88,7 +84,7 @@ export function generateNeuronCode(neurons) {
   return neuronDefs.map((neuron, idx) => {
     // Si es una neurona de Poisson, no generar modelo ANNarchy, solo retornar string vacío
     if (
-      neuron.name.toLowerCase().includes('poisson') ||
+      neuron.name.toLowerCase().includes('poisson neuron') ||
       (neuron.attributes.tipo && neuron.attributes.tipo.toLowerCase().includes('poisson'))
     ) {
       return '';
@@ -100,7 +96,7 @@ export function generateNeuronCode(neurons) {
       prevCode = neuron.attributes.extra + '\n';
     }
     // Nombre único para cada definición
-    const formattedName = formatName(neuron.name) + '_def' + (idx + 1);
+    const formattedName = 'NeuronDef_' + (idx + 1);
     const params = Object.entries(neuron.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
     const equations = `\t\t${neuron.equation}`;
     const attributesArr = [
@@ -140,27 +136,53 @@ export function generateSynapseCode(synapses) {
   const uniqueSynapses = [];
   const uniqueSynapseNames = new Set();
 
-  synapses.forEach(synapse => {
-    if (!uniqueSynapseNames.has(synapse.attributes.name)) {
-      uniqueSynapses.push(synapse);
-      uniqueSynapseNames.add(synapse.attributes.name);
-    }
-  });
+        synapses.forEach(synapse => {
+            const hasParams = synapse.attributes.parameters && Object.keys(synapse.attributes.parameters).length > 0;
+            const hasEquations = synapse.attributes.equations && synapse.attributes.equations.trim() !== '';
+            const hasPSP = synapse.attributes.psp && synapse.attributes.psp.trim() !== '';
+            const hasPreSpike = synapse.attributes.pre_spike && synapse.attributes.pre_spike.trim() !== '';
+            const hasPostSpike = synapse.attributes.post_spike && synapse.attributes.post_spike.trim() !== '';
+            const hasPreAxonSpike = synapse.attributes.pre_axon_spike && synapse.attributes.pre_axon_spike.trim() !== '';
+            const hasFunctions = synapse.attributes.functions && synapse.attributes.functions.trim() !== '';
 
-  return uniqueSynapses.map(synapse => {
-    const formattedName = formatName(synapse.attributes.name);
-    const params = Object.entries(synapse.attributes.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n');
-    const attributes = [
-      { key: 'equations', value: synapse.attributes.equations },
-      { key: 'psp', value: synapse.attributes.psp },
-      //{ key: 'operation', value: synapse.attributes.operation },
-      { key: 'pre_spike', value: synapse.attributes.pre_spike },
-      { key: 'post_spike', value: synapse.attributes.post_spike },
-      { key: 'pre_axon_spike', value: synapse.attributes.pre_axon_spike },
-      { key: 'functions', value: synapse.attributes.functions }
-    ].filter(attr => attr.value !== '').map(attr => `\t${attr.key}="""\n\t\t${attr.value}\n\t"""`).join(',\n');
-    return `${formattedName} = Synapse(\n\tparameters="""\n${params}\n\t""",\n${attributes}\n)`;
-  }).join('\n\n');
+            if (
+                (hasParams || hasEquations || hasPSP || hasPreSpike || hasPostSpike || hasPreAxonSpike || hasFunctions) &&
+                !uniqueSynapseNames.has(synapse.attributes.name)
+            ) {
+                uniqueSynapses.push(synapse);
+                uniqueSynapseNames.add(synapse.attributes.name);
+            }
+        });
+
+        if (uniqueSynapses.length === 0) return '';
+
+        return uniqueSynapses.map(synapse => {
+            const formattedName = formatName(synapse.attributes.name);
+            const params = synapse.attributes.parameters && Object.keys(synapse.attributes.parameters).length > 0
+                ? Object.entries(synapse.attributes.parameters).map(([key, value]) => `\t\t${key}=${value}`).join(',\n')
+                : '';
+            const attributes = [
+                { key: 'equations', value: synapse.attributes.equations },
+                { key: 'psp', value: synapse.attributes.psp },
+                { key: 'pre_spike', value: synapse.attributes.pre_spike },
+                { key: 'post_spike', value: synapse.attributes.post_spike },
+                { key: 'pre_axon_spike', value: synapse.attributes.pre_axon_spike },
+                { key: 'functions', value: synapse.attributes.functions }
+            ]
+                .filter(attr => attr.value && attr.value.trim() !== '')
+                .map(attr => `\t${attr.key}="""\n\t\t${attr.value}\n\t"""`)
+                .join(',\n');
+            let synapseStr = `${formattedName} = Synapse(\n`;
+            if (params) {
+                synapseStr += `\tparameters="""\n${params}\n\t"""`;
+                if (attributes) synapseStr += ',\n';
+            }
+            if (attributes) {
+                synapseStr += attributes;
+            }
+            synapseStr += `\n)`;
+            return synapseStr;
+        }).join('\n\n');
 }
 
 /**
@@ -171,8 +193,6 @@ export function generateSynapseCode(synapses) {
 export function generatePopulationCode(items) {
   // Mapear poblaciones a la definición de neurona correspondiente
   const populationNames = {};
-  // Crear hashes de definiciones de neurona
-  const neuronDefs = [];
   const neuronHashes = [];
   items.forEach(item => {
     if (item.type === 'Población neuronal') {
@@ -180,7 +200,6 @@ export function generatePopulationCode(items) {
         tipo: item.attributes.tipo,
         equations: item.attributes.equations,
         parameters: item.attributes.parameters,
-        functions: item.attributes.functions,
         spike: item.attributes.spike,
         axon_spike: item.attributes.axon_spike,
         reset: item.attributes.reset,
@@ -189,7 +208,6 @@ export function generatePopulationCode(items) {
         firingRate: item.attributes.firingRate
       });
       neuronHashes.push(hash);
-      neuronDefs.push({ hash, name: item.name });
     }
   });
   return items.map((item, idx) => {
@@ -199,7 +217,7 @@ export function generatePopulationCode(items) {
     const populationName = `${baseName}${count + 1}`;
     // Si es una población de Poisson, usar PoissonPopulation
     if (
-      item.name.toLowerCase().includes('poisson') ||
+      item.name.toLowerCase().includes('poisson neuron') ||
       (item.attributes && item.attributes.tipo && item.attributes.tipo.toLowerCase().includes('poisson'))
     ) {
       const quantity = item.quantity || 100;
@@ -211,7 +229,6 @@ export function generatePopulationCode(items) {
       tipo: item.attributes.tipo,
       equations: item.attributes.equations,
       parameters: item.attributes.parameters,
-      functions: item.attributes.functions,
       spike: item.attributes.spike,
       axon_spike: item.attributes.axon_spike,
       reset: item.attributes.reset,
@@ -220,7 +237,7 @@ export function generatePopulationCode(items) {
       firingRate: item.attributes.firingRate
     });
     const defIdx = neuronHashes.findIndex(h => h === hash);
-    const neuronDefName = `${baseName}_def${defIdx + 1}`;
+    const neuronDefName = 'NeuronDef_' + (defIdx + 1);
     return `${populationName} = Population(name='${populationName}', geometry=${item.quantity}, neuron=${neuronDefName})`;
   }).join('\n\n');
 }
@@ -248,8 +265,6 @@ export function generateProjectionCode(connections, items) {
     const synapseModel = formatName(connection.attributes.name);
     const connectFunction = connection.connections.rule === 'one_to_one' ? 'connect_one_to_one' : 'connect_all_to_all';
     return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, synapse=${synapseModel}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
-
-    //return `${projectionName} = Projection(pre=${origenPopulation}, post=${destinoPopulation}, target='${connection.connections.target}')\n${projectionName}.${connectFunction}(weights=${connection.connections.weights}, delays=${connection.connections.delays})`;
   }).join('\n\n');
 }
 
@@ -297,6 +312,13 @@ export function writeMonitors(monitors, items) {
   return `monitorsArreglo = [\n${monitorsArray}\n]`;
 }
 
+/**
+ * Genera el código para la creación de monitores en ANNarchy a partir de una lista de monitores y elementos.
+ *
+ * @param {Array<Object>} monitors - Lista de objetos monitor, cada uno debe contener un populationId y un array de variables.
+ * @param {Array<Object>} items - Lista de elementos que representan poblaciones, cada uno debe tener un id y un nombre.
+ * @returns {string} Código en formato string que define la lista de monitores en ANNarchy.
+ */
 function createMonitorsCode(monitors, items) {
   const populationNames = items.reduce((acc, item) => {
     const baseName = formatName(item.name);
@@ -366,7 +388,7 @@ print(json.dumps(monitor_results, indent=2))
 }
 
 /**
- * Traduce el listado de items en neuronas y sinapsis estilo ANNarchy y lo pone en code.
+ * Genera el código fuente que se envia al backend.
  * @param {Array} items - Lista de elementos en el lienzo.
  * @param {Array} connections - Lista de conexiones en el lienzo.
  * @param {Array} monitors - Lista de monitores en el lienzo.
@@ -374,7 +396,7 @@ print(json.dumps(monitor_results, indent=2))
  * @returns {string} - Código ANNarchy generado.
  */
 export function generateANNarchyCode(items, connections, monitors, simTime, stepTime ) {
-  simulationTime = simTime; // Actualizar el tiempo de simulación
+  simulationTime = simTime; 
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
   const monitorList = getMonitorsFromLienzo(monitors);
@@ -385,7 +407,7 @@ export function generateANNarchyCode(items, connections, monitors, simTime, step
   const projectionCode = generateProjectionCode(connections, items);
   const monitorCode = writeMonitors(monitorList, items);
   const monitorsCreated  = createMonitorsCode(monitors, items);
-  const monitorHandlingCode = generateMonitorHandlingCode(monitorList, '${job_id}'); // Añadir manejo de monitores
+  const monitorHandlingCode = generateMonitorHandlingCode(monitorList, '${job_id}'); 
 
   code = `from ANNarchy import *
 
@@ -395,10 +417,9 @@ setup(dt=dt)
 #Neuronal models
 ${neuronCode}
 
-#Synaptic models
+${synapseCode ? `#Synaptic models
 ${synapseCode}
-
-#Populations
+` : ''}#Populations
 ${populationCode}
 
 #Projections
@@ -417,8 +438,18 @@ ${monitorHandlingCode}
 }
 
 
+/**
+ * Genera el código fuente que se muestra en el sideBar.
+ *
+ * @param {Array} items - Lista de elementos que representan las poblaciones neuronales y otros componentes.
+ * @param {Array} connections - Lista de conexiones sinápticas entre los elementos.
+ * @param {Array} monitors - Lista de monitores para registrar la actividad durante la simulación.
+ * @param {number} simTime - Tiempo total de simulación en milisegundos.
+ * @param {number} stepTime - Paso de integración de la simulación.
+ * @returns {string} Código fuente en Python listo para ser ejecutado en ANNarchy.
+ */
 export function generateANNarchyCodeUser(items, connections, monitors, simTime, stepTime ) {
-  simulationTime = simTime; // Actualizar el tiempo de simulación
+  simulationTime = simTime;
   const neurons = getNeurons(items);
   const synapses = getSynapses(connections);
   const monitorList = getMonitorsFromLienzo(monitors);
@@ -465,7 +496,6 @@ simulate(${simulationTime})
 export async function sendCodeToBackend(code) {
   try {
     const backendHost = window.location.hostname;
-
     const response = await fetch(`http://${backendHost}:5000/simulate`, {
       method: 'POST',
       headers: {
@@ -482,7 +512,6 @@ export async function sendCodeToBackend(code) {
     const result = await response.json();
     return result.job_id; // Ahora es una cadena UUID
   } catch (error) {
-    console.error('Error al enviar el código al backend:', error);
     throw error;
   }
 }
@@ -510,7 +539,6 @@ export async function getJobStatus(jobId) {
     const result = await response.json();
     return result; // Ajustar según la estructura de la respuesta del backend
   } catch (error) {
-    console.error('Error al obtener el estado del trabajo desde el backend:', error);
     throw error;
   }
 }
@@ -560,5 +588,3 @@ export function downloadMonitorResults(monitors) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-
-// Eliminado export default CodeGenerator y el componente, solo exportaciones nombradas

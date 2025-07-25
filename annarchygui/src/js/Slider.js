@@ -51,7 +51,7 @@ const Slider = ({ min = 0, max = 1000, step = 1, onChange }) => {
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <label>
-          Inicio:
+          Start:
           <input
             type="number"
             value={values[0]}
@@ -62,7 +62,7 @@ const Slider = ({ min = 0, max = 1000, step = 1, onChange }) => {
           />
         </label>
         <label>
-          Fin:
+          End:
           <input
             type="number"
             value={values[1]}
