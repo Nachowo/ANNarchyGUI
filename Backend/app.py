@@ -21,6 +21,10 @@ in_progress_jobs = {}
 
 # Función para extraer los resultados de los monitores desde result.stdout
 def extract_monitor_results(stdout):
+    """
+    Extrae los resultados de los monitores desde la salida estándar (stdout) del proceso simulado.
+    Busca líneas que sean diccionarios JSON y los agrega al resultado.
+    """
     monitor_results = {}
     for line in stdout.splitlines():
         if line.startswith('{') and line.endswith('}'):
@@ -32,6 +36,11 @@ def extract_monitor_results(stdout):
 
 # Función para procesar trabajos de la cola
 def process_jobs():
+    """
+    Función principal del worker: procesa trabajos de la cola job_queue.
+    Ejecuta el código recibido, captura la salida, extrae resultados y almacena el estado.
+    Usa locks para proteger los diccionarios compartidos.
+    """
     while True:
         job_id, code = job_queue.get()  # Tomar un trabajo de la cola
         if job_id is None:  # Señal para terminar el worker
@@ -101,6 +110,10 @@ for i in range(num_threads):
 
 @app.route('/simulate', methods=['POST'])
 def simulate():
+    """
+    Endpoint principal para recibir código ANNarchy y encolarlo para simulación.
+    Genera un job_id único, lo agrega a la cola y responde con el id.
+    """
     try:
         # Obtener el código desde la solicitud
         data = request.get_json()
@@ -128,6 +141,10 @@ def simulate():
 
 @app.route('/status/<job_id>', methods=['GET'])  # Cambiar <int:job_id> a <job_id>
 def get_status(job_id):
+    """
+    Endpoint para consultar el estado o resultado de un trabajo por su job_id.
+    Devuelve el resultado si está listo, o el estado (en progreso, en espera, no encontrado).
+    """
     print(f'Buscando trabajo {job_id}', flush=True)
     # Verificar si el trabajo ha sido procesado
     with queue_lock:
