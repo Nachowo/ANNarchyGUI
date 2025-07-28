@@ -97,7 +97,7 @@ function App() {
       pollJobStatus(jobId, interval);
     } catch (error) {
       console.error('Error al enviar el código al backend:', error);
-      setSimulationOutput('Error al ejecutar la simulación.');
+      setSimulationOutput('Error reaching the backend.');
       setShowOutputModal(true); // Mostrar el modal de resultado
       setIsLoading(false); // Ocultar el modal de carga
       setLoadingProgress(0); // Reiniciar progreso
@@ -154,9 +154,9 @@ function App() {
           setTimeout(checkStatus, pollInterval);
         } else {
           setLoadingStage('analyzing');
-          setLoadingProgress(80); // Tercera etapa: Analizando resultados
+          setLoadingProgress(80); // Tercera etapa
           const json = parseBackendResponse(output);
-          let finalOutput = output || status || 'Simulación completada.';
+          let finalOutput = output || status || 'Simula.';
           renderMonitorGraphs(json); // Mostrar los gráficos recibidos
           setSimulationOutput(finalOutput);
           setShowOutputModal(true);
@@ -170,7 +170,7 @@ function App() {
         }
       } catch (e) {
         if (e.message && e.message.includes('404')) {
-          setSimulationOutput('Error 404 al ejecutar la simulación.');
+          setSimulationOutput('Error 404');
           setShowOutputModal(true);
           setIsLoading(false);
           setLoadingProgress(0); // Reiniciar progreso

@@ -177,7 +177,7 @@ function Sidebar({ onConnectToggle, items, connections, onMonitorToggle, onAssig
       attributes: {
         tipo: 'Spiking neuron',
         parameters: {
-          noise: 5.0,
+          noise: 0.0,
           a: 0.02,
           b: 0.2,
           c: -65.0,

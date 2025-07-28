@@ -295,7 +295,16 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
    * Filtra parámetros vacíos y actualiza el estado global.
    */
   const handleSave = () => {
-    
+    // Validar que los campos requeridos estén rellenados
+    if (!name || name.trim() === "") {
+      window.alert("The neuron name is required.");
+      return;
+    }
+    if (!equations || equations.trim() === "") {
+      window.alert("The neuron equations are required.");
+      return;
+    }
+
     // Filtrar parámetros vacíos antes de guardar
     const filteredParameters = parameters.filter(param => param.name && param.name.trim() !== "");
     const updatedNeuron = {
@@ -319,7 +328,7 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
       }
     };
     setParameters(filteredParameters); 
-    
+
     const updatedMonitors = monitorAttributes.map(monitor => ({
       id: monitor.id,
       populationId: neuron.id,
@@ -397,7 +406,7 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
             <div className="column">
               <div className="row">
                 <label htmlFor="neuron-name">Name:</label>
-                <input type="text" id="neuron-name" value={name} onChange={handleNameChange} />
+                <input type="text" id="neuron-name" value={name} onChange={handleNameChange} placeholder="Neuron name" />
               </div>
             </div>
             {neuron.id !== undefined && (
@@ -430,13 +439,13 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
 
           <div className="row">
             <label htmlFor="equation">Equation:</label>
-            <textarea id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} />
+          <textarea id="equation" value={equations} onChange={handleEquationChange} disabled={neuron.id !== undefined} placeholder="Equations" />
           </div>
 
           {neuron.id !== undefined && (
             <div className="row">
               <label htmlFor="quantity">Quantity:</label>
-              <input type="number" id="quantity" value={quantity} onChange={handleQuantityChange} />
+              <input type="number" id="quantity" value={quantity} onChange={handleQuantityChange} placeholder="Quantity" />
             </div>
           )}
 
@@ -448,13 +457,13 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                   <div className="row" key={index}>
                     <input
                       type="text"
-                      placeholder="Name"
+                      placeholder="Parameter name"
                       value={param.name}
                       onChange={(e) => handleParameterChange(index, "name", e.target.value)}
                     />
                     <input
                       type="text"
-                      placeholder="Value"
+                      placeholder="Parameter value"
                       value={param.value}
                       onChange={(e) => handleParameterChange(index, "value", e.target.value)}
                     />
@@ -472,15 +481,15 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                 <>
                   <div className="row">
                     <label htmlFor="spike">Spike:</label>
-                    <textarea id="spike" value={spike} onChange={handleSpikeChange} />
+                    <textarea id="spike" value={spike} onChange={handleSpikeChange} placeholder="Spike" />
                   </div>
                   <div className="row">
                     <label htmlFor="axon-spike">Axon Spike:</label>
-                    <textarea id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} />
+                    <textarea id="axon-spike" value={axonSpike} onChange={handleAxonSpikeChange} placeholder="Axon spike" />
                   </div>
                   <div className="row">
                     <label htmlFor="reset">Reset:</label>
-                    <textarea id="reset" value={reset} onChange={handleResetChange} />
+                    <textarea id="reset" value={reset} onChange={handleResetChange} placeholder="Reset" />
                   </div>
                 </>
               )}
@@ -490,11 +499,11 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
                 <>
                   <div className="row">
                     <label htmlFor="axon-reset">Axon Reset:</label>
-                    <textarea id="axon-reset" value={axonReset} onChange={handleAxonResetChange} />
+                    <textarea id="axon-reset" value={axonReset} onChange={handleAxonResetChange} placeholder="Axon reset" />
                   </div>
                   <div className="row">
                     <label htmlFor="refractory">Refractory:</label>
-                    <textarea id="refractory" value={refractory} onChange={handleRefractoryChange} />
+                    <textarea id="refractory" value={refractory} onChange={handleRefractoryChange} placeholder="Refractory" />
                   </div>
                 </>
               )}
@@ -503,7 +512,7 @@ function ConfigPanelNeuron({ neuron, onSave, monitors, setMonitors, graphics, gr
           {tipo === 'Rate-Coded neuron' && (
             <div className="row">
               <label htmlFor="firing-rate">Firing rate:</label>
-              <textarea id="firing-rate" value={firingRate} onChange={handleFiringRateChange} />
+              <textarea id="firing-rate" value={firingRate} onChange={handleFiringRateChange} placeholder="Firing rate" />
             </div>
           )}
 
